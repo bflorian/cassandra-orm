@@ -14,30 +14,21 @@
  * limitations under the License.
  */
 
-package com.reachlocal.grails.plugins.cassandra.test.orm
+package com.reachlocal.grails.plugins.cassandra.mapping
 
 /**
- * @author Bob Florian
+ * @author: Bob Florian
  */
-class Household
+class OrmUtility 
 {
-	String emailAddress
-	String address1
-	String address2
-	String city
-	String state
-	String zip
-	String phone
-	Integer age
-	List occupations
-	List students
-	Boolean ptaMember
+	static void addDynamicMethods(clazz, ctx)
+	{
+		ClassMethods.addDynamicOrmMethods(clazz, ctx)
+		InstanceMethods.addDynamicOrmMethods(clazz, ctx)
+	}
 
-	static hasMany = [students: Student]
-
-	static cassandraMapping = [
-			primaryKey: 'emailAddress',
-			secondaryIndexes: ['city','state','zip'],
-	        explicitIndexes: ['phone']
-	]
+	static boolean isMappedClass(clazz)
+	{
+		MappingUtils.isMappedClass(clazz)
+	}
 }

@@ -19,22 +19,25 @@ package com.reachlocal.grails.plugins.cassandra.orm
 import org.springframework.beans.factory.InitializingBean
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import com.reachlocal.grails.plugins.cassandra.mapping.DataMapping
+import org.springframework.context.ApplicationContextAware
+import org.springframework.context.ApplicationContext
 
 /**
  * @author: Bob Florian
  */
-class CassandraOrmService implements InitializingBean
+class CassandraOrmService implements InitializingBean, ApplicationContextAware
 {
 	boolean transactional = false
-	def applicationContext
+
+	ApplicationContext applicationContext
 
 	def ormClientServiceName = ConfigurationHolder.config?.cassandra?.ormClientServiceName ?: "astyanaxService"
-		
+
 	def client
 	def persistence
 	def mapping
-	
-	void afterPropertiesSet () 
+
+	void afterPropertiesSet ()
 	{
 		client = applicationContext.getBean(ormClientServiceName)
 		persistence = client.orm

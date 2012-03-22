@@ -16,12 +16,10 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import com.reachlocal.grails.plugins.cassandra.OrmPersistenceMethods
-
 /**
  * @author: Bob Florian
  */
-class MockPersistenceMethods implements OrmPersistenceMethods
+class MockPersistenceMethods
 {
 	def CLASSES = [
 	        MockUser_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.User',

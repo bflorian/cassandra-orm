@@ -18,7 +18,6 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import grails.converters.JSON
 import java.nio.ByteBuffer
-import com.reachlocal.grails.plugins.cassandra.OrmPersistenceMethods
 
 /**
  * @author: Bob Florian
@@ -28,8 +27,9 @@ class DataMapping
 	static final CLASS_NAME_KEY = '_class_name_'
 	static final KEY_SUFFIX = InstanceMethods.KEY_SUFFIX
 	static final DIRTY_SUFFIX = InstanceMethods.DIRTY_SUFFIX
+	static final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
 
-	OrmPersistenceMethods persistence
+	def persistence
 
 	def dataProperties(data)
 	{
@@ -48,13 +48,16 @@ class DataMapping
 			map[CLASS_NAME_KEY] = clazz.getName()
 			data.metaClass.properties.each() {
 				if (!it.name.endsWith(DIRTY_SUFFIX)) {
+
 					def prop = data.getProperty(it.name)
 					if (prop != null &&
 							it.getter &&
 							!it.getter.isStatic() &&
 							!transients.contains(it.name) &&
+							!GLOBAL_TRANSIENTS.contains(it.name) &&
 							!hasMany[it.name])
 					{
+						println it.name
 						if (MappingUtils.isMappedClass(prop.class)) {
 							map["${it.name}${KEY_SUFFIX}"] = prop.id
 						}
@@ -124,7 +127,7 @@ class DataMapping
 	def newObject(cols)
 	{
 		def obj = null
-		if (cols.size()) {
+		if (cols) {
 			def className = persistence.stringValue(persistence.getColumn(cols, CLASS_NAME_KEY))
 			def asClass = Class.forName(className, false, DataMapping.class.classLoader)
 			obj = asClass.newInstance()

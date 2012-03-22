@@ -1,3 +1,5 @@
+import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
+
 /*
  * Copyright 2012 ReachLocal Inc.
  *
@@ -47,7 +49,12 @@ Brief description of the plugin.
 	}
 
 	def doWithDynamicMethods = { ctx ->
-		// TODO Implement registering dynamic methods to classes (optional)
+		application.allClasses.each {clazz ->
+			if (OrmUtility.isMappedClass(clazz)) {
+				log.info "Mapping ${clazz.name} for Casssandra ORM"
+				OrmUtility.addDynamicMethods(clazz, ctx)
+			}
+		}
 	}
 
 	def doWithApplicationContext = { applicationContext ->
