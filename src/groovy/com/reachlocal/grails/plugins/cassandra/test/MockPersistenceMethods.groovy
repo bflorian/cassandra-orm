@@ -23,6 +23,11 @@ import com.reachlocal.grails.plugins.cassandra.OrmPersistenceMethods
  */
 class MockPersistenceMethods implements OrmPersistenceMethods
 {
+	def CLASSES = [
+	        MockUser_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.User',
+			UserGroup_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup'
+	]
+
 	def columnFamily(String name)
 	{
 		log "columnFamily", name
@@ -32,16 +37,16 @@ class MockPersistenceMethods implements OrmPersistenceMethods
 	def getRow(Object client, Object columnFamily, Object rowKey)
 	{
 		log "getRow", columnFamily, rowKey
-		[[name: '_class_name_', value:'com.reachlocal.grails.plugins.cassandra.test.orm.User'],[name:'prop1', value: 'propVal1'],[name:'prop2', value: 'propVal2']]
-		//[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', prop1: 'propVal1', prop2: 'propVal2']
+		[[name: '_class_name_', value: CLASSES[columnFamily]],[name:'prop1', value: 'propVal1'],[name:'prop2', value: 'propVal2']]
+		//[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney']
 	}
 
 	def getRows(Object client, Object columnFamily, Collection rowKeys)
 	{
 		log "getRows", columnFamily, rowKeys
 		[
-				col1: [[name: '_class_name_', value:'com.reachlocal.grails.plugins.cassandra.test.orm.User'],[name:'name', value: 'Sally'],[name:'city', value: 'Olney']],
-				col2: [[name: '_class_name_', value:'com.reachlocal.grails.plugins.cassandra.test.orm.User'],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City']]
+				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney']],
+				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City']]
 		]
 	}
 
@@ -66,9 +71,23 @@ class MockPersistenceMethods implements OrmPersistenceMethods
 	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames)
 	{
 		log "getColumnSlice", columnFamily, rowKey, columnNames
-		[]
+		def map = [('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz']
+		result = []
+		columnNames.each {
+			def v = map[it]
+			if (v) {
+				result << [name: it, value:  v]
+			}
+		}
+		result
 	}
 
+	def getColumn(Object client, Object columnFamily, Object rowKey, Object columnName)
+	{
+		log "getColumnSlice", columnFamily, rowKey, columnName
+		[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz'][columnName]
+	}
+	
 	def prepareMutationBatch(client)
 	{
 		log "prepareMutationBatch"

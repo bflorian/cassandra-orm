@@ -30,6 +30,7 @@ class InstanceMethodTests extends OrmTestCase
 		initialize()
 
 		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG")
+		def userGroup2 = new UserGroup(uuid: "group2-zzzz-zzzz", name: "CUG")
 		def user = new User(uuid: "user1-zzzz-zzzz", name: "Jane", phone:  "301-555-2222", city: "Reston", state:  "VA", gender:  "Female")
 
 		println "\n--- getCassandra() ---"
@@ -56,14 +57,53 @@ class InstanceMethodTests extends OrmTestCase
 		persistence.printClear()
 		println user.id
 
-		println "\n--- save()() ---"
+		println "\n--- save() ---"
 		userGroup.save()
 		persistence.printClear()
 		println user.id
 
-		println "\n--- save()() ---"
+		println "\n--- delete() ---"
 		userGroup.delete()
 		persistence.printClear()
+
+		println "\n--- userGroup2.users ---"
+		def r = userGroup2.users
+		persistence.printClear()
+		println r
+
+		println "\n--- userGroup.users(max: 5) ---"
+		r = userGroup.users(max: 5)
+		persistence.printClear()
 		println user.id
+		println r
+
+		println "\n--- userGroup.users(max: 50, column: 'name') ---"
+		r = userGroup.users(max: 50, column: 'name')
+		persistence.printClear()
+		println user.id
+		println r
+
+		println "\n--- userGroup.users(max: 50, columns: ['name','city']) ---"
+		r = userGroup.users(max: 50, columns: ['name','city'])
+		persistence.printClear()
+		println user.id
+		println r
+
+		println "\n--- userGroup.addToUsers(user) ---"
+		userGroup.addToUsers(user)
+		persistence.printClear()
+
+		println "\n--- userGroup.removeFromUsers(user) ---"
+		userGroup.removeFromUsers(user)
+		persistence.printClear()
+
+		println "\n--- user.userGroup ---"
+		user.userGroup
+		persistence.printClear()
+
+		println "\n--- user.userGroup = userGroup2 ---"
+		user.userGroup = userGroup2
+		persistence.printClear()
+		assertEquals userGroup2, user.userGroup
 	}
 }

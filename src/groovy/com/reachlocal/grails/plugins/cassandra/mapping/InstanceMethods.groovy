@@ -256,15 +256,16 @@ class InstanceMethods extends MappingUtils
 					def thisObj = delegate
 					def items = PropertyUtils.getProperty(thisObj, propName)?: []
 					def listItem = items.find{it.id == item.id}
+					def persistence = cassandra.persistence
 					if (listItem) {
 						items.remove(listItem)
 						PropertyUtils.setProperty(thisObj, propName, items)
 
 						cassandra.execute(delegate.keySpace) {ks ->
-							def m = cassandra.persistence.prepareMutationBatch(ks)
+							def m = persistence.prepareMutationBatch(ks)
 
 							// remove join row from this object to the item
-							removeJoinRow(cassandra.persistence, m, clazz, thisObj, item.class, item, propName)
+							removeJoinRow(persistence, m, clazz, thisObj, item.class, item, propName)
 
 							// remove the join row from the item to this object, if there is one
 							safeGetStaticProperty(item.class, "hasMany")?.each {name1, clazz1 ->
@@ -272,7 +273,7 @@ class InstanceMethods extends MappingUtils
 									def items1 = item.getProperty(name1)
 									def listItem1 = items1.find{it.id == thisObj.id}
 									items1.remove(listItem1)
-									removeJoinRow(cassandra.persistence, m, item.class, item, clazz, thisObj, name1)
+									removeJoinRow(persistence, m, item.class, item, clazz, thisObj, name1)
 								}
 							}
 
@@ -283,10 +284,10 @@ class InstanceMethods extends MappingUtils
 									// TODO - convert to save when we have a way to null out relationships
 									// TODO - break out into a util function
 									def colKey = "${name1}${KEY_SUFFIX}".toString()
-									deleteColumn(m, item.columnFamily, item.id, colKey)
+									persistence.deleteColumn(m, item.columnFamily, item.id, colKey)
 								}
 							}
-							cassandra.persistence.execute(m)
+							persistence.execute(m)
 						}
 					}
 					else {
@@ -322,11 +323,10 @@ class InstanceMethods extends MappingUtils
 						// TODO - need to find a way to store this in the object!
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 						cassandra.execute(keySpace) {ks ->
-							def pid = ks.prepareQuery(columnFamily).getKey(thisObj.id).execute().result["${propName}${KEY_SUFFIX}"]?.stringValue
-							//value = client.getSlice(cf, pid) ?: null
+							//def pid = ks.prepareQuery(columnFamily).getKey(thisObj.id).execute().result["${propName}${KEY_SUFFIX}"]?.stringValue
+							def pid = cassandra.persistence.getColumn(ks, columnFamily, thisObj.id, "${propName}${KEY_SUFFIX}".toString())
 							if (pid) {
-								def resp = ks.prepareQuery(cf).getKey(pid).execute()
-							    def data = resp.result
+								def data = cassandra.persistence.getRow(ks, cf, pid)
 							    value = cassandra.mapping.newObject(data)
 							}
 						}

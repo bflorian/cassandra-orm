@@ -35,6 +35,8 @@ interface OrmPersistenceMethods
 
 	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames);
 
+	def getColumn(Object client, Object columnFamily, Object rowKey, Object columnName);
+
 	def prepareMutationBatch(client);
 
 	void deleteColumn(mutationBatch, columnFamily, rowKey, columnName);
