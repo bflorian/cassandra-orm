@@ -70,7 +70,7 @@ class MockPersistenceMethods
 	{
 		log "getColumnSlice", columnFamily, rowKey, columnNames
 		def map = [('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz']
-		result = []
+		def result = []
 		columnNames.each {
 			def v = map[it]
 			if (v) {

@@ -99,7 +99,8 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// insert this object
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, cassandra.mapping.dataProperties(thisObj))
+				def dataProperties = cassandra.mapping.dataProperties(thisObj)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties)
 
 				// explicit indexes
 				def indexRows = [:]
@@ -323,9 +324,11 @@ class InstanceMethods extends MappingUtils
 						// TODO - need to find a way to store this in the object!
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 						cassandra.execute(keySpace) {ks ->
-							//def pid = ks.prepareQuery(columnFamily).getKey(thisObj.id).execute().result["${propName}${KEY_SUFFIX}"]?.stringValue
-							def pid = cassandra.persistence.getColumn(ks, columnFamily, thisObj.id, "${propName}${KEY_SUFFIX}".toString())
-							if (pid) {
+							def colName = "${propName}${KEY_SUFFIX}".toString()
+							def cols = cassandra.persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
+							def col = cassandra.persistence.getColumn(cols, colName)
+							if (col) {
+								def pid = cassandra.persistence.stringValue(col)
 								def data = cassandra.persistence.getRow(ks, cf, pid)
 							    value = cassandra.mapping.newObject(data)
 							}
