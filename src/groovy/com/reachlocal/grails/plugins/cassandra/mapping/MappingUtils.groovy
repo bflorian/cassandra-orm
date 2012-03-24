@@ -358,7 +358,7 @@ class MappingUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
-		clazz.cassandra.execute(clazz.keySpace) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 			def columns = []
 			filterList.each {filter ->
 				def rowKey = objectIndexRowKey(index, filter)
@@ -387,7 +387,7 @@ class MappingUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def itemColumnFamily = itemClass.columnFamily
 		def persistence = thisObj.cassandra.persistence
-		thisObj.cassandra.execute(thisObj.keySpace) {ks ->
+		thisObj.cassandra.withKeyspace(thisObj.keySpace) {ks ->
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 

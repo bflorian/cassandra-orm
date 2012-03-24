@@ -56,7 +56,7 @@ class InstanceMethods extends MappingUtils
 		// save()
 		clazz.metaClass.save = {args ->
 			def thisObj = delegate
-			cassandra.execute(thisObj.keySpace) {ks ->
+			cassandra.withKeyspace(thisObj.keySpace) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks)
 
 				// see if it exists
@@ -143,7 +143,7 @@ class InstanceMethods extends MappingUtils
 					def items = thisObj.getProperty(propName)
 					items?.each {item ->
 
-						thisObj.cassandra.execute(thisObj.keySpace) {ks ->
+						thisObj.cassandra.withKeyspace(thisObj.keySpace) {ks ->
 							def m = cassandra.persistence.prepareMutationBatch(ks)
 
 							saveJoinRow(cassandra.persistence, m, clazz, thisObj, propClass, item, propName)
@@ -171,7 +171,7 @@ class InstanceMethods extends MappingUtils
 		// delete()
 		clazz.metaClass.delete = {
 			def thisObj = delegate
-			cassandra.execute(thisObj.keySpace) {ks ->
+			cassandra.withKeyspace(thisObj.keySpace) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks)
 				cassandra.persistence.deleteRow(m, thisObj.columnFamily, thisObj.id)
 
@@ -228,7 +228,7 @@ class InstanceMethods extends MappingUtils
 					items << item
 					PropertyUtils.setProperty(thisObj, propName, items)
 
-					cassandra.execute(delegate.keySpace) {ks ->
+					cassandra.withKeyspace(delegate.keySpace) {ks ->
 						def m = cassandra.persistence.prepareMutationBatch(ks)
 
 						// save join row from this object to the item
@@ -262,7 +262,7 @@ class InstanceMethods extends MappingUtils
 						items.remove(listItem)
 						PropertyUtils.setProperty(thisObj, propName, items)
 
-						cassandra.execute(delegate.keySpace) {ks ->
+						cassandra.withKeyspace(delegate.keySpace) {ks ->
 							def m = persistence.prepareMutationBatch(ks)
 
 							// remove join row from this object to the item
@@ -323,7 +323,7 @@ class InstanceMethods extends MappingUtils
 						def cf = property.type.columnFamily
 						// TODO - need to find a way to store this in the object!
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
-						cassandra.execute(keySpace) {ks ->
+						cassandra.withKeyspace(keySpace) {ks ->
 							def colName = "${propName}${KEY_SUFFIX}".toString()
 							def cols = cassandra.persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
 							def col = cassandra.persistence.getColumn(cols, colName)

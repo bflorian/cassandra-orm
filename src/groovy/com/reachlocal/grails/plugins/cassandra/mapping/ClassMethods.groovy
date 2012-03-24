@@ -88,7 +88,7 @@ class ClassMethods extends MappingUtils
 		clazz.metaClass.'static'.get = {id, opts=[:] ->
 			def result = null
 			def rowKey = primaryRowKey(id)
-			cassandra.execute(keySpace) {ks ->
+			cassandra.withKeyspace(keySpace) {ks ->
 				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey)
 				result = cassandra.mapping.newObject(data)
 			}
@@ -105,7 +105,7 @@ class ClassMethods extends MappingUtils
 		clazz.metaClass.'static'.list = {opts=[:] ->
 
 			def options = addOptionDefaults(opts, MAX_ROWS)
-			cassandra.execute(keySpace) {ks ->
+			cassandra.withKeyspace(keySpace) {ks ->
 				def columns = cassandra.persistence.getColumnRange(
 						ks,
 						indexColumnFamily,
@@ -199,7 +199,7 @@ class ClassMethods extends MappingUtils
 				else {
 					// find by query expression
 					def options = addOptionDefaults(opts, MAX_ROWS)
-					cassandra.execute(keySpace) {ks ->
+					cassandra.withKeyspace(keySpace) {ks ->
 						def properties = [:]
 						propertyListFromMethodName(str).eachWithIndex {it, i ->
 							properties[it] = args[i]

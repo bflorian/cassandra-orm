@@ -44,8 +44,8 @@ class CassandraOrmService implements InitializingBean, ApplicationContextAware
 		mapping = new DataMapping(persistence: persistence)
 	}
 
-	def execute(keyspace, block) throws Exception
+	def withKeyspace(keyspace, block) throws Exception
 	{
-		client.execute(keyspace, block)
+		client.withKeyspace(keyspace, block)
 	}
 }

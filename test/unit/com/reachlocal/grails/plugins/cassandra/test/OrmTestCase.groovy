@@ -40,7 +40,7 @@ class OrmTestCase extends GroovyTestCase
 		persistence = new MockPersistenceMethods()
 		client = new CassandraOrmService(
 				client: new Expando(
-						execute: {keyspace, block -> block("context")},
+						withKeyspace: {keyspace, block -> block("context")},
 				),
 				persistence: persistence,
 				mapping: new DataMapping(persistence: persistence)
