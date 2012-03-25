@@ -212,35 +212,9 @@ class MappingUtils
 		return id
 	}
 
-	static primaryRowKey(Integer id)
+	static primaryRowKey(Number id)
 	{
-		return id < 0  ?INT_KEY_FMT2.format(id) : INT_KEY_FMT1.format(id)
-	}
-
-	static primaryRowKey(int id)
-	{
-		return id < 0  ?INT_KEY_FMT2.format(id) : INT_KEY_FMT1.format(id)
-	}
-
-	static primaryRowKey(Long id)
-	{
-		return id < 0  ?INT_KEY_FMT2.format(id) : INT_KEY_FMT1.format(id)
-	}
-
-	static primaryRowKey(long id)
-	{
-		return id < 0  ?INT_KEY_FMT2.format(id) : INT_KEY_FMT1.format(id)
-	}
-
-	static primaryRowKey(BigDecimal id)
-	{
-		if (id.scale == 0) {
-			return id < 0  ?INT_KEY_FMT2.format(id) : INT_KEY_FMT1.format(id)
-		}
-		else {
-			// TODO - handle non-intgers?
-			return id.toString()
-		}
+		id.toString()
 	}
 
 	static primaryRowKey(obj)
@@ -378,6 +352,28 @@ class MappingUtils
 			def rows = persistence.getRows(ks, clazz.columnFamily, keys)
 			def result = clazz.cassandra.mapping.makeResult(keys, rows, options)
 			return result
+		}
+	}
+
+	static countByExplicitIndex(clazz, filterList, index, opts)
+	{
+		def options = addOptionDefaults(opts, MAX_ROWS)
+		def indexCf = clazz.indexColumnFamily
+		def persistence = clazz.cassandra.persistence
+		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+			def total = 0
+			filterList.each {filter ->
+				def rowKey = objectIndexRowKey(index, filter)
+				def count = persistence.countColumnRange(
+						ks,
+						indexCf,
+						rowKey,
+						options.start,
+						options.finish)
+
+				total += count
+			}
+			return total
 		}
 	}
 
