@@ -230,9 +230,7 @@ class InstanceMethods extends MappingUtils
 				// addTo...
 				clazz.metaClass."${addToName}" = { item ->
 					def thisObj = delegate
-					def items = PropertyUtils.getProperty(thisObj, propName)?: []
-					items << item
-					PropertyUtils.setProperty(thisObj, propName, items)
+					PropertyUtils.setProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace) {ks ->
 						def m = cassandra.persistence.prepareMutationBatch(ks)
@@ -261,44 +259,36 @@ class InstanceMethods extends MappingUtils
 				// removeFrom...
 				clazz.metaClass."${removeFromName}" = { item ->
 					def thisObj = delegate
-					def items = PropertyUtils.getProperty(thisObj, propName)?: []
-					def listItem = items.find{it.id == item.id}
 					def persistence = cassandra.persistence
-					if (listItem) {
-						items.remove(listItem)
-						PropertyUtils.setProperty(thisObj, propName, items)
+					PropertyUtils.setProperty(thisObj, propName, null)
 
-						cassandra.withKeyspace(delegate.keySpace) {ks ->
-							def m = persistence.prepareMutationBatch(ks)
+					cassandra.withKeyspace(delegate.keySpace) {ks ->
+						def m = persistence.prepareMutationBatch(ks)
 
-							// remove join row from this object to the item
-							removeJoinRow(persistence, m, clazz, thisObj, item.class, item, propName)
+						// remove join row from this object to the item
+						removeJoinRow(persistence, m, clazz, thisObj, item.class, item, propName)
 
-							// remove the join row from the item to this object, if there is one
-							safeGetStaticProperty(item.class, "hasMany")?.each {name1, clazz1 ->
-								if (clazz1 == clazz) {
-									def items1 = item.getProperty(name1)
-									def listItem1 = items1.find{it.id == thisObj.id}
-									items1.remove(listItem1)
-									removeJoinRow(persistence, m, item.class, item, clazz, thisObj, name1)
-								}
+						// remove the join row from the item to this object, if there is one
+						safeGetStaticProperty(item.class, "hasMany")?.each {name1, clazz1 ->
+							if (clazz1 == clazz) {
+								def items1 = item.getProperty(name1)
+								def listItem1 = items1.find{it.id == thisObj.id}
+								items1.remove(listItem1)
+								removeJoinRow(persistence, m, item.class, item, clazz, thisObj, name1)
 							}
-
-							// null out belongsTo value
-							safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
-								if (clazz1 == clazz) {
-									item.setProperty(name1, null)
-									// TODO - convert to save when we have a way to null out relationships
-									// TODO - break out into a util function
-									def colKey = "${name1}${KEY_SUFFIX}".toString()
-									persistence.deleteColumn(m, item.columnFamily, item.id, colKey)
-								}
-							}
-							persistence.execute(m)
 						}
-					}
-					else {
-						// TODO - throw exception if specified item not in list?
+
+						// null out belongsTo value
+						safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
+							if (clazz1 == clazz) {
+								item.setProperty(name1, null)
+								// TODO - convert to save when we have a way to null out relationships
+								// TODO - break out into a util function
+								def colKey = "${name1}${KEY_SUFFIX}".toString()
+								persistence.deleteColumn(m, item.columnFamily, item.id, colKey)
+							}
+						}
+						persistence.execute(m)
 					}
 				}
 			}
