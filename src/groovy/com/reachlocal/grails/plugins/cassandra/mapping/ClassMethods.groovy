@@ -174,6 +174,7 @@ class ClassMethods extends MappingUtils
 		// findAllBy...And...And...(value1, value2, value3, rowCount) ...
 		clazz.metaClass.'static'.methodMissing = {String name, args ->
 			def single = false
+			def count = false
 			def str = null
 			def result = null
 			def opts = (args[-1] instanceof Map) ? args[-1].clone() : [:]
@@ -185,6 +186,11 @@ class ClassMethods extends MappingUtils
 				opts.max = 1
 				single = true
 			}
+			else if (name.startsWith("countBy") && name.size() > 7 && args.size() > 0) {
+				str = name - "countBy"
+				opts.max = 1
+				count = true
+			}
 			if (str) {
 				def propertyList = propertyListFromMethodName(str)
 				def params = [:]
@@ -194,18 +200,28 @@ class ClassMethods extends MappingUtils
 				def filterList = expandFilters(params)
 				def index = findIndex(cassandraMapping.explicitIndexes, filterList)
 				if (index) {
-					result = queryByExplicitIndex(clazz, filterList, index, opts)
+					if (count) {
+						result = countByExplicitIndex(clazz, filterList, index, opts)
+					}
+					else {
+						result = queryByExplicitIndex(clazz, filterList, index, opts)
+					}
 				}
 				else {
 					// find by query expression
 					def options = addOptionDefaults(opts, MAX_ROWS)
 					cassandra.withKeyspace(keySpace) {ks ->
 						def properties = [:]
-						propertyListFromMethodName(str).eachWithIndex {it, i ->
+						propertyList.eachWithIndex {it, i ->
 							properties[it] = args[i]
 						}
-						def rows = cassandra.persistence.getRowsWithEqualityIndex(ks, columnFamily, properties, options.max)
-						result = cassandra.mapping.makeResult(rows, options)
+						if (count) {
+							result = cassandra.persistence.countRowsWithEqualityIndex(ks, columnFamily, properties)
+						}
+						else {
+							def rows = cassandra.persistence.getRowsWithEqualityIndex(ks, columnFamily, properties, options.max)
+							result = cassandra.mapping.makeResult(rows, options)
+						}
 					}
 				}
 				return single ? (result ? result[0] : null) : result

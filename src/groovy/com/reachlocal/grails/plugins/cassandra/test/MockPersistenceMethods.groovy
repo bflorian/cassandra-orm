@@ -60,10 +60,22 @@ class MockPersistenceMethods
 		[]
 	}
 
+	def countRowsWithEqualityIndex(client, columnFamily, properties)
+	{
+		log "countRowsWithEqualityIndex", columnFamily, properties
+		0
+	}
+
 	def getColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish, Boolean reversed, Integer max)
 	{
 		log "getColumnRange", columnFamily, rowKey, start, finish, reversed, max
 		[[name: 'col1', value: 'val1'],[name: 'col2', value: 'val2']]
+	}
+
+	def countColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish)
+	{
+		log "countColumnRange", columnFamily, rowKey, start, finish
+		0
 	}
 
 	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames)

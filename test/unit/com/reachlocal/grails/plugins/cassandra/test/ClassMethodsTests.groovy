@@ -109,6 +109,11 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 
+		println "\n--- findAllByGender('Male') [explicit] ---"
+		r = User.findAllByPhone('Male')
+		persistence.printClear()
+		println r
+
 		println "\n--- findAllByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true]) [explicit] ---"
 		r = User.findAllByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true])
 		persistence.printClear()
@@ -142,6 +147,21 @@ public class ClassMethodsTests extends OrmTestCase
 		println "\n--- findAllByGender('Female',[max: 50]) [secondary] ---"
 		r = User.findAllByGender('Female',[max: 50])
 		persistence.printClear()
-		println r		
+		println r
+
+		println "\n--- countByPhone('301-555-1111') [explicit] ---"
+		r = User.countByPhone('301-555-1111')
+		persistence.printClear()
+		println r
+
+		println "\n--- countByGender('Male') [explicit] ---"
+		r = User.countByGender('Male')
+		persistence.printClear()
+		println r
+
+		println "\n--- countByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true]) [explicit] ---"
+		r = User.countByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true])
+		persistence.printClear()
+		println r
 	}
 }

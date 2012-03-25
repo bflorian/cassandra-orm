@@ -57,7 +57,6 @@ class DataMapping
 							!GLOBAL_TRANSIENTS.contains(it.name) &&
 							!hasMany[it.name])
 					{
-						println it.name
 						if (MappingUtils.isMappedClass(prop.class)) {
 							map["${it.name}${KEY_SUFFIX}"] = prop.id
 						}
