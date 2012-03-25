@@ -51,7 +51,19 @@ class MockPersistenceMethods
 	def getRowsColumnSlice(Object client, Object columnFamily, Collection rowKeys, Collection columnNames)
 	{
 		log "getRowsColumnSlice", columnFamily, rowKeys, columnNames
-		[]
+		def rows = [
+				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney']],
+				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City']]
+		]
+		def result = [:]
+		rows.each {key, row ->
+			def values = []
+			columnNames.each {name ->
+				values << [name: name, value: row.find{it.name == name}?.value]
+			}
+			result[key] = values
+		}
+		return result
 	}
 
 	def getRowsWithEqualityIndex(client, columnFamily, properties, max)
@@ -151,19 +163,22 @@ class MockPersistenceMethods
 
 	byte[] byteArrayValue(column)
 	{
-		column.value?.bytes
+		def result = column.value?.bytes
+		result
 	}
 
 	void log(String method, Object... args)
 	{
 		def argStr = args.collect{it.toString()}.join(", ")
-		calls << "$method(${argStr})"
+		def s = "$method(${argStr})"
+		//println s
+		calls << s
 	}
 	
 	void print(out=System.out)
 	{
-		calls.each {
-			out.println it
+		calls.eachWithIndex {it, index ->
+			out.println "${index}: ${it}"
 		}
 	}
 

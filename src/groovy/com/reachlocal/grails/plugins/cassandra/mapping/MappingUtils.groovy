@@ -24,6 +24,8 @@ import java.text.DecimalFormat
 class MappingUtils 
 {
 	static final int MAX_ROWS = 1000
+	
+	static final Set SLICE_OPTIONS = ["column", "columns", "rawColumn", "rawColumns"]
 
 	static String stringValue(String s)
 	{
@@ -47,12 +49,13 @@ class MappingUtils
 				reversed : options.reversed ? true : false,
 				max : options.max ?: defaultCount,
 				start: options.start,
-				finish: options.finish,
-				columns: options.columns,
-				column: options.column,
-				rawColumns: options.rawColumns,
-				rawColumn: options.rawColumn
+				finish: options.finish
 		]
+		SLICE_OPTIONS.each {
+			if (options[it]) {
+				result[it] = options[it]
+			}
+		}
 		return result
 	}
 
@@ -355,8 +358,16 @@ class MappingUtils
 			}
 			def keys = mergeKeys(columns, options.max)
 
-			def rows = persistence.getRows(ks, clazz.columnFamily, keys)
-			def result = clazz.cassandra.mapping.makeResult(keys, rows, options)
+			def result
+			def names = columnNames(options)
+			if (names) {
+				def rows = persistence.getRowsColumnSlice(ks, clazz.columnFamily, keys, names)
+				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
+			}
+			else {
+				def rows = persistence.getRows(ks, clazz.columnFamily, keys)
+				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
+			}
 			return result
 		}
 	}
@@ -396,8 +407,15 @@ class MappingUtils
 			def keys = persistence.getColumnRange(ks, indexCF, indexKey, options.start, options.finish, options.reversed, options.max)
 					.collect{persistence.name(it)}
 
-			def rows = persistence.getRows(ks, itemColumnFamily, keys)
-			result = thisObj.cassandra.mapping.makeResult(keys, rows, options)
+			def names = columnNames(options)
+			if (names) {
+				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options)
+			}
+			else {
+				def rows = persistence.getRows(ks, itemColumnFamily, keys)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options)
+			}
 		}
 		return result
 	}
@@ -412,6 +430,24 @@ class MappingUtils
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
 			result = persistence.countColumnRange(ks, indexCF, indexKey, options.start, options.finish)
+		}
+		return result
+	}
+
+	static columnNames(Map options)
+	{
+		def result = []
+		if (options.columns) {
+			result = options.columns
+		}
+		else if (options.column) {
+			result = [options.column]
+		}
+		else if (options.rawColumns) {
+			result = options.rawColumns
+		}
+		else if (options.rawColumn) {
+			result = [options.rawColumn]
 		}
 		return result
 	}
