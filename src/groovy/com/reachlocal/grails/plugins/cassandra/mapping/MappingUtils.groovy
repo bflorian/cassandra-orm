@@ -194,6 +194,12 @@ class MappingUtils
 		getByMappedObject(thisObj, propName, thisObj.hasMany[propName], options)
 	}
 
+	static countFromHasMany(thisObj, propName, options=[:])
+	{
+		countByMappedObject(thisObj, propName, thisObj.hasMany[propName], options)
+	}
+
+
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}
@@ -396,7 +402,17 @@ class MappingUtils
 		return result
 	}
 
+	static countByMappedObject(thisObj, propName, itemClass, opts=[:])
+	{
+		def result = []
+		def options = addOptionDefaults(opts, MAX_ROWS)
+		def persistence = thisObj.cassandra.persistence
+		thisObj.cassandra.withKeyspace(thisObj.keySpace) {ks ->
+			def indexCF = itemClass.indexColumnFamily
+			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
-	static final INT_KEY_FMT1 = new DecimalFormat("00000000000000000000")
-	static final INT_KEY_FMT2 = new DecimalFormat("0000000000000000000")
+			result = persistence.countColumnRange(ks, indexCF, indexKey, options.start, options.finish)
+		}
+		return result
+	}
 }

@@ -89,6 +89,16 @@ class InstanceMethodTests extends OrmTestCase
 		println user.id
 		println r
 
+		println "\n--- userGroup.usersCount() ---"
+		r = userGroup.usersCount()
+		persistence.printClear()
+		println r
+
+		println "\n--- userGroup.usersCount(start: 'x1', finish: 'x2') ---"
+		r = userGroup.usersCount(start: 'x1', finish: 'x2')
+		persistence.printClear()
+		println r
+
 		println "\n--- userGroup.addToUsers(user) ---"
 		userGroup.addToUsers(user)
 		persistence.printClear()

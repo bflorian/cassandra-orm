@@ -198,6 +198,7 @@ class InstanceMethods extends MappingUtils
 
 				def getterName = GrailsClassUtils.getGetterName(propName)
 				def setterName = GrailsClassUtils.getSetterName(propName)
+				def counterFunctionName = "${propName}Count".toString()
 				def addToName = methodForPropertyName("addTo", propName)
 				def removeFromName = methodForPropertyName("removeFrom", propName)
 
@@ -219,6 +220,11 @@ class InstanceMethods extends MappingUtils
 				// getter function
 				clazz.metaClass."${propName}" = { options ->
 					return getFromHasMany(delegate, propName, options)
+				}
+
+				// counter function
+				clazz.metaClass."${counterFunctionName}" = { options = [:] ->
+					return countFromHasMany(delegate, propName, options)
 				}
 
 				// addTo...
