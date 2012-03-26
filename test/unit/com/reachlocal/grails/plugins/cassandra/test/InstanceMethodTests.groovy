@@ -107,6 +107,16 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.removeFromUsers(user)
 		persistence.printClear()
 
+		println "\n--- userGroup.meetings ---"
+		r = userGroup.meetings
+		persistence.printClear()
+		println r
+
+		println "\n--- userGroup.posts ---"
+		r = userGroup.posts
+		persistence.printClear()
+		println r
+
 		println "\n--- user.userGroup ---"
 		user.userGroup
 		persistence.printClear()

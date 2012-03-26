@@ -24,6 +24,8 @@ import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
 import com.reachlocal.grails.plugins.cassandra.mapping.InstanceMethods
+import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
+import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupPost
 
 /**
  * @author: Bob Florian
@@ -48,12 +50,9 @@ class OrmTestCase extends GroovyTestCase
 
 		ctx = new Expando(getBean: {name -> client})
 
-		ClassMethods.addDynamicOrmMethods(User, ctx)
-		ClassMethods.addDynamicOrmMethods(UserGroup, ctx)
-		ClassMethods.addDynamicOrmMethods(UserGroupMeeting, ctx)
-
-		InstanceMethods.addDynamicOrmMethods(User, ctx)
-		InstanceMethods.addDynamicOrmMethods(UserGroup, ctx)
-		InstanceMethods.addDynamicOrmMethods(UserGroupMeeting, ctx)
+		OrmUtility.addDynamicMethods(User, ctx)
+		OrmUtility.addDynamicMethods(UserGroup, ctx)
+		OrmUtility.addDynamicMethods(UserGroupMeeting, ctx)
+		OrmUtility.addDynamicMethods(UserGroupPost, ctx)
 	}
 }

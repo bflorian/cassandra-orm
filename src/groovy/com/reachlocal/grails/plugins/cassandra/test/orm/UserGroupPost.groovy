@@ -19,18 +19,15 @@ package com.reachlocal.grails.plugins.cassandra.test.orm
 /**
  * @author: Bob Florian
  */
-class UserGroup 
+class UserGroupPost 
 {
 	String uuid
-	String name
-	
-	Set users
-	List meetings
+	String text
+	UserGroup userGroup
 
-	static hasMany = [users: User, meetings: UserGroupMeeting, posts: UserGroupPost]
+	static belongsTo = [userGroup: UserGroup]
 
 	static cassandraMapping = [
 			primaryKey: 'uuid'
 	]
-
 }

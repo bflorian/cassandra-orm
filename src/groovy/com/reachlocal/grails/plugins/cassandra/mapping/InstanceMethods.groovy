@@ -45,10 +45,12 @@ class InstanceMethods extends MappingUtils
 		// cassandraKey
 		clazz.metaClass.getId = {
 			def thisObj = delegate
-			def result = makeComposite(collection(cassandraMapping.primaryKey).collect {
+			def names = collection(cassandraMapping.primaryKey)
+			def values = names.collect {
 				def value = thisObj.getProperty(it)
 				primaryRowKey(value)
-			})
+			}
+			def result = makeComposite(values)
 
 			return result
 		}
@@ -135,37 +137,7 @@ class InstanceMethods extends MappingUtils
 				}
 				cassandra.persistence.execute(m)
 			}
-
-				// has many cascade
-			if (args?.cascade && clazz.metaClass.hasMetaProperty('hasMany')) {
-				hasMany.each {propName, propClass ->
-
-					def items = thisObj.getProperty(propName)
-					items?.each {item ->
-
-						thisObj.cassandra.withKeyspace(thisObj.keySpace) {ks ->
-							def m = cassandra.persistence.prepareMutationBatch(ks)
-
-							saveJoinRow(cassandra.persistence, m, clazz, thisObj, propClass, item, propName)
-
-							safeGetStaticProperty(item.class, "hasMany")?.each {name1, clazz1 ->
-								if (clazz1 == clazz) {
-									saveJoinRow(cassandra.persistence, m, propClass, item, clazz, thisObj, name1)
-								}
-							}
-							safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
-								if (clazz1 == clazz) {
-									item.setProperty(name1, thisObj)
-								}
-							}
-							cassandra.persistence.execute(m)
-						}
-						// TODO - how to cascade and not have recursive loop when many-to-many
-						//item.save(cascade:true)
-						item.save()
-					}
-				}
-			}
+			thisObj
 		}
 
 		// delete()
@@ -177,13 +149,19 @@ class InstanceMethods extends MappingUtils
 
 				if (clazz.metaClass.hasMetaProperty('hasMany')) {
 					hasMany.each {propName, propClass ->
-						def joinColumnFamily = propClass.indexColumnFamily
-						cassandra.persistence.deleteRow(m, joinColumnFamily, thisObj.id)
-						if (propClass.belongsToClass(thisObj.class)) {
-							def items = thisObj.getProperty(propName)
-							items?.each {item ->
-								cassandra.persistence.deleteRow(m, item.columnFamily, item.id)
+						try {
+							def joinColumnFamily = propClass.indexColumnFamily
+							def o = thisObj
+							cassandra.persistence.deleteRow(m, joinColumnFamily, thisObj.id)
+							if (propClass.belongsToClass(thisObj.class)) {
+								def items = thisObj.getProperty(propName)
+								items?.each {item ->
+									cassandra.persistence.deleteRow(m, item.columnFamily, item.id)
+								}
 							}
+						}
+						catch (Exception ex) {
+							println "delete ${propName}"
 						}
 					}
 				}
@@ -209,10 +187,14 @@ class InstanceMethods extends MappingUtils
 
 				// getter
 				clazz.metaClass."${getterName}" = {
-					def items = PropertyUtils.getProperty(delegate, propName)
+					def iClass = PropertyUtils.getPropertyType(delegate, propName)
+					def items = iClass ? PropertyUtils.getProperty(delegate, propName) : null
 					if (items == null) {
-						items = getFromHasMany(delegate, propName)
-						PropertyUtils.setProperty(delegate, propName, items)
+						def oClass = iClass && List.isAssignableFrom(iClass) ? LinkedList : LinkedHashSet
+						items = getFromHasMany(delegate, propName, [:], oClass)
+						if (iClass) {
+							PropertyUtils.setProperty(delegate, propName, items)
+						}
 					}
 					return items
 				}
@@ -230,7 +212,7 @@ class InstanceMethods extends MappingUtils
 				// addTo...
 				clazz.metaClass."${addToName}" = { item ->
 					def thisObj = delegate
-					PropertyUtils.setProperty(thisObj, propName, null)
+					safeSetProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace) {ks ->
 						def m = cassandra.persistence.prepareMutationBatch(ks)
@@ -254,13 +236,14 @@ class InstanceMethods extends MappingUtils
 						cassandra.persistence.execute(m)
 					}
 					item.save()
+					return thisObj
 				}
 
 				// removeFrom...
 				clazz.metaClass."${removeFromName}" = { item ->
 					def thisObj = delegate
 					def persistence = cassandra.persistence
-					PropertyUtils.setProperty(thisObj, propName, null)
+					safeSetProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace) {ks ->
 						def m = persistence.prepareMutationBatch(ks)
@@ -290,6 +273,7 @@ class InstanceMethods extends MappingUtils
 						}
 						persistence.execute(m)
 					}
+					return thisObj
 				}
 			}
 		}

@@ -49,21 +49,22 @@ class DataMapping
 			data.metaClass.properties.each() {
 				if (!it.name.endsWith(DIRTY_SUFFIX)) {
 
-					def prop = data.getProperty(it.name)
-					if (prop != null &&
-							it.getter &&
+					if (it.getter &&
 							!it.getter.isStatic() &&
 							!transients.contains(it.name) &&
 							!GLOBAL_TRANSIENTS.contains(it.name) &&
 							!hasMany[it.name])
 					{
-						if (MappingUtils.isMappedClass(prop.class)) {
-							map["${it.name}${KEY_SUFFIX}"] = prop.id
-						}
-						else {
-							def value = dataProperty(prop)
-							if (value != null) {
-								map[it.name] = value
+						def prop = data.getProperty(it.name)
+						if (prop != null) {
+							if (MappingUtils.isMappedClass(prop.class)) {
+								map["${it.name}${KEY_SUFFIX}"] = prop.id
+							}
+							else {
+								def value = dataProperty(prop)
+								if (value != null) {
+									map[it.name] = value
+								}
 							}
 						}
 					}
@@ -73,36 +74,40 @@ class DataMapping
 		return map
 	}
 
-	def makeResult(rows, options)
+	def makeResult(rows, Map options, Class clazz=LinkedHashSet)
 	{
+		def result = clazz.newInstance()
 		if (options.columns) {
-			rows.collect{newColumnMap(it.columns, options.columns)}
+			rows.each{result << newColumnMap(it.columns, options.columns)}
 		}
 		else if (options.column) {
-			rows.collect{it.columns.getColumnByName(options.column)}
+			rows.each{result << it.columns.getColumnByName(options.column)}
 		}
 		else {
-			rows.collect{newObject(it.columns)}
+			rows.each{result << newObject(it.columns)}
 		}
+		return result
 	}
 
-	def makeResult(keys, rows, options)
+	def makeResult(keys, Object rows, Map options, Class clazz=LinkedHashSet)
 	{
+		def result = clazz.newInstance()
 		if (options.columns) {
-			keys.collect{newColumnMap(persistence.getRow(rows, it), options.columns)}
+			keys.each{result << newColumnMap(persistence.getRow(rows, it), options.columns)}
 		}
 		else if (options.rawColumns) {
-			keys.collect{newRawColumnMap(persistence.getRow(rows, it), options.rawColumns)}
+			keys.each{result << newRawColumnMap(persistence.getRow(rows, it), options.rawColumns)}
 		}
 		else if (options.column) {
-			keys.collect{persistence.stringValue(persistence.getColumn(persistence.getRow(rows, it), options.column))}
+			keys.each{result << persistence.stringValue(persistence.getColumn(persistence.getRow(rows, it), options.column))}
 		}
 		else if (options.rawColumn) {
-			keys.collect{persistence.byteArrayValue(persistence.getColumn(persistence.getRow(rows, it), options.rawColumn))}
+			keys.each{result << persistence.byteArrayValue(persistence.getColumn(persistence.getRow(rows, it), options.rawColumn))}
 		}
 		else {
-			keys.collect{newObject(persistence.getRow(rows, it))}
+			keys.each{result << newObject(persistence.getRow(rows, it))}
 		}
+		return result
 	}
 
 	def newColumnMap(cols, names)

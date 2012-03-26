@@ -23,7 +23,9 @@ class MockPersistenceMethods
 {
 	def CLASSES = [
 	        MockUser_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.User',
-			UserGroup_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup'
+			UserGroup_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup',
+			UserGroupMeeting_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting',
+			UserGroupPost_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupPost'
 	]
 
 	def columnFamily(String name)

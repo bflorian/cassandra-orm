@@ -161,7 +161,7 @@ class ClassMethods extends MappingUtils
 			else {
 				throw new CassandraMappingException("No index found for specified arguments")
 			}
-			return result ? result[0] : null
+			return result ? result.toList()[0] : null
 		}
 
 		// findBy...(value)
@@ -224,7 +224,7 @@ class ClassMethods extends MappingUtils
 						}
 					}
 				}
-				return single ? (result ? result[0] : null) : result
+				return single ? (result ? result.toList()[0] : null) : result
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)

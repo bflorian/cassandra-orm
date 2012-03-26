@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import java.text.DecimalFormat
+import org.apache.commons.beanutils.PropertyUtils
 
 /**
  * @author: Bob Florian
@@ -192,9 +193,9 @@ class MappingUtils
 		return object.id
 	}
 
-	static getFromHasMany(thisObj, propName, options=[:])
+	static getFromHasMany(thisObj, propName, options=[:], clazz=LinkedHashSet)
 	{
-		getByMappedObject(thisObj, propName, thisObj.hasMany[propName], options)
+		getByMappedObject(thisObj, propName, thisObj.hasMany[propName], options, clazz)
 	}
 
 	static countFromHasMany(thisObj, propName, options=[:])
@@ -257,6 +258,13 @@ class MappingUtils
 			value = defaultValue
 		}
 		return value
+	}
+
+	static safeSetProperty(object, name, value)
+	{
+		if (PropertyUtils.getPropertyType(object, name)) {
+			PropertyUtils.setProperty(object, name, value)
+		}
 	}
 
 	// @params [eventType:'Radar', subType:['Review','Mention']]
@@ -394,7 +402,7 @@ class MappingUtils
 		}
 	}
 
-	static getByMappedObject(thisObj, propName, itemClass, opts=[:])
+	static getByMappedObject(thisObj, propName, itemClass, opts=[:], listClass=LinkedHashSet)
 	{
 		def result = []
 		def options = addOptionDefaults(opts, MAX_ROWS)
@@ -410,11 +418,11 @@ class MappingUtils
 			def names = columnNames(options)
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names)
-				result = thisObj.cassandra.mapping.makeResult(keys, rows, options)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys)
-				result = thisObj.cassandra.mapping.makeResult(keys, rows, options)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
 			}
 		}
 		return result
