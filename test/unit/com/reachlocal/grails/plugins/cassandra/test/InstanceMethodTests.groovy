@@ -107,6 +107,10 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.removeFromUsers(user)
 		persistence.printClear()
 
+		println "\n--- userGroup2.addToUsers(user) ---"
+		userGroup2.addToUsers(user)
+		persistence.printClear()
+
 		println "\n--- userGroup.meetings ---"
 		r = userGroup.meetings
 		persistence.printClear()
@@ -118,8 +122,14 @@ class InstanceMethodTests extends OrmTestCase
 		println r
 
 		println "\n--- user.userGroup ---"
-		user.userGroup
+		r = user.userGroup
 		persistence.printClear()
+		println "${r} (${r?.uuid})"
+
+		println "\n--- user.userGroupId ---"
+		r = user.userGroupId
+		persistence.printClear()
+		println r
 
 		println "\n--- user.userGroup = userGroup2 ---"
 		user.userGroup = userGroup2

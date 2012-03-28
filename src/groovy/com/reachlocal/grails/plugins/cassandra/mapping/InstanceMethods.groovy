@@ -24,10 +24,6 @@ import org.apache.commons.beanutils.PropertyUtils
  */
 class InstanceMethods extends MappingUtils
 {
-	static final KEY_SUFFIX = "_key"
-	static final DIRTY_SUFFIX = "_dirty"
-	static final int MAX_ROWS = 1000
-
 	static void addDynamicOrmMethods(clazz, ctx)
 	{
 		// cassandra
@@ -143,29 +139,32 @@ class InstanceMethods extends MappingUtils
 		// delete()
 		clazz.metaClass.delete = {
 			def thisObj = delegate
+			def thisObjId = thisObj.id
+			def thisObjClass = thisObj.class
+			def persistence = cassandra.persistence
 			cassandra.withKeyspace(thisObj.keySpace) {ks ->
-				def m = cassandra.persistence.prepareMutationBatch(ks)
-				cassandra.persistence.deleteRow(m, thisObj.columnFamily, thisObj.id)
+				def m = persistence.prepareMutationBatch(ks)
+				persistence.deleteRow(m, thisObj.columnFamily, thisObjId)
 
 				if (clazz.metaClass.hasMetaProperty('hasMany')) {
 					hasMany.each {propName, propClass ->
 						try {
 							def joinColumnFamily = propClass.indexColumnFamily
-							def o = thisObj
-							cassandra.persistence.deleteRow(m, joinColumnFamily, thisObj.id)
-							if (propClass.belongsToClass(thisObj.class)) {
+							persistence.deleteRow(m, joinColumnFamily, thisObjId)
+							if (propClass.belongsToClass(thisObjClass)) {
 								def items = thisObj.getProperty(propName)
 								items?.each {item ->
-									cassandra.persistence.deleteRow(m, item.columnFamily, item.id)
+									persistence.deleteRow(m, item.columnFamily, item.id)
 								}
 							}
 						}
 						catch (Exception ex) {
-							println "delete ${propName}"
+							println "delete ${propName}: $ex"
+							ex.printStackTrace(System.out)
 						}
 					}
 				}
-				cassandra.persistence.execute(m)
+				persistence.execute(m)
 			}
 		}
 
@@ -217,6 +216,13 @@ class InstanceMethods extends MappingUtils
 					cassandra.withKeyspace(delegate.keySpace) {ks ->
 						def m = cassandra.persistence.prepareMutationBatch(ks)
 
+						// set belongsTo value
+						safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
+							if (clazz1 == clazz) {
+								item.setProperty(name1, thisObj)
+							}
+						}
+
 						// save join row from this object to the item
 						saveJoinRow(cassandra.persistence, m, clazz, thisObj, item.class, item, propName)
 
@@ -227,12 +233,6 @@ class InstanceMethods extends MappingUtils
 							}
 						}
 
-						// set belongsTo value
-						safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
-							if (clazz1 == clazz) {
-								item.setProperty(name1, thisObj)
-							}
-						}
 						cassandra.persistence.execute(m)
 					}
 					item.save()
@@ -299,23 +299,52 @@ class InstanceMethods extends MappingUtils
 				clazz.metaClass."${getterName}" = {
 					def value = PropertyUtils.getProperty(delegate, propName)
 					if (value == null) {
+						def persistence = cassandra.persistence
 						def thisObj = delegate
 						def cf = property.type.columnFamily
+
 						// TODO - need to find a way to store this in the object!
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
+
 						cassandra.withKeyspace(keySpace) {ks ->
 							def colName = "${propName}${KEY_SUFFIX}".toString()
-							def cols = cassandra.persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
-							def col = cassandra.persistence.getColumn(cols, colName)
+							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
+							def col = persistence.getColumn(cols, colName)
 							if (col) {
-								def pid = cassandra.persistence.stringValue(col)
-								def data = cassandra.persistence.getRow(ks, cf, pid)
+								def pid = persistence.stringValue(col)
+								def data = persistence.getRow(ks, cf, pid)
 							    value = cassandra.mapping.newObject(data)
 							}
 						}
 					}
 					PropertyUtils.setProperty(delegate, propName, value)
 					return value
+				}
+
+				// id getter
+				clazz.metaClass."${getterName}Id" = {
+					def result = null
+					def value = PropertyUtils.getProperty(delegate, propName)
+					if (value?.id) {
+						result = value.id
+					}
+					else {
+						def persistence = cassandra.persistence
+						def thisObj = delegate
+
+						// TODO - need to find a way to store this in the object!
+						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
+
+						cassandra.withKeyspace(keySpace) {ks ->
+							def colName = "${propName}${KEY_SUFFIX}".toString()
+							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
+							def col = persistence.getColumn(cols, colName)
+							if (col) {
+								result = persistence.stringValue(col)
+							}
+						}
+					}
+					return result
 				}
 			}
 		}

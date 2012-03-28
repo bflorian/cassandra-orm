@@ -22,13 +22,8 @@ import java.nio.ByteBuffer
 /**
  * @author: Bob Florian
  */
-class DataMapping 
+class DataMapping extends MappingUtils
 {
-	static final CLASS_NAME_KEY = '_class_name_'
-	static final KEY_SUFFIX = InstanceMethods.KEY_SUFFIX
-	static final DIRTY_SUFFIX = InstanceMethods.DIRTY_SUFFIX
-	static final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
-
 	def persistence
 
 	def dataProperties(data)
@@ -186,82 +181,6 @@ class DataMapping
 					}
 					return null
 				}
-		}
-	}
-
-	def dataProperty(Date value)
-	{
-		return value.time.toString()
-	}
-
-	def dataProperty(Integer value)
-	{
-		return value.toString()
-	}
-
-	def dataProperty(Long value)
-	{
-		return value.toString()
-	}
-
-	def dataProperty(Double value)
-	{
-		return value.toString()
-	}
-
-	def dataProperty(BigDecimal value)
-	{
-		return value.toString()
-	}
-
-	def dataProperty(BigInteger value)
-	{
-		return value.toString()
-	}
-
-	def dataProperty(UUID value)
-	{
-		return value.toString()
-	}
-
-	def dataProperty(Collection value)
-	{
-		return value.encodeAsJSON()
-	}
-
-	def dataProperty(Map value)
-	{
-		return value.encodeAsJSON()
-	}
-
-	def dataProperty(String value)
-	{
-		return value
-	}
-
-	def dataProperty(byte[] value)
-	{
-		return value
-
-	}
-
-	def dataProperty(ByteBuffer value)
-	{
-		return value
-	}
-
-	def dataProperty(Class value)
-	{
-		return null
-	}
-
-	def dataProperty(value)
-	{
-		if (value?.getClass()?.isEnum()) {
-			value.toString()
-		}
-		else {
-			null
 		}
 	}
 }

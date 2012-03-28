@@ -16,6 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
+import org.codehaus.groovy.grails.plugins.codecs.MD5Codec
+
 /**
  * @author: Bob Florian
  */
@@ -45,8 +47,8 @@ class MockPersistenceMethods
 	{
 		log "getRows", columnFamily, rowKeys
 		[
-				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney']],
-				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City']]
+				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
+				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
 		]
 	}
 
@@ -54,8 +56,8 @@ class MockPersistenceMethods
 	{
 		log "getRowsColumnSlice", columnFamily, rowKeys, columnNames
 		def rows = [
-				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney']],
-				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City']]
+				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
+				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
 		]
 		def result = [:]
 		rows.each {key, row ->
@@ -187,6 +189,7 @@ class MockPersistenceMethods
 	void printClear(out=System.out)
 	{
 		print out
+		//out.println MD5Codec.encode(calls.collect{it.toString()}.join("\n"))
 		clear()
 	}
 	

@@ -16,8 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import java.text.DecimalFormat
 import org.apache.commons.beanutils.PropertyUtils
+import java.nio.ByteBuffer
 
 /**
  * @author: Bob Florian
@@ -25,8 +25,14 @@ import org.apache.commons.beanutils.PropertyUtils
 class MappingUtils 
 {
 	static final int MAX_ROWS = 1000
-	
-	static final Set SLICE_OPTIONS = ["column", "columns", "rawColumn", "rawColumns"]
+	static final INDEX_OPTIONS = ["start","finish","keys"]
+	static final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
+	static final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
+	static final CLASS_NAME_KEY = '_class_name_'
+	static final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
+	static final KEY_SUFFIX = "_key"
+	static final DIRTY_SUFFIX = "_dirty"
+
 
 	static String stringValue(String s)
 	{
@@ -49,10 +55,8 @@ class MappingUtils
 		Map result = [
 				reversed : options.reversed ? true : false,
 				max : options.max ?: defaultCount,
-				start: options.start,
-				finish: options.finish
 		]
-		SLICE_OPTIONS.each {
+		ALL_OPTIONS.each {
 			if (options[it]) {
 				result[it] = options[it]
 			}
@@ -227,13 +231,16 @@ class MappingUtils
 		id.toString()
 	}
 
-	static primaryRowKey(obj)
+	static primaryRowKey(obj) throws CassandraMappingException
 	{
-		if (isMappedObject(obj)) {
+		if (obj == null) {
+			throw new CassandraMappingException("Null index value")
+		}
+		else if (isMappedObject(obj)) {
 			return obj.id
 		}
 		else {
-			return obj?.toString()
+			return dataProperty(obj)
 		}
 	}
 
@@ -458,5 +465,81 @@ class MappingUtils
 			result = [options.rawColumn]
 		}
 		return result
+	}
+
+	static dataProperty(Date value)
+	{
+		return value.time.toString()
+	}
+
+	static dataProperty(Integer value)
+	{
+		return value.toString()
+	}
+
+	static dataProperty(Long value)
+	{
+		return value.toString()
+	}
+
+	static dataProperty(Double value)
+	{
+		return value.toString()
+	}
+
+	static dataProperty(BigDecimal value)
+	{
+		return value.toString()
+	}
+
+	static dataProperty(BigInteger value)
+	{
+		return value.toString()
+	}
+
+	static dataProperty(UUID value)
+	{
+		return value.toString()
+	}
+
+	static dataProperty(Collection value)
+	{
+		return value.encodeAsJSON()
+	}
+
+	static dataProperty(Map value)
+	{
+		return value.encodeAsJSON()
+	}
+
+	static dataProperty(String value)
+	{
+		return value
+	}
+
+	static dataProperty(byte[] value)
+	{
+		return value
+
+	}
+
+	static dataProperty(ByteBuffer value)
+	{
+		return value
+	}
+
+	static dataProperty(Class value)
+	{
+		return null
+	}
+
+	def dataProperty(value)
+	{
+		if (value?.getClass()?.isEnum()) {
+			value.toString()
+		}
+		else {
+			null
+		}
 	}
 }

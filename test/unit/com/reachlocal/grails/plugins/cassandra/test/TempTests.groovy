@@ -14,20 +14,29 @@
  * limitations under the License.
  */
 
-package com.reachlocal.grails.plugins.cassandra.test.orm
+package com.reachlocal.grails.plugins.cassandra.test
+
+import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
+import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
 
 /**
  * @author: Bob Florian
  */
-class UserGroupMeeting 
+class TempTests extends OrmTestCase
 {
-	String uuid = UUID.randomUUID()
-	Date date
-	UserGroup userGroup
+	void testDelete()
+	{
+		initialize()
 
-	static belongsTo = [userGroup: UserGroup]
+		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG")
+		def meeting1 = new UserGroupMeeting(date:  new Date())
+		
+		println "\nuserGroup.addToMeetings(meeting1)"
+		userGroup.addToMeetings(meeting1)
+		persistence.printClear()
 
-	static cassandraMapping = [
-			primaryKey: 'uuid' //['userGroup','date']
-	]
+		println "\n--- delete() ---"
+		userGroup.delete()
+		persistence.printClear()
+	}
 }
