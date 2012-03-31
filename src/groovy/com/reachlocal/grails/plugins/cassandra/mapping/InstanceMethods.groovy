@@ -112,14 +112,16 @@ class InstanceMethods extends MappingUtils
 				cassandraMapping.explicitIndexes?.each {propName ->
 					if (oldObj) {
 
-						// TODO - skip if null?
 						def oldIndexRowKey = objectIndexRowKey(propName, oldObj)
-						oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
+						if (oldIndexRowKey) {
+							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
+						}
 					}
 
-					// TODO - skip if null?
 					def indexRowKey = objectIndexRowKey(propName, thisObj)
-					indexRows[indexRowKey] = [(thisObj.id):'']
+					if (indexRowKey) {
+						indexRows[indexRowKey] = [(thisObj.id):'']
+					}
 				}
 				oldIndexRows.each {rowKey, col ->
 					col.each {colKey, v ->
@@ -148,19 +150,13 @@ class InstanceMethods extends MappingUtils
 
 				if (clazz.metaClass.hasMetaProperty('hasMany')) {
 					hasMany.each {propName, propClass ->
-						try {
-							def joinColumnFamily = propClass.indexColumnFamily
-							persistence.deleteRow(m, joinColumnFamily, thisObjId)
-							if (propClass.belongsToClass(thisObjClass)) {
-								def items = thisObj.getProperty(propName)
-								items?.each {item ->
-									persistence.deleteRow(m, item.columnFamily, item.id)
-								}
+						def joinColumnFamily = propClass.indexColumnFamily
+						persistence.deleteRow(m, joinColumnFamily, thisObjId)
+						if (propClass.belongsToClass(thisObjClass)) {
+							def items = thisObj.getProperty(propName)
+							items?.each {item ->
+								persistence.deleteRow(m, item.columnFamily, item.id)
 							}
-						}
-						catch (Exception ex) {
-							println "delete ${propName}: $ex"
-							ex.printStackTrace(System.out)
 						}
 					}
 				}
@@ -348,6 +344,17 @@ class InstanceMethods extends MappingUtils
 				}
 			}
 		}
+
+		// Expando properties
+		clazz.metaClass.methodMissing = {String name, args ->
+			if (!args && name.startsWith("get") && name.size() > 3 &&  Character.isUpperCase(name.charAt(3)) && cassandraMapping.isExpando) {
+				// TODO - handle expando values
+
+			}
+			else {
+				throw new MissingPropertyException(name, clazz)
+			}
+		}	
 
 		// toString()
 		clazz.metaClass.toString = {

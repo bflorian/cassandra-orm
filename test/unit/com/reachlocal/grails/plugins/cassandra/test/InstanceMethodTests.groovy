@@ -29,9 +29,21 @@ class InstanceMethodTests extends OrmTestCase
 	{
 		initialize()
 
-		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG")
-		def userGroup2 = new UserGroup(uuid: "group2-zzzz-zzzz", name: "CUG")
-		def user = new User(uuid: "user1-zzzz-zzzz", name: "Jane", phone:  "301-555-2222", city: "Reston", state:  "VA", gender:  "Female")
+		def userGroup = new UserGroup(
+				uuid: "group1-zzzz-zzzz",
+				name: "JUG")
+
+		def userGroup2 = new UserGroup(
+				uuid: "group2-zzzz-zzzz",
+				name: "CUG")
+
+		def user = new User(
+				uuid: "user1-zzzz-zzzz",
+				name: "Jane",
+				phone:  "301-555-2222",
+				city: "Reston",
+				state:  "VA",
+				gender:  "Female")
 
 		println "\n--- getCassandra() ---"
 		assertEquals client, user.cassandra

@@ -30,10 +30,29 @@ class TempTests extends OrmTestCase
 
 		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG")
 		def meeting1 = new UserGroupMeeting(date:  new Date())
-		
+
+		println "\nuserGroup.save()"
+		userGroup.save()
+		persistence.printClear()
+
+		println "\nUserGroup.get('group1-zzzz-zzzz')"
+		def g = UserGroup.get('group1-zzzz-zzzz')
+		assertEquals "JUG", g.name
+		persistence.printClear()
+
 		println "\nuserGroup.addToMeetings(meeting1)"
 		userGroup.addToMeetings(meeting1)
 		persistence.printClear()
+
+		println "\nUserGroupMeeting.get([userGroup, meeting1.date])"
+		def m1a = UserGroupMeeting.get([userGroup, meeting1.date])
+		persistence.printClear()
+		assertNotNull m1a
+		assertEquals meeting1.uuid, m1a.uuid
+
+		println "\nm1a.userGroup"
+		def ug1a = m1a.userGroup
+		assertEquals userGroup.uuid, ug1a.uuid
 
 		println "\n--- delete() ---"
 		userGroup.delete()

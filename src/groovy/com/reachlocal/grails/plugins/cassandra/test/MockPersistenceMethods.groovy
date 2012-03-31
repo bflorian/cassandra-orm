@@ -23,12 +23,7 @@ import org.codehaus.groovy.grails.plugins.codecs.MD5Codec
  */
 class MockPersistenceMethods
 {
-	def CLASSES = [
-	        MockUser_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.User',
-			UserGroup_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup',
-			UserGroupMeeting_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting',
-			UserGroupPost_CFO: 'com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupPost'
-	]
+	MockPersistenceDataStructure data = new MockPersistenceDataStructure()
 
 	def columnFamily(String name)
 	{
@@ -39,26 +34,29 @@ class MockPersistenceMethods
 	def getRow(Object client, Object columnFamily, Object rowKey)
 	{
 		log "getRow", columnFamily, rowKey
-		[[name: '_class_name_', value: CLASSES[columnFamily]],[name:'prop1', value: 'propVal1'],[name:'prop2', value: 'propVal2']]
+		//[[name: '_class_name_', value: CLASSES[columnFamily]],[name:'prop1', value: 'propVal1'],[name:'prop2', value: 'propVal2']]
 		//[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney']
+		data.getRowColumns(columnFamily, rowKey)
 	}
 
 	def getRows(Object client, Object columnFamily, Collection rowKeys)
 	{
 		log "getRows", columnFamily, rowKeys
-		[
-				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
-				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
-		]
+		//[
+		//		col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
+		//		col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
+		//]
+		data.multigetRowColumns(columnFamily, rowKeys)
 	}
 
 	def getRowsColumnSlice(Object client, Object columnFamily, Collection rowKeys, Collection columnNames)
 	{
 		log "getRowsColumnSlice", columnFamily, rowKeys, columnNames
-		def rows = [
-				col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
-				col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
-		]
+		//def rows = [
+		//		col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
+		//		col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
+		//]
+		def rows = data.multigetRowColumns(columnFamily, rowKeys)
 		def result = [:]
 		rows.each {key, row ->
 			def values = []
@@ -73,45 +71,51 @@ class MockPersistenceMethods
 	def getRowsWithEqualityIndex(client, columnFamily, properties, max)
 	{
 		log "getRowsWithEqualityIndex", columnFamily, properties, max
+		// TODO ??
 		[]
 	}
 
 	def countRowsWithEqualityIndex(client, columnFamily, properties)
 	{
 		log "countRowsWithEqualityIndex", columnFamily, properties
+		// TODO ??
 		0
 	}
 
 	def getColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish, Boolean reversed, Integer max)
 	{
 		log "getColumnRange", columnFamily, rowKey, start, finish, reversed, max
-		[[name: 'col1', value: 'val1'],[name: 'col2', value: 'val2']]
+		//[[name: 'col1', value: 'val1'],[name: 'col2', value: 'val2']]
+		data.getColumnRange(columnFamily, rowKey, start, finish, reversed, max)
 	}
 
 	def countColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish)
 	{
 		log "countColumnRange", columnFamily, rowKey, start, finish
-		0
+		data.getColumnRange(columnFamily, rowKey, start, finish, false, Integer.MAX_VALUE).size()
 	}
 
 	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames)
 	{
 		log "getColumnSlice", columnFamily, rowKey, columnNames
-		def map = [('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz']
-		def result = []
-		columnNames.each {
-			def v = map[it]
-			if (v) {
-				result << [name: it, value:  v]
-			}
-		}
-		result
+		//def map = [('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz']
+		//def result = []
+		//columnNames.each {
+		//	def v = map[it]
+		//	if (v) {
+		//		result << [name: it, value:  v]
+		//	}
+		//}
+		data.getColumnSlice(columnFamily, rowKey, columnNames)
+
 	}
 
 	def getColumn(Object client, Object columnFamily, Object rowKey, Object columnName)
 	{
 		log "getColumnSlice", columnFamily, rowKey, columnName
-		[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz'][columnName]
+		//[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz'][columnName]
+		def list = data.getColumnSlice(columnFamily, rowKey, [columnName])
+		list ? list[0] : null
 	}
 	
 	def prepareMutationBatch(client)
@@ -123,21 +127,25 @@ class MockPersistenceMethods
 	void deleteColumn(mutationBatch, columnFamily, rowKey, columnName)
 	{
 		log "deleteColumn", columnFamily, rowKey, columnName
+		data.deleteColumn(columnFamily, rowKey, columnName)
 	}
 
 	void putColumn(mutationBatch, columnFamily, rowKey, name, value)
 	{
 		log "putColumn", columnFamily, rowKey, name, value
+		data.putColumn(columnFamily, rowKey, name, value)
 	}
 
 	void putColumns(mutationBatch, columnFamily, rowKey, columnMap)
 	{
 		log "putColumns", columnFamily, rowKey, columnMap
+		data.putColumns(columnFamily, rowKey, columnMap)
 	}
 
 	void deleteRow(mutationBatch, columnFamily, rowKey)
 	{
 		log "deleteRow", columnFamily, rowKey
+		data.deleteRow(columnFamily, rowKey)
 	}
 
 	def execute(mutationBatch)
@@ -189,6 +197,7 @@ class MockPersistenceMethods
 	void printClear(out=System.out)
 	{
 		print out
+		data.print(out)
 		//out.println MD5Codec.encode(calls.collect{it.toString()}.join("\n"))
 		clear()
 	}

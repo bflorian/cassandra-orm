@@ -156,7 +156,7 @@ class MappingUtils
 	static objectIndexRowKey(String propName, Object bean)
 	{
 		def value = bean.getProperty(propName)
-		return makeKey("this.${propName}", primaryRowKey(value))
+		value != null ? makeKey("this.${propName}", primaryRowKey(value)) : null
 	}
 
 	static objectIndexRowKey(List propNames, Map map)
@@ -234,7 +234,8 @@ class MappingUtils
 	static primaryRowKey(obj) throws CassandraMappingException
 	{
 		if (obj == null) {
-			throw new CassandraMappingException("Null index value")
+			//throw new CassandraMappingException("Null index value")
+			return null
 		}
 		else if (isMappedObject(obj)) {
 			return obj.id
@@ -415,6 +416,8 @@ class MappingUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def itemColumnFamily = itemClass.columnFamily
 		def persistence = thisObj.cassandra.persistence
+		def belongsToPropName = itemClass.belongsToPropName(thisObj.getClass())
+
 		thisObj.cassandra.withKeyspace(thisObj.keySpace) {ks ->
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
@@ -430,6 +433,11 @@ class MappingUtils
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys)
 				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
+				if (belongsToPropName) {
+					result.each {
+						it.setProperty(belongsToPropName, thisObj)
+					}
+				}
 			}
 		}
 		return result

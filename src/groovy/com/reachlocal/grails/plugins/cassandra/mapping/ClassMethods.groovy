@@ -84,6 +84,15 @@ class ClassMethods extends MappingUtils
 			return false
 		}
 
+		// TODO - combine with above?
+		// belongsToClass(clazz2)
+		clazz.metaClass.'static'.belongsToPropName = { clazz2 ->
+			if (clazz.metaClass.hasMetaProperty("belongsTo")) {
+				return belongsTo.find{it.value == clazz2}?.key
+			}
+			return null
+		}
+
 		// get(id, options?)
 		clazz.metaClass.'static'.get = {id, opts=[:] ->
 			def result = null

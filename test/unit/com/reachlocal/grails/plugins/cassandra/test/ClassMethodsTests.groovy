@@ -30,24 +30,67 @@ public class ClassMethodsTests extends OrmTestCase
 	{
 		initialize()
 
-		println "\n--- getCassandra() ---"
-		assertEquals client, User.cassandra
+		println "-- setup --"
+		new User(
+				uuid: "x1xx-xxxx-xxxx-xxxx",
+				name: "Get Test",
+				state:  "MD",
+				phone: '301-555-1212',
+				gender: 'Male',
+				city:  'Ellicott City').save()
+
+		new User(
+				uuid: "x2xx-xxxx-xxxx-xxxx",
+				name: "Get Test 2",
+				email: "email2@local.com",
+				state:  "VA", phone: '301-555-1212',
+				gender: 'Female',
+				city: 'Reston').save()
+
+		new User(
+				uuid: "x3xx-xxxx-xxxx-xxxx",
+				name: "Get Test 3",
+				state:  "MD",
+				phone: '301-555-1234',
+				gender: 'Female',
+				city:  'Ellicott City').save()
+
+		new User(
+				uuid: "x4xx-xxxx-xxxx-xxxx",
+				name: "Get Test 4",
+				state:  "CA",
+				phone: '301-555-1111',
+				gender: 'Female',
+				city:  'Pleasanton').save()
+
+		new User(
+				uuid: "x5xx-xxxx-xxxx-xxxx",
+				name: "Get Test 5",
+				state:  "MD",
+				phone: '301-555-1212',
+				gender: 'Male',
+				city:  'Olney').save()
+
 		persistence.printClear()
+
+		println "\n--- getCassandra() ---"
+		persistence.printClear()
+		assertEquals client, User.cassandra
 
 		println "\n--- getKeySpace() ---"
+		persistence.printClear()
 		assertEquals "mock", User.keySpace
 		assertEquals "mockDefault", UserGroup.keySpace
-		persistence.printClear()
 
 		println "\n--- getColumnFamilyName() ---"
+		persistence.printClear()
 		assertEquals "MockUser", User.columnFamilyName
 		assertEquals "UserGroup", UserGroup.columnFamilyName
-		persistence.printClear()
 
 		println "\n--- getColumnFamily() ---"
+		persistence.printClear()
 		assertEquals "MockUser_CFO", User.columnFamily
 		assertEquals "UserGroup_CFO", UserGroup.columnFamily
-		persistence.printClear()
 
 		println "\n--- getIndexColumnFamily() ---"
 		assertEquals "MockUser_IDX_CFO", User.indexColumnFamily
@@ -55,29 +98,40 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 
 		println "\n--- belongsToClass(clazz) ---"
+		persistence.printClear()
 		assertTrue User.belongsToClass(UserGroup)
 		assertFalse User.belongsToClass(UserGroupMeeting)
-		persistence.printClear()
 
 		println "\n--- get() ---"
-		def r = User.get("xxxx-xxxx-xxxx-xxxx")
+		def r = User.get("x1xx-xxxx-xxxx-xxxx")
 		persistence.printClear()
 		println r
-		
+		assertEquals "Get Test", r.name
+
 		println "\n--- list() ---"
 		r = User.list()
 		persistence.printClear()
 		println r
-		
-		println "\n--- list(max: 10) ---"
-		r = User.list(max: 10)
+		assertEquals 5, r.size()
+
+		println "\n--- list(max: 2) ---"
+		r = User.list(max: 2)
 		persistence.printClear()
 		println r
-		
-		println "\n--- list(start: 'x1', finish: 'x2', reversed: true) ---"
-		r = User.list(start: 'x1', finish: 'x2', reversed: true)
+		assertEquals 2, r.size()
+
+		println "\n--- list(start: 'x1', finish: 'x3') ---"
+		r = User.list(start: 'x1', finish: 'x3')
 		persistence.printClear()
 		println r
+		assertEquals 3, r.size()
+
+		println "\n--- list(start: 'x4z', finish: 'x3z', reversed: true) ---"
+		r = User.list(start: 'x4z', finish: 'x3z', reversed:  true) as List
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+		assertEquals "Get Test 4", r[0].name
 
 		println "\n--- findAllWhere(state: 'MD') [secondary TO BE IMPLEMENTED] ---"
 		r = User.findAllWhere(state: 'MD')
@@ -88,9 +142,10 @@ public class ClassMethodsTests extends OrmTestCase
 		r = User.findAllWhere(phone: '301-555-1212')
 		persistence.printClear()
 		println r
+		assertEquals 3, r.size()
 		
-		println "\n--- findAllWhere(city: 'Olney', gender: 'Female') [secondary] ---"
-		r = User.findAllWhere(city: 'Olney', gender: 'Female')
+		println "\n--- findAllWhere(city: 'Olney', gender: 'Male') [secondary TO BE IMPLEMENTED] ---"
+		r = User.findAllWhere(city: 'Olney', gender: 'Male')
 		persistence.printClear()
 		println r
 
@@ -98,63 +153,69 @@ public class ClassMethodsTests extends OrmTestCase
 		r = User.findWhere(phone: '301-555-1234')
 		persistence.printClear()
 		println r
+		assertNotNull r
 
 		println "\n--- findByPhone('301-555-1111') [explicit] ---"
 		r = User.findByPhone('301-555-1111')
 		persistence.printClear()
 		println r
+		assertNotNull r
 
-		println "\n--- findAllByPhone('301-555-1111') [explicit] ---"
-		r = User.findAllByPhone('301-555-1111')
+		println "\n--- findAllByPhone('301-555-1212') [explicit] ---"
+		r = User.findAllByPhone('301-555-1212')
+		persistence.printClear()
+		println r
+		assertEquals 3, r.size()
+
+		println "\n--- findAllByGender('Male') [secondary TO BE IMPLEMENTED] ---"
+		r = User.findAllByGender('Male')
 		persistence.printClear()
 		println r
 
-		println "\n--- findAllByGender('Male') [explicit] ---"
-		r = User.findAllByPhone('Male')
+		println "\n--- findAllByCityAndGender('Ellicott City','Female',[max: 20, reversed:  true]) [explicit] ---"
+		r = User.findAllByCityAndGender('Ellicott City','Female',[max: 20, reversed:  true])
+		persistence.printClear()
+		println r
+		assertEquals 1, r.size()
+
+		println "\n--- findAllByPhone('301-555-1212',[max: 2, column: 'name']) [explicit] ---"
+		r = User.findAllByPhone('301-555-1212',[max: 2, column: 'name'])
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+
+		println "\n--- findAllByPhone('301-555-1111',[max: 2, rawColumn: 'name']) [explicit] ---"
+		r = User.findAllByPhone('301-555-1111',[max: 2, rawColumn: 'name'])
 		persistence.printClear()
 		println r
 
-		println "\n--- findAllByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true]) [explicit] ---"
-		r = User.findAllByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true])
+		println "\n--- findAllByPhone('301-555-1111',[max: 2, columns: ['name','city']])[explicit] ---"
+		r = User.findAllByPhone('301-555-1111',[max: 2, columns: ['name','city']])
 		persistence.printClear()
 		println r
 
-		println "\n--- findAllByPhone('301-555-1111',[max: 3, column: 'name']) [explicit] ---"
-		r = User.findAllByPhone('301-555-1111',[max: 3, column: 'name'])
+		println "\n--- findAllByPhone('301-555-1111',[max: 2, rawColumns: ['name','city']])[explicit] ---"
+		r = User.findAllByPhone('301-555-1111',[max: 2, rawColumns: ['name','city']])
 		persistence.printClear()
 		println r
 
-		println "\n--- findAllByPhone('301-555-1111',[max: 3, rawColumn: 'name']) [explicit] ---"
-		r = User.findAllByPhone('301-555-1111',[max: 3, rawColumn: 'name'])
-		persistence.printClear()
-		println r
-
-		println "\n--- findAllByPhone('301-555-1111',[max: 3, columns: ['name','city']])[explicit] ---"
-		r = User.findAllByPhone('301-555-1111',[max: 3, columns: ['name','city']])
-		persistence.printClear()
-		println r
-
-		println "\n--- findAllByPhone('301-555-1111',[max: 3, rawColumns: ['name','city']])[explicit] ---"
-		r = User.findAllByPhone('301-555-1111',[max: 3, rawColumns: ['name','city']])
-		persistence.printClear()
-		println r
-
-		println "\n--- findAllByState('VA') [secondary] ---"
+		println "\n--- findAllByState('VA') [secondary TO BE IMPLEMENTED] ---"
 		r = User.findAllByState('VA')
 		persistence.printClear()
 		println r
 
-		println "\n--- findAllByGender('Female',[max: 50]) [secondary] ---"
+		println "\n--- findAllByGender('Female',[max: 50]) [secondary TO BE IMPLEMENTED] ---"
 		r = User.findAllByGender('Female',[max: 50])
 		persistence.printClear()
 		println r
 
-		println "\n--- countByPhone('301-555-1111') [explicit] ---"
-		r = User.countByPhone('301-555-1111')
+		println "\n--- countByPhone('301-555-1212') [explicit] ---"
+		r = User.countByPhone('301-555-1212')
 		persistence.printClear()
 		println r
+		assertEquals 3, r
 
-		println "\n--- countByGender('Male') [explicit] ---"
+		println "\n--- countByGender('Male') [explicit TO BE IMPLEMENTED] ---"
 		r = User.countByGender('Male')
 		persistence.printClear()
 		println r
@@ -163,5 +224,6 @@ public class ClassMethodsTests extends OrmTestCase
 		r = User.countByCityAndGender('Ellicott City','Male',[max: 20, reversed:  true])
 		persistence.printClear()
 		println r
+		assertEquals 1, r
 	}
 }

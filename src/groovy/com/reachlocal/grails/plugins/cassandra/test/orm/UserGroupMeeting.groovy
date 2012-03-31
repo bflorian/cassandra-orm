@@ -28,6 +28,6 @@ class UserGroupMeeting
 	static belongsTo = [userGroup: UserGroup]
 
 	static cassandraMapping = [
-			primaryKey: 'uuid' //['userGroup','date']
+			primaryKey: ['userGroupId','date']
 	]
 }
