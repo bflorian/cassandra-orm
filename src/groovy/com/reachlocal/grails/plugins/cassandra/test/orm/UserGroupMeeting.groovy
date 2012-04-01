@@ -23,7 +23,7 @@ import org.apache.commons.codec.binary.Base64
  */
 class UserGroupMeeting 
 {
-	String uuid = UUID.randomUUID()
+	String uuid = UUID.timeUUID()
 	Date date
 	UserGroup userGroup
 

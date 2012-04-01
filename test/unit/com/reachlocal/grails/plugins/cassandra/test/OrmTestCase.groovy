@@ -26,6 +26,7 @@ import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
 import com.reachlocal.grails.plugins.cassandra.mapping.InstanceMethods
 import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupPost
+import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 
 /**
  * @author: Bob Florian
@@ -54,5 +55,6 @@ class OrmTestCase extends GroovyTestCase
 		OrmUtility.addDynamicMethods(UserGroup, ctx)
 		OrmUtility.addDynamicMethods(UserGroupMeeting, ctx)
 		OrmUtility.addDynamicMethods(UserGroupPost, ctx)
+		UuidDynamicMethods.addAll()
 	}
 }
