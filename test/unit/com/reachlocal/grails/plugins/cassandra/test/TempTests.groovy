@@ -45,7 +45,7 @@ class TempTests extends OrmTestCase
 		persistence.printClear()
 
 		println "\nUserGroupMeeting.get([userGroup, meeting1.date])"
-		def m1a = UserGroupMeeting.get([userGroup, meeting1.date])
+		def m1a = UserGroupMeeting.get([meeting1.date, meeting1.uuid])
 		persistence.printClear()
 		assertNotNull m1a
 		assertEquals meeting1.uuid, m1a.uuid

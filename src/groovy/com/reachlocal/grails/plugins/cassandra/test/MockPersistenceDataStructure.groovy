@@ -119,6 +119,11 @@ class MockPersistenceDataStructure
 
 	void print(out)
 	{
-		out.println data
+		data.each {cfk, cfv ->
+			println "${cfk} =>"
+			cfv.each {rowk, rowv ->
+				println "    ${rowk} => ${rowv}"
+			}
+		}
 	}
 }

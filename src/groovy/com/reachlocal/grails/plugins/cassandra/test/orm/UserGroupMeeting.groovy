@@ -16,6 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.test.orm
 
+import org.apache.commons.codec.binary.Base64
+
 /**
  * @author: Bob Florian
  */
@@ -28,6 +30,6 @@ class UserGroupMeeting
 	static belongsTo = [userGroup: UserGroup]
 
 	static cassandraMapping = [
-			primaryKey: ['userGroupId','date']
+			primaryKey: ['date','uuid']
 	]
 }
