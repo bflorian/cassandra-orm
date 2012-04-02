@@ -347,16 +347,27 @@ class InstanceMethods extends MappingUtils
 			}
 		}
 
-		// Expando properties
-		clazz.metaClass.methodMissing = {String name, args ->
-			if (!args && name.startsWith("get") && name.size() > 3 &&  Character.isUpperCase(name.charAt(3)) && cassandraMapping.isExpando) {
-				// TODO - handle expando values
-
+		// Expando properties setter
+		clazz.metaClass.propertyMissing = {String name, arg ->
+			if (cassandraMapping.expandoMap) {
+				def map = delegate.getProperty(cassandraMapping.expandoMap)
+				map[name] = arg
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)
 			}
-		}	
+		}
+
+		// Expando properties getter
+		clazz.metaClass.propertyMissing = {String name ->
+			if (cassandraMapping.expandoMap && name != "transients") {
+				def map = delegate.getProperty(cassandraMapping.expandoMap)
+				return map[name]
+			}
+			else {
+				throw new MissingPropertyException(name, clazz)
+			}
+		}
 
 		// toString()
 		clazz.metaClass.toString = {

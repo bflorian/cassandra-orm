@@ -40,6 +40,12 @@ class DataMapping extends MappingUtils
 			def transients = MappingUtils.safeGetProperty(data, 'transients', List, [])
 			def hasMany = MappingUtils.safeGetProperty(data, 'hasMany', Map, [:])
 			def clazz = data.getClass()
+
+			def expandoMapName = clazz.cassandraMapping.expandoMap
+			if (expandoMapName) {
+				transients << expandoMapName
+			}
+
 			map[CLASS_NAME_KEY] = clazz.getName()
 			data.metaClass.properties.each() {
 				if (!it.name.endsWith(DIRTY_SUFFIX)) {
@@ -63,6 +69,13 @@ class DataMapping extends MappingUtils
 							}
 						}
 					}
+				}
+			}
+
+			if (expandoMapName) {
+				def expandoMap = data.getProperty(expandoMapName)
+				expandoMap?.each {name, value ->
+					map[name] = value
 				}
 			}
 		}
@@ -131,6 +144,9 @@ class DataMapping extends MappingUtils
 			def asClass = Class.forName(className, false, DataMapping.class.classLoader)
 			obj = asClass.newInstance()
 
+			def expandoMap = asClass.cassandraMapping.expandoMap ? obj.getProperty(asClass.cassandraMapping.expandoMap) : null
+			def expandoMapType = String
+
 			cols.each() {col ->
 				def name = col.name
 				def metaProperty = obj.metaClass.getMetaProperty(name)
@@ -138,6 +154,9 @@ class DataMapping extends MappingUtils
 					if (metaProperty.setter && !metaProperty.setter.isStatic()) {
 						metaProperty.setProperty(obj, objectProperty(metaProperty.type, col))
 					}
+				}
+				else if (expandoMap != null && name != CLASS_NAME_KEY && !name.endsWith(KEY_SUFFIX)) {
+					expandoMap[name] = objectProperty(expandoMapType, col)
 				}
 			}
 		}

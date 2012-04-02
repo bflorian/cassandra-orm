@@ -27,10 +27,13 @@ class UserGroup
 	Set users
 	List meetings
 
+	Map<String, String> data = [:]
+
 	static hasMany = [users: User, meetings: UserGroupMeeting, posts: UserGroupPost]
 
 	static cassandraMapping = [
-			primaryKey: 'uuid'
+			primaryKey: 'uuid',
+			expandoMap: 'data'
 	]
 
 }

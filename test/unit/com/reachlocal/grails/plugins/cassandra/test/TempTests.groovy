@@ -28,13 +28,20 @@ class TempTests extends OrmTestCase
 	{
 		initialize()
 
-		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG")
+		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG", constructedCustom: "XYZ")
 		def meeting1 = new UserGroupMeeting(date:  new Date())
 
 		println "\nuserGroup.save()"
+		userGroup.assignedCustom = "ABC"
 		userGroup.save()
 		persistence.printClear()
 
+		println "BEFORE GET: ${userGroup.constructedCustom}"
+		def g2 = UserGroup.get("group1-zzzz-zzzz")
+		println "AFTER GET: ${g2.constructedCustom}"
+		println "DATA: ${g2.data}"
+
+/*
 		println "\nUserGroup.get('group1-zzzz-zzzz')"
 		def g = UserGroup.get('group1-zzzz-zzzz')
 		assertEquals "JUG", g.name
@@ -57,5 +64,6 @@ class TempTests extends OrmTestCase
 		println "\n--- delete() ---"
 		userGroup.delete()
 		persistence.printClear()
+*/
 	}
 }

@@ -32,7 +32,8 @@ class InstanceMethodTests extends OrmTestCase
 
 		def userGroup = new UserGroup(
 				uuid: "group1-zzzz-zzzz",
-				name: "JUG")
+				name: "JUG",
+				color: "Blue")
 
 		def userGroup2 = new UserGroup(
 				uuid: "group2-zzzz-zzzz",
@@ -103,7 +104,22 @@ class InstanceMethodTests extends OrmTestCase
 		println "\n--- userGroup.save() ---"
 		userGroup.save()
 		persistence.printClear()
-		println user.id
+
+		println "\n--- userGroup.color [EXPANDO] ---"
+		println userGroup.color
+		assertEquals "Blue", userGroup.color
+
+		println "\n--- userGroup.flavor = 'Cinnamon' [EXPANDO] ---"
+		userGroup.flavor = 'Cinnamon'
+		assertEquals "Cinnamon", userGroup.flavor
+		userGroup.save()
+		persistence.printClear()
+
+		println "\n--- userGroup.color & userGroup.flavor AFTER GET [EXPANDO] ---"
+		def g = UserGroup.get("group1-zzzz-zzzz")
+		persistence.printClear()
+		assertEquals "Blue", g.color
+		assertEquals "Cinnamon", g.flavor
 
 		println "\n--- userGroup.addToUsers(user) ---"
 		userGroup.addToUsers(user)

@@ -44,6 +44,11 @@ class MappingUtils
 		String.valueOf(s)
 	}
 
+	static propNameFromMethodName(String s)
+	{
+		s[3].toLowerCase() + s[1..-1]
+	}
+
 	static updateBelongsToProperty(thisObj, item)
 	{
 		def entry = item.belongsTo.find{it.value == thisObj.class}
@@ -140,30 +145,50 @@ class MappingUtils
 
 	static indexRowKey(propName, args)
 	{
-		def propNames = propertyListFromMethodName(propName)
-		def i = 0
-		def valuePart = makeComposite(propNames.collect{primaryRowKey(args[i++])})
-		def namePart = makeComposite(propNames)
-		return makeKey("this.${namePart}", valuePart)
+		try {
+			def propNames = propertyListFromMethodName(propName)
+			def i = 0
+			def valuePart = makeComposite(propNames.collect{primaryRowKey(args[i++])})
+			def namePart = makeComposite(propNames)
+			return makeKey("this.${namePart}", valuePart)
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
 	}
 
 	static objectIndexRowKey(String propName, Map map)
 	{
-		def value = map[propName]
-		return makeKey("this.${propName}", primaryRowKey(value))
+		try {
+			def value = map[propName]
+			return makeKey("this.${propName}", primaryRowKey(value))
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
 	}
 
 	static objectIndexRowKey(String propName, Object bean)
 	{
-		def value = bean.getProperty(propName)
-		value != null ? makeKey("this.${propName}", primaryRowKey(value)) : null
+		try {
+			def value = bean.getProperty(propName)
+			makeKey("this.${propName}", primaryRowKey(value))
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
 	}
 
 	static objectIndexRowKey(List propNames, Map map)
 	{
-		def valuePart = makeComposite(propNames.collect{primaryRowKey(map[it])})
-		def namePart = makeComposite(propNames)
-		return makeKey("this.${namePart}", valuePart)
+		try {
+			def valuePart = makeComposite(propNames.collect{primaryRowKey(map[it])})
+			def namePart = makeComposite(propNames)
+			return makeKey("this.${namePart}", valuePart)
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
 	}
 
 	static objectIndexRowKey(List propNames, Object bean)
