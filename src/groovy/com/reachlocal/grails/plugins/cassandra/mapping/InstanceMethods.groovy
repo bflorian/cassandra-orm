@@ -41,7 +41,7 @@ class InstanceMethods extends MappingUtils
 		// cassandraKey
 		clazz.metaClass.getId = {
 			def thisObj = delegate
-			def names = collection(cassandraMapping.primaryKey)
+			def names = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 			def values = names.collect {
 				def value = thisObj.getProperty(it)
 				primaryRowKey(value)
@@ -100,15 +100,17 @@ class InstanceMethods extends MappingUtils
 				def dataProperties = cassandra.mapping.dataProperties(thisObj)
 				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties)
 
-				// explicit indexes
+				// manage index rows
 				def indexRows = [:]
 				def oldIndexRows = [:]
 				def indexColumnFamily = thisObj.indexColumnFamily
 
-				if (!cassandraMapping.noPrimaryKeyIndex) {
+				// primary key index
+				if (cassandraMapping.primaryKey) {
 					indexRows[primaryKeyIndexRowKey()] = [(thisObj.id):'']
 				}
 
+				// explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
 					if (oldObj) {
 

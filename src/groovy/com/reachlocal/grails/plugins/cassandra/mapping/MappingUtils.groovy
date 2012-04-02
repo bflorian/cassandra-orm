@@ -168,9 +168,15 @@ class MappingUtils
 
 	static objectIndexRowKey(List propNames, Object bean)
 	{
-		def valuePart = makeComposite(propNames.collect{primaryRowKey(bean.getProperty(it))})
-		def namePart = makeComposite(propNames)
-		return makeKey("this.${namePart}", valuePart)
+		try {
+			def values = propNames.collect{primaryRowKey(bean.getProperty(it))}
+			def valuePart = makeComposite(values)
+			def namePart = makeComposite(propNames)
+			return makeKey("this.${namePart}", valuePart)
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
 	}
 
 	static void saveJoinRow(persistence, m, objClass, object, itemClass, item, propName)
@@ -231,11 +237,15 @@ class MappingUtils
 		id.toString()
 	}
 
-	static primaryRowKey(obj) throws CassandraMappingException
+	static primaryRowKey(UUID id)
+	{
+		dataProperty(id)
+	}
+
+	static primaryRowKey(obj) throws CassandraMappingNullIndexException
 	{
 		if (obj == null) {
-			//throw new CassandraMappingException("Null index value")
-			return null
+			throw new CassandraMappingNullIndexException("Primary keys and indexed properties cannot have null values")
 		}
 		else if (isMappedObject(obj)) {
 			return obj.id

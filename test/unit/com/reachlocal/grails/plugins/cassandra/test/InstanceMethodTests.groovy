@@ -41,10 +41,8 @@ class InstanceMethodTests extends OrmTestCase
 		def user = new User(
 				uuid: "user1-zzzz-zzzz",
 				name: "Jane",
-				phone:  "301-555-2222",
 				city: "Reston",
-				state:  "VA",
-				gender:  "Female")
+				state:  "VA")
 
 		def user2 = new User(
 				uuid: "user2-zzzz-zzzz",

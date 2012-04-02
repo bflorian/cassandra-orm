@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.reachlocal.grails.plugins.cassandra.test.orm
+package com.reachlocal.grails.plugins.cassandra.mapping
 
 /**
  * @author: Bob Florian
  */
-class UserGroupPost 
+class CassandraMappingNullIndexException extends CassandraMappingException
 {
-	UUID uuid = UUID.randomUUID()
-	String text
-	UserGroup userGroup
+	public CassandraMappingNullIndexException()
+	{
+		super()
+	}
 
-	static belongsTo = [userGroup: UserGroup]
-
-	static cassandraMapping = [
-			unindexedPrimaryKey: 'uuid'
-	]
+	public CassandraMappingNullIndexException(String message)
+	{
+		super(message)
+	}
 }

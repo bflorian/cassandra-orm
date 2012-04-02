@@ -29,7 +29,8 @@ class ClassMethods extends MappingUtils
 	{
 		if (!clazz.metaClass.hasMetaProperty('cassandraMapping')) {
 			throw new CassandraMappingException("cassandraMapping not specified")
-		} else if (!safeGetStaticProperty(clazz, 'cassandraMapping')?.primaryKey) {
+		} else if (!safeGetStaticProperty(clazz, 'cassandraMapping')?.primaryKey &&
+				!safeGetStaticProperty(clazz, 'cassandraMapping')?.unindexedPrimaryKey) {
 			throw new CassandraMappingException("cassandraMapping.primaryKey not specified")
 		}
 
