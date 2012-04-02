@@ -144,8 +144,16 @@ class DataMapping extends MappingUtils
 			def asClass = Class.forName(className, false, DataMapping.class.classLoader)
 			obj = asClass.newInstance()
 
-			def expandoMap = asClass.cassandraMapping.expandoMap ? obj.getProperty(asClass.cassandraMapping.expandoMap) : null
+			def expandoMapName = asClass.cassandraMapping.expandoMap
+			def expandoMap = null
 			def expandoMapType = String
+			if (expandoMapName) {
+				expandoMap = obj.getProperty(expandoMapName)
+				if (expandoMap == null) {
+					expandoMap = [:] //TODO - map type?
+					obj.setProperty(expandoMapName, expandoMap)
+				}
+			}
 
 			cols.each() {col ->
 				def name = col.name

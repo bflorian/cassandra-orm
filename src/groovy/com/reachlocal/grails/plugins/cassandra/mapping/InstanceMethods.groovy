@@ -351,6 +351,10 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.propertyMissing = {String name, arg ->
 			if (cassandraMapping.expandoMap) {
 				def map = delegate.getProperty(cassandraMapping.expandoMap)
+				if (map == null) {
+					map = [:] //TODO - consider type?
+					delegate.setProperty(cassandraMapping.expandoMap, map)
+				}
 				map[name] = arg
 			}
 			else {
@@ -362,7 +366,7 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.propertyMissing = {String name ->
 			if (cassandraMapping.expandoMap && name != "transients") {
 				def map = delegate.getProperty(cassandraMapping.expandoMap)
-				return map[name]
+				return map ? map[name] : null
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)

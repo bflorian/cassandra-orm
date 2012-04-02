@@ -27,7 +27,7 @@ class UserGroup
 	Set users
 	List meetings
 
-	Map<String, String> data = [:]
+	Map data
 
 	static hasMany = [users: User, meetings: UserGroupMeeting, posts: UserGroupPost]
 
