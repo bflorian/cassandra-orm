@@ -44,17 +44,6 @@ class MappingUtils
 		String.valueOf(s)
 	}
 
-	static propNameFromMethodName(String s)
-	{
-		s[3].toLowerCase() + s[1..-1]
-	}
-
-	static updateBelongsToProperty(thisObj, item)
-	{
-		def entry = item.belongsTo.find{it.value == thisObj.class}
-		item.setProperty(entry.key, thisObj)
-	}
-
 	static Map addOptionDefaults(options, defaultCount)
 	{
 		Map result = [
@@ -69,42 +58,9 @@ class MappingUtils
 		return result
 	}
 
-	static String propertyFromMethodName(name)
-	{
-		return name[0].toLowerCase() + (name.size() > 1 ? name[1..-1] : '')
-	}
-
 	static String methodForPropertyName(prefix, propertyName)
 	{
 		return "${prefix}${propertyName[0].toUpperCase()}${propertyName.size() > 1 ? propertyName[1..-1] : ''}"
-	}
-
-	static String expressionFromMethodName(name, args)
-	{
-		def exps = name.replaceAll('([a-z,0-9])And([A-Z])','$1,$2').split(",")
-		exps = exps.collect{it[0].toLowerCase() + (it.size() > 0 ? it[1..-1] : '')}
-		expressionFromPropertyList(exps, args)
-	}
-
-	static String expressionFromPropertyList(exps, args)
-	{
-		def expression = new StringBuilder()
-		def op = ""
-		exps.eachWithIndex {it, index ->
-			expression << op
-			expression << "${it} = '${args[index]}'"
-			op = " and "
-		}
-		return expression.toString()
-	}
-
-	static List preparedExpressionListFromPropertyList(columnFamily, exps, args)
-	{
-		def result = []
-		exps.eachWithIndex {it, index ->
-			result << columnFamily.newIndexClause().whereColumn(it).equals().value(args[index])
-		}
-		return result
 	}
 
 	static List propertyListFromMethodName(name)
@@ -141,20 +97,6 @@ class MappingUtils
 	static primaryKeyIndexRowKey()
 	{
 		makeKey("this","")
-	}
-
-	static indexRowKey(propName, args)
-	{
-		try {
-			def propNames = propertyListFromMethodName(propName)
-			def i = 0
-			def valuePart = makeComposite(propNames.collect{primaryRowKey(args[i++])})
-			def namePart = makeComposite(propNames)
-			return makeKey("this.${namePart}", valuePart)
-		}
-		catch (CassandraMappingNullIndexException e) {
-			return null
-		}
 	}
 
 	static objectIndexRowKey(String propName, Map map)
@@ -216,16 +158,6 @@ class MappingUtils
 		def columnFamily = itemClass.indexColumnFamily
 		def rowKey = joinRowKey(objClass, itemClass, propName, object)
 		persistence.deleteColumn(m, columnFamily, rowKey, item.id)
-	}
-
-	static convertToKey(String id)
-	{
-		return id
-	}
-
-	static convertToKey(object)
-	{
-		return object.id
 	}
 
 	static getFromHasMany(thisObj, propName, options=[:], clazz=LinkedHashSet)
