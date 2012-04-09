@@ -214,7 +214,7 @@ class MappingUtils
 
 	static primaryRowKey(Boolean id)
 	{
-		dataProperty(id)
+		id.toString()
 	}
 
 	static primaryRowKey(UUID id)
@@ -512,7 +512,7 @@ class MappingUtils
 
 	static dataProperty(Boolean value)
 	{
-		return value ? 'T' : 'F'
+		return value
 	}
 
 	static dataProperty(String value)

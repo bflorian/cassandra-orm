@@ -146,11 +146,11 @@ class InstanceMethods extends MappingUtils
 					def whereKeys = ctr.whereEquals
 					def groupKeys = ctr.groupBy
 					if (oldObj) {
-						def oldColName = makeComposite(groupKeys.collect{dataProperty(oldObj.getProperty(it))})
+						def oldColName = makeComposite(groupKeys.collect{primaryRowKey(oldObj.getProperty(it))})
 						def oldCounterRowKey = "${objectIndexRowKey(whereKeys, oldObj)}#${makeComposite(groupKeys)}".toString()
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, oldCounterRowKey, oldColName)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, oldCounterRowKey, oldColName, -1)
 					}
-					def colName = makeComposite(groupKeys.collect{dataProperty(thisObj.getProperty(it))})
+					def colName = makeComposite(groupKeys.collect{primaryRowKey(thisObj.getProperty(it))})
 					def counterRowKey = "${objectIndexRowKey(whereKeys, thisObj)}#${makeComposite(groupKeys)}".toString()
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, counterRowKey, colName)
 				}
