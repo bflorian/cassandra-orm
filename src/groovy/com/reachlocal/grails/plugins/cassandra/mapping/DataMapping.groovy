@@ -190,6 +190,8 @@ class DataMapping extends MappingUtils
 				return column.booleanValue
 			case Date:
 				return new Date(new Long(persistence.stringValue(column)))
+			case Boolean:
+				return persistence.StringValue(column) == 'T'
 			case String:
 				return persistence.stringValue(column)
 			case UUID:

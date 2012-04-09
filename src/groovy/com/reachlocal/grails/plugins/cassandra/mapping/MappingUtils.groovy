@@ -24,14 +24,14 @@ import java.nio.ByteBuffer
  */
 class MappingUtils 
 {
-	static final int MAX_ROWS = 1000
-	static final INDEX_OPTIONS = ["start","finish","keys"]
-	static final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
-	static final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
-	static final CLASS_NAME_KEY = '_class_name_'
-	static final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
-	static final KEY_SUFFIX = "_key"
-	static final DIRTY_SUFFIX = "_dirty"
+	static protected final int MAX_ROWS = 1000
+	static protected final INDEX_OPTIONS = ["start","finish","keys"]
+	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
+	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
+	static protected final CLASS_NAME_KEY = '_class_name_'
+	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
+	static protected final KEY_SUFFIX = "_key"
+	static protected final DIRTY_SUFFIX = "_dirty"
 
 
 	static String stringValue(String s)
@@ -192,6 +192,11 @@ class MappingUtils
 	static primaryRowKey(Number id)
 	{
 		id.toString()
+	}
+
+	static primaryRowKey(Boolean id)
+	{
+		dataProperty(id)
 	}
 
 	static primaryRowKey(UUID id)
@@ -485,6 +490,11 @@ class MappingUtils
 	static dataProperty(Map value)
 	{
 		return value.encodeAsJSON()
+	}
+
+	static dataProperty(Boolean value)
+	{
+		return value ? 'T' : 'F'
 	}
 
 	static dataProperty(String value)
