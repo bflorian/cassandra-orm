@@ -78,10 +78,6 @@ class MappingUtils
 	{
 		 return [value]
 	}
-	
-	static String makeKey(name, value){
-		"${name}\u00ff${value ?: ''}".toString()
-	}
 
 	static String makeComposite(list)
 	{
@@ -91,19 +87,18 @@ class MappingUtils
 	static joinRowKey(fromClass, toClass, propName, object)
 	{
 		def fromClassName = fromClass.name.split("\\.")[-1]
-		return makeKey("${fromClassName}.${propName}", object.id)
+		"${fromClassName}?${propName}=${URLEncoder.encode(object.id)}".toString()
 	}
 
 	static primaryKeyIndexRowKey()
 	{
-		makeKey("this","")
+		"this"
 	}
 
 	static objectIndexRowKey(String propName, Map map)
 	{
 		try {
-			def value = map[propName]
-			return makeKey("this.${propName}", primaryRowKey(value))
+			return indexRowKey(propName, map[propName])
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null
@@ -113,8 +108,7 @@ class MappingUtils
 	static objectIndexRowKey(String propName, Object bean)
 	{
 		try {
-			def value = bean.getProperty(propName)
-			makeKey("this.${propName}", primaryRowKey(value))
+			return indexRowKey(propName, bean.getProperty(propName))
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null
@@ -124,9 +118,7 @@ class MappingUtils
 	static objectIndexRowKey(List propNames, Map map)
 	{
 		try {
-			def valuePart = makeComposite(propNames.collect{primaryRowKey(map[it])})
-			def namePart = makeComposite(propNames)
-			return makeKey("this.${namePart}", valuePart)
+			return indexRowKey(propNames.collect{[it, map[it]]})
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null
@@ -136,10 +128,36 @@ class MappingUtils
 	static objectIndexRowKey(List propNames, Object bean)
 	{
 		try {
-			def values = propNames.collect{primaryRowKey(bean.getProperty(it))}
-			def valuePart = makeComposite(values)
-			def namePart = makeComposite(propNames)
-			return makeKey("this.${namePart}", valuePart)
+			return indexRowKey(propNames.collect{[it, bean.getProperty(it)]})
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
+	}
+
+	static indexRowKey(String name, value)
+	{
+		try {
+			"this?${name}=${URLEncoder.encode(primaryRowKey(value))}".toString()
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
+	}
+
+	static indexRowKey(List pairs)
+	{
+		try {
+			def sep = "?"
+			def sb = new StringBuilder("this")
+			pairs.each {
+				sb << sep
+				sb << it[0]
+				sb << '='
+				sb << URLEncoder.encode(primaryRowKey(it[1]))
+				sep = "&"
+			}
+			return sb.toString()
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null

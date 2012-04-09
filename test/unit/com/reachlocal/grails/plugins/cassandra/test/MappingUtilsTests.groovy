@@ -49,12 +49,6 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals "rank", MappingUtils.collection(["rank"])[0]
 	}
 
-	void testMakeKey()
-	{
-		assertEquals "name\u00ffvalue", MappingUtils.makeKey("name","value")
-		assertEquals "name\u00ff", MappingUtils.makeKey("name",null)
-	}
-
 	void testMakeComposite()
 	{
 		assertEquals "one__two", MappingUtils.makeComposite(["one","two"])
@@ -62,13 +56,13 @@ class MappingUtilsTests extends GrailsUnitTestCase
 
 	void testPrimaryKeyRowKey()
 	{
-		assertEquals "this\u00ff", MappingUtils.primaryKeyIndexRowKey()
+		assertEquals "this", MappingUtils.primaryKeyIndexRowKey()
 	}
 
 	void testObjectIndexRowKey_Map()
 	{
-		assertEquals "this.name\u00ffJoe", MappingUtils.objectIndexRowKey("name", [name:"Joe", color:"blue", zip:"20832", gender:"F"])
-		assertEquals "this.name__color\u00ffJoe__blue", MappingUtils.objectIndexRowKey(["name","color"], [name:"Joe", color:"blue", zip:"20832", gender:"F"])
+		assertEquals "this?name=Joe", MappingUtils.objectIndexRowKey("name", [name:"Joe", color:"blue", zip:"20832", gender:"F"])
+		assertEquals "this?name=Joe&color=blue", MappingUtils.objectIndexRowKey(["name","color"], [name:"Joe", color:"blue", zip:"20832", gender:"F"])
 	}
 /*
 	void testExpandFilters()
