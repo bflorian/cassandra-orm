@@ -97,6 +97,11 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals "UserGroup_IDX_CFO", UserGroup.indexColumnFamily
 		persistence.printClear()
 
+		println "\n--- getCounterColumnFamily() ---"
+		assertEquals "MockUser_CTR_CFO", User.counterColumnFamily
+		assertEquals "UserGroup_CTR_CFO", UserGroup.counterColumnFamily
+		persistence.printClear()
+
 		println "\n--- belongsToClass(clazz) ---"
 		persistence.printClear()
 		assertTrue User.belongsToClass(UserGroup)

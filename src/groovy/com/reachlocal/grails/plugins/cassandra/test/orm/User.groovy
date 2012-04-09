@@ -37,6 +37,9 @@ class User
 			columnFamily: 'MockUser',
 			primaryKey: 'uuid',
 			explicitIndexes: ["email","phone","city",["city","gender"]],
-			secondaryIndexes: ["gender","state"]
+			secondaryIndexes: ["gender","state"],
+			counters: [
+					[whereEquals: ['state'], groupBy: ['city']]
+			]
 	]
 }

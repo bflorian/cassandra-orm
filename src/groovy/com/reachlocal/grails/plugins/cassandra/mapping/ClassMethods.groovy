@@ -77,6 +77,16 @@ class ClassMethods extends MappingUtils
 			return cf
 		}
 
+		// counterColumnFamily
+		clazz.metaClass.'static'.getCounterColumnFamily = {
+			def cf = cassandraMapping.counterColumnFamily_object
+			if (cf == null) {
+				cf = cassandra.persistence.columnFamily("${columnFamilyName}_CTR".toString())
+				cassandraMapping.counterColumnFamily_object = cf
+			}
+			return cf
+		}
+
 		// belongsToClass(clazz2)
 		clazz.metaClass.'static'.belongsToClass = { clazz2 ->
 			if (clazz.metaClass.hasMetaProperty("belongsTo")) {

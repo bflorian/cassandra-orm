@@ -38,6 +38,9 @@ class InstanceMethods extends MappingUtils
 		// indexColumnFamily()
 		clazz.metaClass.getIndexColumnFamily = { clazz.indexColumnFamily }
 
+		// counterColumnFamily()
+		clazz.metaClass.getCounterColumnFamily = { clazz.counterColumnFamily }
+
 		// cassandraKey
 		clazz.metaClass.getId = {
 			def thisObj = delegate
@@ -104,6 +107,7 @@ class InstanceMethods extends MappingUtils
 				def indexRows = [:]
 				def oldIndexRows = [:]
 				def indexColumnFamily = thisObj.indexColumnFamily
+				def counterColumnFamily = thisObj.counterColumnFamily
 
 				// primary key index
 				if (cassandraMapping.primaryKey) {
@@ -125,6 +129,7 @@ class InstanceMethods extends MappingUtils
 						indexRows[indexRowKey] = [(thisObj.id):'']
 					}
 				}
+
 				oldIndexRows.each {rowKey, col ->
 					col.each {colKey, v ->
 						cassandra.persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
@@ -135,6 +140,21 @@ class InstanceMethods extends MappingUtils
 						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols)
 					}
 				}
+
+				// counters
+				cassandraMapping.counters?.each {ctr ->
+					def whereKeys = ctr.whereEquals
+					def groupKeys = ctr.groupBy
+					if (oldObj) {
+						def oldColName = makeComposite(groupKeys.collect{dataProperty(oldObj.getProperty(it))})
+						def oldCounterRowKey = "${objectIndexRowKey(whereKeys, oldObj)}#${makeComposite(groupKeys)}".toString()
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, oldCounterRowKey, oldColName)
+					}
+					def colName = makeComposite(groupKeys.collect{dataProperty(thisObj.getProperty(it))})
+					def counterRowKey = "${objectIndexRowKey(whereKeys, thisObj)}#${makeComposite(groupKeys)}".toString()
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, counterRowKey, colName)
+				}
+
 				cassandra.persistence.execute(m)
 			}
 			thisObj

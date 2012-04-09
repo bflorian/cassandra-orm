@@ -142,6 +142,18 @@ class MockPersistenceMethods
 		data.putColumns(columnFamily, rowKey, columnMap)
 	}
 
+	void incrementCounterColumn(mutationBatch, columnFamily, rowKey, name, value=1)
+	{
+		logOp "incrementCounterColumn", columnFamily, rowKey, name, value
+		data.incrementCounterColumn(columnFamily, rowKey, name, value)
+	}
+
+	void incrementCounterColumns(mutationBatch, columnFamily, rowKey, columnMap)
+	{
+		logOp "incrementCounterColumns", columnFamily, rowKey, columnMap
+		data.incrementCounterColumns(columnFamily, rowKey, columnMap)
+	}
+
 	void deleteRow(mutationBatch, columnFamily, rowKey)
 	{
 		logOp "deleteRow", columnFamily, rowKey

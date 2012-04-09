@@ -107,6 +107,26 @@ class MockPersistenceDataStructure
 		data[columnFamily] = cf
 	}
 
+	void incrementCounterColumn(columnFamily, rowKey, columnName, value=1)
+	{
+		def cf = data[columnFamily] ?: [:]
+		def row = cf[rowKey] ?: [:]
+		row[columnName] = (row[columnName] ?: 0) + value
+		cf[rowKey] = row
+		data[columnFamily] = cf
+	}
+
+	void incrementCounterColumns(columnFamily, rowKey, columnMap)
+	{
+		def cf = data[columnFamily] ?: [:]
+		def row = cf[rowKey] ?: [:]
+		columnMap.each {k,v ->
+			row[k] = (row[k] ?: 0) + v
+		}
+		cf[rowKey] = row
+		data[columnFamily] = cf
+	}
+
 	def deleteRow(columnFamily, rowKey)
 	{
 		data.get(columnFamily)?.remove(rowKey)
