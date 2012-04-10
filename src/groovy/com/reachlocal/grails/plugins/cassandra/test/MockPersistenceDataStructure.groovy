@@ -46,7 +46,14 @@ class MockPersistenceDataStructure
 		if (row) {
 			if (reversed) {
 				def row2 = [:]
-				row.collect{it.key}.reverse().each {k ->
+				row.collect{it.key}.sort().reverse().each {k ->
+					row2[k] = row[k]
+				}
+				row = row2
+			}
+			else {
+				def row2 = [:]
+				row.collect{it.key}.sort().each {k ->
 					row2[k] = row[k]
 				}
 				row = row2

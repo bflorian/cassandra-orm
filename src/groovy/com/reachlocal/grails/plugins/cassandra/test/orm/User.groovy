@@ -28,6 +28,7 @@ class User
 	String state
 	String phone
 	String gender
+	Date birthDate
 	UserGroup userGroup
 
 	static belongsTo = [userGroup: UserGroup]
@@ -39,7 +40,12 @@ class User
 			explicitIndexes: ["email","phone","city",["city","gender"]],
 			secondaryIndexes: ["gender","state"],
 			counters: [
-					[whereEquals: ['state'], groupBy: ['city']]
+					[whereEquals: ['state'], groupBy: ['city']],
+					[groupBy: ['birthDate']],
+					[whereEquals: ['gender'], groupBy: ['birthDate']],
+					[groupBy: ['birthDate','state']],
+					[whereEquals: ['gender'], groupBy: ['birthDate','city']],
 			]
 	]
+
 }

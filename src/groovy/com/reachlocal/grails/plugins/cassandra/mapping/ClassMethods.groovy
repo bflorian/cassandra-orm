@@ -164,6 +164,19 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
+		// getCounts(groupedBy: 'hour')
+		// getCounts(where: [usid:'xxx'], groupedBy: 'hour')
+		clazz.metaClass.'static'.getCounts = {params ->
+			if (!params.groupedBy) {
+				throw new IllegalArgumentException("The 'groupedBy' parameter must be specified")
+			}
+			else {
+				def filterList = expandFilters(params.where)
+				def index = findIndex(cassandraMapping.counters.whereEquals, filterList)
+				return getCounterColumns(clazz, filterList, index, params)
+			}
+		}
+
 		// findWhere(params, opts?)
 		clazz.metaClass.'static'.findWhere = {params, opts=[:] ->
 			def options = opts.clone()
@@ -197,7 +210,7 @@ class ClassMethods extends MappingUtils
 			def count = false
 			def str = null
 			def result = null
-			def opts = (args[-1] instanceof Map) ? args[-1].clone() : [:]
+			def opts = (args && args[-1] instanceof Map) ? args[-1].clone() : [:]
 			if (name.startsWith("findAllBy") && name.size() > 9 && args.size() > 0) {
 				str = name - "findAllBy"
 			}
@@ -245,6 +258,16 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				return single ? (result ? result.toList()[0] : null) : result
+			}
+			else if (name.startsWith("getCountsGroupedBy")) {
+				// getCountsGroupedByHour(where: [usid:''])
+				// getCountsGroupedByRefererIdAndHour(where: [usid:''])
+				opts.groupedBy = propertyListFromMethodName(name - "getCountsGroupedBy")
+
+				def filterList = expandFilters(opts.where)
+				def index = findIndex(cassandraMapping.counters.whereEquals, filterList)
+				return getCounterColumns(clazz, filterList, index, opts)
+
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)

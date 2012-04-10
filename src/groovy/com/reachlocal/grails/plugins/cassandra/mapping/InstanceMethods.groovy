@@ -144,15 +144,16 @@ class InstanceMethods extends MappingUtils
 				// counters
 				cassandraMapping.counters?.each {ctr ->
 					def whereKeys = ctr.whereEquals
-					def groupKeys = ctr.groupBy
+					def groupKeys = collection(ctr.groupBy)
+					def dateFormat = ctr.dateFormat ?: DAY_FORMAT
 					if (oldObj) {
-						def oldColName = makeComposite(groupKeys.collect{primaryRowKey(oldObj.getProperty(it))})
-						def oldCounterRowKey = "${objectIndexRowKey(whereKeys, oldObj)}#${makeComposite(groupKeys)}".toString()
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, oldCounterRowKey, oldColName, -1)
+						def oldColName = counterColumnName(groupKeys, oldObj, dateFormat)
+						def ocrk = counterRowKey(whereKeys, groupKeys, oldObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 					}
-					def colName = makeComposite(groupKeys.collect{primaryRowKey(thisObj.getProperty(it))})
-					def counterRowKey = "${objectIndexRowKey(whereKeys, thisObj)}#${makeComposite(groupKeys)}".toString()
-					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, counterRowKey, colName)
+					def colName = counterColumnName(groupKeys, thisObj, dateFormat)
+					def crk = counterRowKey(whereKeys, groupKeys, thisObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 				}
 
 				cassandra.persistence.execute(m)

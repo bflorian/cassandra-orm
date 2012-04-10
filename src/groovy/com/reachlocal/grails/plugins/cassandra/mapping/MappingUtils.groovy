@@ -18,6 +18,9 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.apache.commons.beanutils.PropertyUtils
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.text.DateFormat
+import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 
 /**
  * @author: Bob Florian
@@ -32,7 +35,7 @@ class MappingUtils
 	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
 	static protected final KEY_SUFFIX = "_key"
 	static protected final DIRTY_SUFFIX = "_dirty"
-
+	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 
 	static String stringValue(String s)
 	{
@@ -84,6 +87,11 @@ class MappingUtils
 		list.join("__")
 	}
 
+	static List parseComposite(String value)
+	{
+		value.split("__")
+	}
+
 	static joinRowKey(fromClass, toClass, propName, object)
 	{
 		def fromClassName = fromClass.name.split("\\.")[-1]
@@ -93,6 +101,21 @@ class MappingUtils
 	static primaryKeyIndexRowKey()
 	{
 		"this"
+	}
+
+	static counterRowKey(List whereKeys, List groupKeys, Map map)
+	{
+		"${objectIndexRowKey(whereKeys, map)}#${makeComposite(groupKeys)}".toString()
+	}
+
+	static counterRowKey(List whereKeys, List groupKeys, Object bean)
+	{
+		"${objectIndexRowKey(whereKeys, bean)}#${makeComposite(groupKeys)}".toString()
+	}
+
+	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = DAY_FORMAT)
+	{
+		makeComposite(groupKeys.collect{counterColumnKey(bean.getProperty(it), dateFormat)})
 	}
 
 	static objectIndexRowKey(String propName, Map map)
@@ -195,6 +218,21 @@ class MappingUtils
 
 	static boolean isMappedObject(object) {
 		return object ? object.class.metaClass.hasMetaProperty("cassandraMapping") : false
+	}
+
+	static counterColumnKey(List items, DateFormat dateFormat)
+	{
+		makeComposite(items.collect{counterColumnKey(it, dateFormat)})
+	}
+
+	static counterColumnKey(Date date, DateFormat dateFormat)
+	{
+		dateFormat.format(date)
+	}
+
+	static counterColumnKey(obj, DateFormat dateFormat)
+	{
+		primaryRowKey(obj)
 	}
 
 	static primaryRowKey(List objs)
@@ -397,6 +435,34 @@ class MappingUtils
 				total += count
 			}
 			return total
+		}
+	}
+
+	static getCounterColumns(clazz, filterList, index, params)
+	{
+		def options = addOptionDefaults(params, MAX_ROWS)
+		def cf = clazz.counterColumnFamily
+		def persistence = clazz.cassandra.persistence
+		def groupedBy = collection(params.groupedBy)
+		def dateFormat = params.dateFormat ?: DAY_FORMAT
+		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+			def result = new NestedHashMap()
+			filterList.each {filter ->
+				def rowKey = counterRowKey(index, groupedBy, filter)
+				def cols = persistence.getColumnRange(
+						ks,
+						cf,
+						rowKey,
+						counterColumnKey(options.start, dateFormat),
+						counterColumnKey(options.finish, dateFormat),
+						options.reversed,
+						options.max)
+
+				cols.each {col ->
+					result.put(parseComposite(persistence.name(col)) + persistence.longValue(col))
+				}
+			}
+			return result
 		}
 	}
 

@@ -18,7 +18,8 @@ package com.reachlocal.grails.plugins.cassandra.test;
 
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
-import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting;
+import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
+import java.text.SimpleDateFormat;
 
 
 /**
@@ -37,7 +38,8 @@ public class ClassMethodsTests extends OrmTestCase
 				state:  "MD",
 				phone: '301-555-1212',
 				gender: 'Male',
-				city:  'Ellicott City').save()
+				city:  'Ellicott City',
+				birthDate:  DAY_FORMAT.parse('1980-03-15')).save()
 
 		new User(
 				uuid: "x2xx-xxxx-xxxx-xxxx",
@@ -45,7 +47,8 @@ public class ClassMethodsTests extends OrmTestCase
 				email: "email2@local.com",
 				state:  "VA", phone: '301-555-1212',
 				gender: 'Female',
-				city: 'Reston').save()
+				city: 'Reston',
+				birthDate:  DAY_FORMAT.parse('1985-09-14')).save()
 
 		new User(
 				uuid: "x3xx-xxxx-xxxx-xxxx",
@@ -53,7 +56,8 @@ public class ClassMethodsTests extends OrmTestCase
 				state:  "MD",
 				phone: '301-555-1234',
 				gender: 'Female',
-				city:  'Ellicott City').save()
+				city:  'Ellicott City',
+				birthDate:  DAY_FORMAT.parse('1976-07-04')).save()
 
 		new User(
 				uuid: "x4xx-xxxx-xxxx-xxxx",
@@ -61,7 +65,8 @@ public class ClassMethodsTests extends OrmTestCase
 				state:  "CA",
 				phone: '301-555-1111',
 				gender: 'Female',
-				city:  'Pleasanton').save()
+				city:  'Pleasanton',
+				birthDate:  DAY_FORMAT.parse('1962-06-10')).save()
 
 		new User(
 				uuid: "x5xx-xxxx-xxxx-xxxx",
@@ -69,7 +74,8 @@ public class ClassMethodsTests extends OrmTestCase
 				state:  "MD",
 				phone: '301-555-1212',
 				gender: 'Male',
-				city:  'Olney').save()
+				city:  'Olney',
+				birthDate:  DAY_FORMAT.parse('1991-11-12')).save()
 
 		persistence.printClear()
 
@@ -230,5 +236,63 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals 1, r
+
+		println "\n--- User.getCounts(groupedBy: ['birthDate']) ---"
+		r = User.getCounts(groupedBy: ['birthDate'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCounts(groupedBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		r = User.getCounts(groupedBy: 'birthDate', start: '1975-01-01', finish: '1984-12-31')
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCounts(groupedBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		r = User.getCounts(groupedBy: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCounts(where: [gender: 'Male', groupedBy: 'birthDate']) ---"
+		r = User.getCounts(where: [gender: 'Male'], groupedBy: 'birthDate')
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+		assertEquals 1, r['1980-03-15']
+
+		println "\n--- User.getCounts(where: [gender: 'Female'], groupedBy: ['birthDate','city']) ---"
+		r = User.getCounts(where: [gender: 'Female'], groupedBy: ['birthDate','city'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCounts(groupedBy: ['birthDate','state']) ---"
+		r = User.getCounts(groupedBy: ['birthDate','state'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCounts(grouped: ['birthDate','state']) ---"
+		try {
+			r = User.getCounts(grouped: ['birthDate','state'])
+			fail("Illegal argument exception now thrown when groupedBy not specified for getCounts")
+		}
+		catch (IllegalArgumentException e) {
+
+		}
+
+		println "\n--- User.getCountsGroupedByBirthDate(where: [gender: 'Male']) ---"
+		r = User.getCountsGroupedByBirthDate(where: [gender: 'Male'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCountsGroupedByBirthDate() ---"
+		r = User.getCountsGroupedByBirthDate()
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCountsGroupedByBirthDate() ---"
+		r = User.getCountsGroupedByBirthDateAndCity(where: [gender: 'Female'])
+		persistence.printClear()
+		println r
 	}
+
+	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 }

@@ -185,6 +185,11 @@ class MockPersistenceMethods
 		column.value
 	}
 
+	Long longValue(column)
+	{
+		column.value as Long
+	}
+
 	byte[] byteArrayValue(column)
 	{
 		def result = column.value?.bytes
