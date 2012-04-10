@@ -18,6 +18,7 @@ package com.reachlocal.grails.plugins.cassandra.test
 
 import grails.test.GrailsUnitTestCase
 import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
+import java.text.SimpleDateFormat
 
 /**
  * @author: Bob Florian
@@ -52,6 +53,61 @@ class MappingUtilsTests extends GrailsUnitTestCase
 	void testMakeComposite()
 	{
 		assertEquals "one__two", MappingUtils.makeComposite(["one","two"])
+	}
+
+	void testRollUpCounterDates()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+		def df = new SimpleDateFormat("yyyy-MM-dd")
+
+		def hours = [
+		('2012-02-04T16'): 2,
+		('2012-02-04T17'): 4,
+		('2012-02-04T18'): 2,
+		('2012-02-04T19'): 5,
+		('2012-02-04T20'): 1,
+		('2012-02-04T21'): 4,
+		('2012-02-04T22'): 1,
+		('2012-02-04T23'): 2,
+		('2012-02-05T00'): 4,
+		('2012-02-05T01'): 2,
+		('2012-02-05T02'): 1,
+		('2012-02-05T04'): 2,
+		('2012-02-05T05'): 1
+		]
+
+		def days = MappingUtils.rollUpCounterDates(hours, hf, df)
+		println days
+		assertEquals 2, days.size()
+		assertEquals 21, days['2012-02-04']
+		assertEquals 10, days['2012-02-05']
+	}
+
+	void testRollUpCounterDatesMap()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+		def df = new SimpleDateFormat("yyyy-MM-dd")
+
+		def hours = [
+				('2012-02-04T14'): [direct: 1],
+				('2012-02-04T15'): [direct: 1],
+				('2012-02-04T16'): [campaign: 1,direct: 1],
+				('2012-02-04T17'): [campaign: 3,direct: 1],
+				('2012-02-04T18'): [campaign: 2],
+				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
+				('2012-02-04T20'): [campaign: 1],
+				('2012-02-04T21'): [campaign: 2,organic: 2],
+				('2012-02-04T22'): [direct: 1],
+				('2012-02-04T23'): [campaign: 1,direct: 1],
+				('2012-02-05T00'): [campaign: 2,direct: 2],
+				('2012-02-05T01'): [campaign: 1,direct: 1]
+		]
+
+		def days = MappingUtils.rollUpCounterDates(hours, hf, df)
+		println days
+		assertEquals 2, days.size()
+		assertEquals 8, days['2012-02-04'].direct
+		assertEquals 12, days['2012-02-04'].campaign
 	}
 
 	void testPrimaryKeyRowKey()
@@ -129,6 +185,21 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		filters = MappingUtils.expandFilters([eventType:'Radar', source:"Yelp", source:"Yelp"])
 		result = MappingUtils.findIndex(indexes, filters)
 		assertNull result
+	}
+
+	void testFindCounter()
+	{
+		def counters = [
+				[whereEquals: ['state'], groupBy: ['city']],
+				[groupBy: ['birthDate']],
+				[whereEquals: ['gender'], groupBy: ['birthDate']],
+				[groupBy: ['birthDate','state']],
+				[whereEquals: ['gender'], groupBy: ['birthDate','city'], dateFormat: new SimpleDateFormat("yyyy-MM-dd'T'HH")],
+		]
+
+		def filters = MappingUtils.expandFilters([state:'MD'])
+		def result = MappingUtils.findCounter(counters, filters, ['city'])
+		assertEquals "city", result.groupBy[0]
 	}
 
 	void testMergeKeys_One()

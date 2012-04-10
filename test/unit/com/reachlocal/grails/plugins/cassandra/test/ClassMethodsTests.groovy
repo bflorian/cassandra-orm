@@ -237,61 +237,79 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 1, r
 
-		println "\n--- User.getCounts(groupedBy: ['birthDate']) ---"
-		r = User.getCounts(groupedBy: ['birthDate'])
+		println "\n--- User.getCounts(groupBy: ['birthDate']) ---"
+		r = User.getCounts(groupBy: ['birthDate'])
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(groupedBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
-		r = User.getCounts(groupedBy: 'birthDate', start: '1975-01-01', finish: '1984-12-31')
+		println "\n--- User.getCounts(groupBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		r = User.getCounts(groupBy: 'birthDate', start: '1975-01-01', finish: '1984-12-31')
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(groupedBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
-		r = User.getCounts(groupedBy: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
+		println "\n--- User.getCounts(groupBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		r = User.getCounts(groupBy: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(where: [gender: 'Male', groupedBy: 'birthDate']) ---"
-		r = User.getCounts(where: [gender: 'Male'], groupedBy: 'birthDate')
+		println "\n--- User.getCounts(where: [gender: 'Male', groupBy: 'birthDate']) ---"
+		r = User.getCounts(where: [gender: 'Male'], groupBy: 'birthDate')
 		persistence.printClear()
 		println r
 		assertEquals 2, r.size()
 		assertEquals 1, r['1980-03-15']
 
-		println "\n--- User.getCounts(where: [gender: 'Female'], groupedBy: ['birthDate','city']) ---"
-		r = User.getCounts(where: [gender: 'Female'], groupedBy: ['birthDate','city'])
+		println "\n--- User.getCounts(where: [gender: 'Female'], groupBy: ['birthDate','city']) ---"
+		r = User.getCounts(where: [gender: 'Female'], groupBy: ['birthDate','city'])
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(groupedBy: ['birthDate','state']) ---"
-		r = User.getCounts(groupedBy: ['birthDate','state'])
+		println "\n--- User.getCounts(groupBy: ['birthDate','state']) ---"
+		r = User.getCounts(groupBy: ['birthDate','state'])
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCounts(grouped: ['birthDate','state']) ---"
 		try {
 			r = User.getCounts(grouped: ['birthDate','state'])
-			fail("Illegal argument exception now thrown when groupedBy not specified for getCounts")
+			fail("Illegal argument exception now thrown when groupBy not specified for getCounts")
 		}
 		catch (IllegalArgumentException e) {
 
 		}
 
 		println "\n--- User.getCountsGroupedByBirthDate(where: [gender: 'Male']) ---"
-		r = User.getCountsGroupedByBirthDate(where: [gender: 'Male'])
+		r = User.getCountsByBirthDate(where: [gender: 'Male'])
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsGroupedByBirthDate() ---"
-		r = User.getCountsGroupedByBirthDate()
+		r = User.getCountsByBirthDate()
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsGroupedByBirthDate() ---"
-		r = User.getCountsGroupedByBirthDateAndCity(where: [gender: 'Female'])
+		r = User.getCountsByBirthDateTotal()
 		persistence.printClear()
 		println r
+		assertEquals 5, r
+
+		println "\n--- User.getCountsByBirthDateAndCity() ---"
+		r = User.getCountsByBirthDateAndCity(where: [gender: 'Female'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCountsByBirthDateAndCityTotal() ---"
+		r = User.getCountsByBirthDateAndCityTotal(where: [gender: 'Female'])
+		persistence.printClear()
+		println r
+		assertEquals 3, r
+
+		println "\n--- User.getCountsByBirthDateAndCity() ---"
+		r = User.getCountsByBirthDateAndCity(where: [gender: 'Female'], dateFormat: new SimpleDateFormat("yyyy"))
+		persistence.printClear()
+		println r
+
 	}
 
 	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")

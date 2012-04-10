@@ -27,7 +27,7 @@ import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
  */
 class MappingUtils 
 {
-	static protected final int MAX_ROWS = 1000
+	static protected final int MAX_ROWS = 2000
 	static protected final INDEX_OPTIONS = ["start","finish","keys"]
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
 	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
@@ -80,6 +80,48 @@ class MappingUtils
 	static collection(value)
 	{
 		 return [value]
+	}
+
+	static mapTotal(Map map)
+	{
+		def total = 0
+		map.each {key, value ->
+			total += mapTotal(value)
+		}
+		return total
+	}
+
+	static mapTotal(number) {
+		return number
+	}
+
+	static rollUpCounterDates(Map map, DateFormat fromFormat, DateFormat toFormat)
+	{
+		def result = [:]
+		map.each {String key, value ->
+			def newKey = toFormat.format(fromFormat.parse(key))
+			mergeMapCounterValue(result, newKey, value)
+		}
+		return result
+	}
+
+	static void mergeMapCounterValue(Map map, String key, Map value)
+	{
+		def item = map[key]
+		if (item) {
+			value.each {k, v ->
+				mergeMapCounterValue(item, k, v)
+			}
+		}
+		else {
+			item = value
+		}
+		map[key] = item
+	}
+
+	static void mergeMapCounterValue(Map map, String key, value)
+	{
+		map[key] = (map[key] ?: 0) + value
 	}
 
 	static String makeComposite(list)
@@ -358,6 +400,37 @@ class MappingUtils
 		return null
 	}
 
+	static findCounter(counterList, filterList, groupByList)
+	{
+		def filter1 = filterList[0]
+		for (counter in counterList) {
+			def index = counter.whereEquals ?: [] //TODO - right?
+			def groupBy = collection(counter.groupBy)
+			def params = index instanceof List ? index.clone() : [index]
+			if (params.size() == filter1.size()) {
+				def all = true
+				for (item in filter1) {
+					if (!params.contains(item.key)) {
+						all = false
+						break
+					}
+				}
+				if (all) {
+					for (item in groupByList) {
+						if (!groupBy.contains(item)) {
+							all = false
+							break
+						}
+					}
+				}
+				if (all) {
+					return counter
+				}
+			}
+		}
+		return null
+	}
+
 	static mergeKeys(List<List> keys, Integer max)
 	{
 		if (keys.size() == 1) {
@@ -438,17 +511,17 @@ class MappingUtils
 		}
 	}
 
-	static getCounterColumns(clazz, filterList, index, params)
+	static getCounterColumns(clazz, filterList, counter, params)
 	{
 		def options = addOptionDefaults(params, MAX_ROWS)
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
-		def groupedBy = collection(params.groupedBy)
-		def dateFormat = params.dateFormat ?: DAY_FORMAT
+		def groupBy = collection(counter.groupBy)
+		def dateFormat = counter.dateFormat ?: DAY_FORMAT
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 			def result = new NestedHashMap()
 			filterList.each {filter ->
-				def rowKey = counterRowKey(index, groupedBy, filter)
+				def rowKey = counterRowKey(counter.whereEquals, groupBy, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						cf,

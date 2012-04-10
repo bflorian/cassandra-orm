@@ -164,16 +164,34 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
-		// getCounts(groupedBy: 'hour')
-		// getCounts(where: [usid:'xxx'], groupedBy: 'hour')
+		// getCounts(groupBy: 'hour')
+		// getCounts(where: [usid:'xxx'], groupBy: 'hour')
 		clazz.metaClass.'static'.getCounts = {params ->
-			if (!params.groupedBy) {
-				throw new IllegalArgumentException("The 'groupedBy' parameter must be specified")
+			if (!params.groupBy) {
+				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
 			}
 			else {
 				def filterList = expandFilters(params.where)
-				def index = findIndex(cassandraMapping.counters.whereEquals, filterList)
-				return getCounterColumns(clazz, filterList, index, params)
+				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
+				def value = getCounterColumns(clazz, filterList, counter, params)
+				if (params.dateFormat) {
+					return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, params.dateFormat)
+				}
+				else {
+					return value
+				}
+			}
+		}
+
+		// getCountTotal(where: [usid:'xxx'], groupBy: 'hour')
+		clazz.metaClass.'static'.getCountTotal = {params ->
+			if (!params.groupBy) {
+				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
+			}
+			else {
+				def filterList = expandFilters(params.where)
+				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
+				return mapTotal(getCounterColumns(clazz, filterList, counter, params))
 			}
 		}
 
@@ -259,15 +277,29 @@ class ClassMethods extends MappingUtils
 				}
 				return single ? (result ? result.toList()[0] : null) : result
 			}
-			else if (name.startsWith("getCountsGroupedBy")) {
-				// getCountsGroupedByHour(where: [usid:''])
-				// getCountsGroupedByRefererIdAndHour(where: [usid:''])
-				opts.groupedBy = propertyListFromMethodName(name - "getCountsGroupedBy")
-
+			else if (name.startsWith("getCountsBy")) {
+				// getCountsByHour(where: [usid:''])
+				// getCountsByRefererIdAndHour(where: [usid:''])
+				str = name - "getCountsBy"
+				def total = str.endsWith("Total")
+				if (total) {
+					str = str - "Total"
+				}
+				def groupBy = propertyListFromMethodName(str)
 				def filterList = expandFilters(opts.where)
-				def index = findIndex(cassandraMapping.counters.whereEquals, filterList)
-				return getCounterColumns(clazz, filterList, index, opts)
-
+				def counter = findCounter(cassandraMapping.counters, filterList, groupBy)
+				def value = getCounterColumns(clazz, filterList, counter, opts)
+				if (total) {
+					return mapTotal(value)
+				}
+				else {
+					if (opts.dateFormat) {
+						return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, opts.dateFormat)
+					}
+					else {
+						return value
+					}
+				}
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)

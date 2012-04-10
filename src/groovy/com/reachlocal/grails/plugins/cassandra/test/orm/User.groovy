@@ -16,6 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.test.orm
 
+import java.text.SimpleDateFormat
+
 /**
  * @author: Bob Florian
  */
@@ -33,6 +35,8 @@ class User
 
 	static belongsTo = [userGroup: UserGroup]
 
+	static hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+
 	static cassandraMapping = [
 			keySpace: 'mock',
 			columnFamily: 'MockUser',
@@ -44,8 +48,7 @@ class User
 					[groupBy: ['birthDate']],
 					[whereEquals: ['gender'], groupBy: ['birthDate']],
 					[groupBy: ['birthDate','state']],
-					[whereEquals: ['gender'], groupBy: ['birthDate','city']],
+					[whereEquals: ['gender'], groupBy: ['birthDate','city'], dateFormat: hf],
 			]
 	]
-
 }
