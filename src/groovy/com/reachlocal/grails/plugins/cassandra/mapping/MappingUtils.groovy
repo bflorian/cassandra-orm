@@ -157,7 +157,16 @@ class MappingUtils
 
 	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = DAY_FORMAT)
 	{
-		makeComposite(groupKeys.collect{counterColumnKey(bean.getProperty(it), dateFormat)})
+		try {
+			return makeComposite(
+					groupKeys.collect{
+						counterColumnKey(bean.getProperty(it), dateFormat)
+					}
+			)
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
 	}
 
 	static objectIndexRowKey(String propName, Map map)
@@ -262,17 +271,37 @@ class MappingUtils
 		return object ? object.class.metaClass.hasMetaProperty("cassandraMapping") : false
 	}
 
-	static counterColumnKey(List items, DateFormat dateFormat)
+	static counterColumnKey(List items, DateFormat dateFormat) throws CassandraMappingNullIndexException
 	{
-		makeComposite(items.collect{counterColumnKey(it, dateFormat)})
+		if (items) {
+			makeComposite(items.collect{counterColumnKey(it, dateFormat)})
+		}
+		else {
+			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank")
+		}
 	}
 
 	static counterColumnKey(Date date, DateFormat dateFormat)
 	{
-		dateFormat.format(date)
+		if (date) {
+			dateFormat.format(date)
+		}
+		else {
+			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank")
+		}
 	}
 
-	static counterColumnKey(obj, DateFormat dateFormat)
+	static counterColumnKey(String str, DateFormat dateFormat)
+	{
+		if (str) {
+			return str
+		}
+		else {
+			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank")
+		}
+	}
+
+	static counterColumnKey(obj, DateFormat dateFormat) throws CassandraMappingNullIndexException
 	{
 		primaryRowKey(obj)
 	}
@@ -284,7 +313,7 @@ class MappingUtils
 
 	static primaryRowKey(String id)
 	{
-		return id
+		id
 	}
 
 	static primaryRowKey(Number id)
@@ -526,8 +555,8 @@ class MappingUtils
 						ks,
 						cf,
 						rowKey,
-						counterColumnKey(options.start, dateFormat),
-						counterColumnKey(options.finish, dateFormat),
+						options.start ? counterColumnKey(options.start, dateFormat) : null,
+						options.finish ? counterColumnKey(options.finish, dateFormat) : null,
 						options.reversed,
 						options.max)
 

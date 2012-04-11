@@ -149,11 +149,15 @@ class InstanceMethods extends MappingUtils
 					if (oldObj) {
 						def oldColName = counterColumnName(groupKeys, oldObj, dateFormat)
 						def ocrk = counterRowKey(whereKeys, groupKeys, oldObj)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+						if (oldColName && ocrk) {
+							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+						}
 					}
 					def colName = counterColumnName(groupKeys, thisObj, dateFormat)
 					def crk = counterRowKey(whereKeys, groupKeys, thisObj)
-					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+					if (colName && crk) {
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+					}
 				}
 
 				cassandra.persistence.execute(m)
