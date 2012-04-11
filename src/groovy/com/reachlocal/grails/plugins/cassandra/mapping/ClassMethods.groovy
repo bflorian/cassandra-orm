@@ -195,6 +195,18 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
+		// getCountSubtotals(where: [usid:'xxx'], groupBy: ['hour','keyword'])
+		clazz.metaClass.'static'.getCountSubtotals = {params ->
+			if (!params.groupBy) {
+				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
+			}
+			else {
+				def filterList = expandFilters(params.where)
+				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
+				return mapSubTotals(getCounterColumns(clazz, filterList, counter, params))
+			}
+		}
+
 		// findWhere(params, opts?)
 		clazz.metaClass.'static'.findWhere = {params, opts=[:] ->
 			def options = opts.clone()
@@ -282,8 +294,15 @@ class ClassMethods extends MappingUtils
 				// getCountsByRefererIdAndHour(where: [usid:''])
 				str = name - "getCountsBy"
 				def total = str.endsWith("Total")
+				def subtotals = false
 				if (total) {
 					str = str - "Total"
+				}
+				else {
+					if (str.endsWith("Subtotals")) {
+						subtotals = true
+						str = str - "Subtotals"
+					}
 				}
 				def groupBy = propertyListFromMethodName(str)
 				def filterList = expandFilters(opts.where)
@@ -291,6 +310,9 @@ class ClassMethods extends MappingUtils
 				def value = getCounterColumns(clazz, filterList, counter, opts)
 				if (total) {
 					return mapTotal(value)
+				}
+				else if (subtotals) {
+					return mapSubTotals(value)
 				}
 				else {
 					if (opts.dateFormat) {

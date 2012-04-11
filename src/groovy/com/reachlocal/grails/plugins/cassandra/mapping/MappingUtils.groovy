@@ -21,6 +21,7 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.text.DateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
+import com.reachlocal.grails.plugins.cassandra.utils.HashCounter
 
 /**
  * @author: Bob Florian
@@ -93,6 +94,17 @@ class MappingUtils
 
 	static mapTotal(number) {
 		return number
+	}
+
+	static mapSubTotals(Map map)
+	{
+		def result = new HashCounter()
+		map.each {k1, v1 ->
+			v1.each {key, value ->
+				result.increment(key, value)
+			}
+		}
+		return result
 	}
 
 	static rollUpCounterDates(Map map, DateFormat fromFormat, DateFormat toFormat)
