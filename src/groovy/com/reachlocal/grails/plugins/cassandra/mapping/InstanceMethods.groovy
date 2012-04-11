@@ -62,7 +62,7 @@ class InstanceMethods extends MappingUtils
 
 				// see if it exists
 				def id = thisObj.id
-				def oldObj = clazz.get(id)
+				def oldObj = args?.nocheck ? null : clazz.get(id)
 
 				// one-to-one relationships
 				def keyDeleted = false
