@@ -29,6 +29,7 @@ import com.reachlocal.grails.plugins.cassandra.utils.HashCounter
 class MappingUtils 
 {
 	static protected final int MAX_ROWS = 2000
+	static protected final int MAX_COUNTER_COLUMNS = Integer.MAX_VALUE
 	static protected final INDEX_OPTIONS = ["start","finish","keys"]
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
 	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
@@ -118,17 +119,6 @@ class MappingUtils
 	static void processGroupByItem(Number item, List keys, int groupLevel, HashCounter result)
 	{
 		result.increment(keys[groupLevel], item)
-	}
-
-	static mapSubTotals(Map map)
-	{
-		def result = new HashCounter()
-		map.each {k1, v1 ->
-			v1.each {key, value ->
-				result.increment(key, value)
-			}
-		}
-		return result
 	}
 
 	static rollUpCounterDates(Map map, DateFormat fromFormat, DateFormat toFormat)
@@ -578,7 +568,7 @@ class MappingUtils
 
 	static getCounterColumns(clazz, filterList, counter, params)
 	{
-		def options = addOptionDefaults(params, MAX_ROWS)
+		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counter.groupBy)
