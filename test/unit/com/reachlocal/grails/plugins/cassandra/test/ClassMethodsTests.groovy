@@ -237,42 +237,47 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 1, r
 
-		println "\n--- User.getCounts(groupBy: ['birthDate']) ---"
-		r = User.getCounts(groupBy: ['birthDate'])
+		println "\n--- User.getCounts(by: ['birthDate']) ---"
+		r = User.getCounts(by: ['birthDate'])
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(groupBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
-		r = User.getCounts(groupBy: 'birthDate', start: '1975-01-01', finish: '1984-12-31')
+		println "\n--- User.getCounts(by: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		r = User.getCounts(by: 'birthDate', start: '1975-01-01', finish: '1984-12-31')
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(groupBy: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
-		r = User.getCounts(groupBy: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
+		println "\n--- User.getCounts(by: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		r = User.getCounts(by: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(where: [gender: 'Male', groupBy: 'birthDate']) ---"
-		r = User.getCounts(where: [gender: 'Male'], groupBy: 'birthDate')
+		println "\n--- User.getCounts(where: [gender: 'Male', by: 'birthDate']) ---"
+		r = User.getCounts(where: [gender: 'Male'], by: 'birthDate')
 		persistence.printClear()
 		println r
 		assertEquals 2, r.size()
 		assertEquals 1, r['1980-03-15']
 
-		println "\n--- User.getCounts(where: [gender: 'Female'], groupBy: ['birthDate','city']) ---"
-		r = User.getCounts(where: [gender: 'Female'], groupBy: ['birthDate','city'])
+		println "\n--- User.getCounts(where: [gender: 'Female'], by: ['birthDate','city']) ---"
+		r = User.getCounts(where: [gender: 'Female'], by: ['birthDate','city'])
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(groupBy: ['birthDate','state']) ---"
-		r = User.getCounts(groupBy: ['birthDate','state'])
+		println "\n--- User.getCounts(by: ['birthDate','state']) ---"
+		r = User.getCounts(by: ['birthDate','state'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCounts(by: ['birthDate','state'], groupBy: 'state') ---"
+		r = User.getCounts(by: ['birthDate','state'], groupBy: 'state')
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCounts(grouped: ['birthDate','state']) ---"
 		try {
 			r = User.getCounts(grouped: ['birthDate','state'])
-			fail("Illegal argument exception now thrown when groupBy not specified for getCounts")
+			fail("Illegal argument exception now thrown when by not specified for getCounts")
 		}
 		catch (IllegalArgumentException e) {
 
@@ -310,6 +315,15 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 
+		println "\n--- User.getCountsByBirthDateAndCityGroupByCity() ---"
+		r = User.getCountsByBirthDateAndCityGroupByCity(where: [gender: 'Female'])
+		persistence.printClear()
+		println r
+
+		println "\n--- User.getCountsByBirthDateAndCityGroupByCity() ---"
+		r = User.getCountsByBirthDateAndCityGroupByBirthDate(where: [gender: 'Female'], dateFormat: new SimpleDateFormat("yyyy"))
+		persistence.printClear()
+		println r
 	}
 
 	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")

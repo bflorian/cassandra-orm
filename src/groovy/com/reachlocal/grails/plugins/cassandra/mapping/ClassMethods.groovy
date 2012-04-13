@@ -165,15 +165,25 @@ class ClassMethods extends MappingUtils
 		}
 
 		// getCounts(groupBy: 'hour')
-		// getCounts(where: [usid:'xxx'], groupBy: 'hour')
+		// getCounts(by: 'hour', where: [usid:'xxx'])
+		// getCounts(by: ['hour','category'], where: [usid:'xxx'], groupBy: 'category')
 		clazz.metaClass.'static'.getCounts = {params ->
-			if (!params.groupBy) {
-				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
+			if (!params.by) {
+				throw new IllegalArgumentException("The 'by' parameter must be specified")
 			}
 			else {
 				def filterList = expandFilters(params.where)
-				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
+				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.by))
 				def value = getCounterColumns(clazz, filterList, counter, params)
+				if (params.groupBy) {
+					int groupByIndex = params.by.indexOf(params.groupBy)
+					if (groupByIndex < 0) {
+						throw new CassandraMappingException("'${params.groupBy}' is not a groupBy property name")
+					}
+					else {
+						value = groupBy(value, groupByIndex)
+					}
+				}
 				if (params.dateFormat) {
 					return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, params.dateFormat)
 				}
@@ -192,18 +202,6 @@ class ClassMethods extends MappingUtils
 				def filterList = expandFilters(params.where)
 				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
 				return mapTotal(getCounterColumns(clazz, filterList, counter, params))
-			}
-		}
-
-		// getCountSubtotals(where: [usid:'xxx'], groupBy: ['hour','keyword'])
-		clazz.metaClass.'static'.getCountSubtotals = {params ->
-			if (!params.groupBy) {
-				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
-			}
-			else {
-				def filterList = expandFilters(params.where)
-				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
-				return mapSubTotals(getCounterColumns(clazz, filterList, counter, params))
 			}
 		}
 
@@ -294,33 +292,38 @@ class ClassMethods extends MappingUtils
 				// getCountsByRefererIdAndHour(where: [usid:''])
 				str = name - "getCountsBy"
 				def total = str.endsWith("Total")
-				def subtotals = false
+				def groupByPropName = null
 				if (total) {
 					str = str - "Total"
 				}
 				else {
-					if (str.endsWith("Subtotals")) {
-						subtotals = true
-						str = str - "Subtotals"
+					def pos = str.indexOf("GroupBy")
+					if (pos > 0) {
+						groupByPropName = propertyNameFromClassName(str[pos+7..-1])
+						str = str[0..pos-1]
 					}
 				}
-				def groupBy = propertyListFromMethodName(str)
+				def groupByList = propertyListFromMethodName(str)
 				def filterList = expandFilters(opts.where)
-				def counter = findCounter(cassandraMapping.counters, filterList, groupBy)
+				def counter = findCounter(cassandraMapping.counters, filterList, groupByList)
 				def value = getCounterColumns(clazz, filterList, counter, opts)
 				if (total) {
 					return mapTotal(value)
 				}
-				else if (subtotals) {
-					return mapSubTotals(value)
-				}
-				else {
-					if (opts.dateFormat) {
-						return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, opts.dateFormat)
+				else if (groupByPropName) {
+					int groupByIndex = groupByList.indexOf(groupByPropName)
+					if (groupByIndex < 0) {
+						throw new CassandraMappingException("'${groupByPropName}' is not a groupBy property name")
 					}
 					else {
-						return value
+						value = groupBy(value, groupByIndex)
 					}
+				}
+				if (opts.dateFormat) {
+					return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, opts.dateFormat)
+				}
+				else {
+					return value
 				}
 			}
 			else {

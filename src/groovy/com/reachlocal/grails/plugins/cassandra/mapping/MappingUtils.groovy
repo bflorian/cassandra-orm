@@ -73,6 +73,11 @@ class MappingUtils
 		exps = exps.collect{it[0].toLowerCase() + (it.size() > 0 ? it[1..-1] : '')}
 	}
 
+	static String propertyNameFromClassName(name)
+	{
+		name[0].toLowerCase() + name[1..-1]
+	}
+
 	static collection(Collection value)
 	{
 		return value
