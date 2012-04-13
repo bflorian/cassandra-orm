@@ -48,7 +48,7 @@ class User
 					[groupBy: ['birthDate']],
 					[whereEquals: ['gender'], groupBy: ['birthDate']],
 					[groupBy: ['birthDate','state']],
-					[whereEquals: ['gender'], groupBy: ['birthDate','city'], dateFormat: hf],
+					[whereEquals: ['gender'], groupBy: ['birthDate','city']],
 			]
 	]
 }

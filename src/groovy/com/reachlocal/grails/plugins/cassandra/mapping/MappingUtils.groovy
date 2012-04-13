@@ -38,6 +38,14 @@ class MappingUtils
 	static protected final KEY_SUFFIX = "_key"
 	static protected final DIRTY_SUFFIX = "_dirty"
 	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
+	static protected final HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+	static protected final UTC_DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
+	static protected final UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+
+	static {
+		UTC_DAY_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
+		UTC_HOUR_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
+	}
 
 	static String stringValue(String s)
 	{
@@ -173,15 +181,17 @@ class MappingUtils
 
 	static counterRowKey(List whereKeys, List groupKeys, Map map)
 	{
-		"${objectIndexRowKey(whereKeys, map)}#${makeComposite(groupKeys)}".toString()
+		def key = objectIndexRowKey(whereKeys, map)
+		key ? "${key}#${makeComposite(groupKeys)}".toString() : null
 	}
 
 	static counterRowKey(List whereKeys, List groupKeys, Object bean)
 	{
-		"${objectIndexRowKey(whereKeys, bean)}#${makeComposite(groupKeys)}".toString()
+		def key = objectIndexRowKey(whereKeys, bean)
+		key ? "${key}#${makeComposite(groupKeys)}".toString() : null
 	}
 
-	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = DAY_FORMAT)
+	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
 	{
 		try {
 			return makeComposite(
@@ -192,6 +202,81 @@ class MappingUtils
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null
+		}
+	}
+
+	static makeGroupKeyList(keys, dateSuffix)
+	{
+		def result = keys.clone()
+		result[0] = "${keys[0]}[${dateSuffix}]"
+		return result
+	}
+
+	static updateCounterColumns(Class clazz, Map counterDef, m, oldObj, thisObj)
+	{
+		def whereKeys = counterDef.whereEquals
+		def groupKeys = collection(counterDef.groupBy)
+		def counterColumnFamily = clazz.counterColumnFamily
+		def cassandra = clazz.cassandra
+
+		if (counterDef.isDateIndex) {
+			if (oldObj) {
+				def oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
+				def gKeys = groupKeys
+				def ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+				if (oldColName && ocrk) {
+
+					// all hours row
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+
+					// all days row
+					oldColName = counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
+					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+
+					// specific day row
+					oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+				}
+			}
+
+			def colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+			def gKeys = groupKeys
+			def crk = counterRowKey(whereKeys, gKeys, thisObj)
+			if (colName && crk) {
+
+				// all hours row
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
+				// all days row
+				colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
+				gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
+				crk = counterRowKey(whereKeys, gKeys, thisObj)
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
+				// specific day row
+				colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+				gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+				crk = counterRowKey(whereKeys, gKeys, thisObj)
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+			}
+		}
+		else {
+			if (oldObj) {
+				def oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
+				def ocrk = counterRowKey(whereKeys, groupKeys, oldObj)
+				if (oldColName && ocrk) {
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+				}
+			}
+			def colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+			def crk = counterRowKey(whereKeys, groupKeys, thisObj)
+			if (colName && crk) {
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+			}
 		}
 	}
 
@@ -572,7 +657,7 @@ class MappingUtils
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counter.groupBy)
-		def dateFormat = counter.dateFormat ?: DAY_FORMAT
+		def dateFormat = counter.dateFormat ?: UTC_HOUR_FORMAT
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 			def result = new NestedHashMap()
 			filterList.each {filter ->

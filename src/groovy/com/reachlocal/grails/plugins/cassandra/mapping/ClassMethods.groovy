@@ -34,6 +34,23 @@ class ClassMethods extends MappingUtils
 			throw new CassandraMappingException("cassandraMapping.primaryKey not specified")
 		}
 
+		// counter types
+		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->
+			if (ctr.groupBy) {
+				ctr.groupBy = collection(ctr.groupBy)
+				def prop = clazz.metaClass.getMetaProperty(ctr.groupBy[0])
+				if (prop) {
+					ctr.isDateIndex = prop.type.isAssignableFrom(Date)
+				}
+				else {
+					throw new CassandraMappingException("The groupBy property '${ctr.groupBy[0]}' is missing from counter ${index+1}")
+				}
+			}
+			else {
+				throw new CassandraMappingException("The groupBy property is missing from counter ${index+1}")
+			}
+		}
+
 		// cassandra
 		clazz.metaClass.'static'.getCassandra = { ctx.getBean("cassandraOrmService") }
 

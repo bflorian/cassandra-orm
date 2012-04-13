@@ -257,7 +257,7 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals 2, r.size()
-		assertEquals 1, r['1980-03-15']
+		assertEquals 1, r['1980-03-15T00']
 
 		println "\n--- User.getCounts(where: [gender: 'Female'], by: ['birthDate','city']) ---"
 		r = User.getCounts(where: [gender: 'Female'], by: ['birthDate','city'])

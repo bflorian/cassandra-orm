@@ -143,6 +143,8 @@ class InstanceMethods extends MappingUtils
 
 				// counters
 				cassandraMapping.counters?.each {ctr ->
+					updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
+					/*
 					def whereKeys = ctr.whereEquals
 					def groupKeys = collection(ctr.groupBy)
 					def dateFormat = ctr.dateFormat ?: DAY_FORMAT
@@ -158,6 +160,7 @@ class InstanceMethods extends MappingUtils
 					if (colName && crk) {
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 					}
+					*/
 				}
 
 				cassandra.persistence.execute(m)
