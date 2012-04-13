@@ -110,6 +110,82 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 12, days['2012-02-04'].campaign
 	}
 
+	void testGroupByLevel0()
+	{
+		def hours = [
+				('2012-02-04T14'): [direct: 1],
+				('2012-02-04T15'): [direct: 1],
+				('2012-02-04T16'): [campaign: 1,direct: 1],
+				('2012-02-04T17'): [campaign: 3,direct: 1],
+				('2012-02-04T18'): [campaign: 2],
+				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
+				('2012-02-04T20'): [campaign: 1],
+				('2012-02-04T21'): [campaign: 2,organic: 2],
+				('2012-02-04T22'): [direct: 1],
+				('2012-02-04T23'): [campaign: 1,direct: 1],
+				('2012-02-05T00'): [campaign: 2,direct: 2],
+				('2012-02-05T01'): [campaign: 1,direct: 1]
+		]
+
+		def result = MappingUtils.groupBy(hours, 0)
+		println result
+		assertEquals hours.size(), result.size()
+		assertEquals 5, result['2012-02-04T19']
+	}
+
+	void testGroupByLevel1()
+	{
+		def hours = [
+				('2012-02-04T14'): [direct: 1],
+				('2012-02-04T15'): [direct: 1],
+				('2012-02-04T16'): [campaign: 1,direct: 1],
+				('2012-02-04T17'): [campaign: 3,direct: 1],
+				('2012-02-04T18'): [campaign: 2],
+				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
+				('2012-02-04T20'): [campaign: 1],
+				('2012-02-04T21'): [campaign: 2,organic: 2],
+				('2012-02-04T22'): [direct: 1],
+				('2012-02-04T23'): [campaign: 1,direct: 1],
+				('2012-02-05T00'): [campaign: 2,direct: 2],
+				('2012-02-05T01'): [campaign: 1,direct: 1]
+		]
+
+		def result = MappingUtils.groupBy(hours, 1)
+		println result
+		assertEquals 3, result.size()
+		assertEquals 11, result.direct
+		assertEquals 15, result.campaign
+		assertEquals 3, result.organic
+	}
+
+	void testGroupByLevel0RollupDates()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+		def df = new SimpleDateFormat("yyyy-MM-dd")
+
+		def hours = [
+				('2012-02-04T14'): [direct: 1],
+				('2012-02-04T15'): [direct: 1],
+				('2012-02-04T16'): [campaign: 1,direct: 1],
+				('2012-02-04T17'): [campaign: 3,direct: 1],
+				('2012-02-04T18'): [campaign: 2],
+				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
+				('2012-02-04T20'): [campaign: 1],
+				('2012-02-04T21'): [campaign: 2,organic: 2],
+				('2012-02-04T22'): [direct: 1],
+				('2012-02-04T23'): [campaign: 1,direct: 1],
+				('2012-02-05T00'): [campaign: 2,direct: 2],
+				('2012-02-05T01'): [campaign: 1,direct: 1]
+		]
+
+		def result = MappingUtils.groupBy(hours, 0)
+		def days = MappingUtils.rollUpCounterDates(result, hf, df)
+		println days
+		assertEquals 2, days.size()
+		assertEquals 23, days['2012-02-04']
+		assertEquals 6, days['2012-02-05']
+	}
+
 	void testPrimaryKeyRowKey()
 	{
 		assertEquals "this", MappingUtils.primaryKeyIndexRowKey()

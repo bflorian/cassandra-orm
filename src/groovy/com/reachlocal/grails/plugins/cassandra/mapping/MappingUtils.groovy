@@ -96,6 +96,25 @@ class MappingUtils
 		return number
 	}
 
+	static groupBy(Map map, int level)
+	{
+		def result = new HashCounter()
+		processGroupByItem(map, [], level, result)
+		return result
+	}
+
+	static void processGroupByItem(Map item, List keys, int groupLevel, HashCounter result)
+	{
+		item.each {key, value ->
+			processGroupByItem(value, keys + key, groupLevel, result)
+		}
+	}
+
+	static void processGroupByItem(Number item, List keys, int groupLevel, HashCounter result)
+	{
+		result.increment(keys[groupLevel], item)
+	}
+
 	static mapSubTotals(Map map)
 	{
 		def result = new HashCounter()
