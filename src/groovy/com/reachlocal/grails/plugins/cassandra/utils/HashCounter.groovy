@@ -5,12 +5,12 @@ package com.reachlocal.grails.plugins.cassandra.utils
  */
 class HashCounter extends LinkedHashMap
 {
-	synchronized void set(name, value)
+	void set(name, value)
 	{
 		put(name, value)
 	}
 
-	synchronized void increment(name, value=1)
+	void increment(name, value=1)
 	{
 		def entry = get(name)
 		if (entry) {
@@ -26,11 +26,11 @@ class HashCounter extends LinkedHashMap
 		get(name)
 	}
 
-	synchronized List entries() {
+	List entries() {
 		return map.collect{it}
 	}
 
-	synchronized Map map() {
+	Map map() {
 		return this
 	}
 }

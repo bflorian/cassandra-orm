@@ -45,5 +45,36 @@ class NestedHashMap extends LinkedHashMap
 	{
 		put(args as List)
 	}
+
+	void increment(Collection args)
+	{
+		if (args.size() < 2) {
+			throw new IllegalArgumentException("There aren't enough items. Must specify at least one key and a value.")
+		}
+		else if (args.size() == 2) {
+			increment(args[0], args[1])
+		}
+		else {
+			def map = this
+			args[0..-3].each {
+				if (!map.containsKey(it)) {
+					map[it] = new NestedHashMap()
+				}
+				map = map[it]
+			}
+			map.increment(args[-2], args[-1])
+		}
+	}
+
+	void increment(name, value=1)
+	{
+		def entry = get(name)
+		if (entry) {
+			put(name, entry + value)
+		}
+		else {
+			put(name, value)
+		}
+	}
 }
 

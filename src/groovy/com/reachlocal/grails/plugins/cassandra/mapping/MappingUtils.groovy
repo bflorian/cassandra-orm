@@ -39,10 +39,12 @@ class MappingUtils
 	static protected final DIRTY_SUFFIX = "_dirty"
 	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 	static protected final HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+	static protected final UTC_MONTH_FORMAT = new SimpleDateFormat("yyyy-MM")
 	static protected final UTC_DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 	static protected final UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 
 	static {
+		UTC_MONTH_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
 		UTC_DAY_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
 		UTC_HOUR_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
 	}
@@ -235,9 +237,15 @@ class MappingUtils
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 
-					// specific day row
+					// specific month row
 					oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
-					gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+					gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+
+					// add months row
+					oldColName = counterColumnName(groupKeys, oldObj, UTC_MONTH_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 				}
@@ -257,9 +265,15 @@ class MappingUtils
 				crk = counterRowKey(whereKeys, gKeys, thisObj)
 				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
-				// specific day row
+				// specific month row
 				colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
-				gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+				gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+				crk = counterRowKey(whereKeys, gKeys, thisObj)
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
+				// specific month row
+				colName = counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT)
+				gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
 				crk = counterRowKey(whereKeys, gKeys, thisObj)
 				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 			}
@@ -661,7 +675,8 @@ class MappingUtils
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 			def result = new NestedHashMap()
 			filterList.each {filter ->
-				def rowKey = counterRowKey(counter.whereEquals, groupBy, filter)
+				def groupKeys = params.dateFormat ? makeGroupKeyList(groupBy, params.dateFormat.toPattern()) : groupBy
+				def rowKey = counterRowKey(counter.whereEquals, groupKeys, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						cf,
@@ -672,7 +687,7 @@ class MappingUtils
 						options.max)
 
 				cols.each {col ->
-					result.put(parseComposite(persistence.name(col)) + persistence.longValue(col))
+					result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
 				}
 			}
 			return result
