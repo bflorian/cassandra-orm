@@ -37,6 +37,15 @@ class MockPersistenceDataStructure
 		result
 	}
 
+	def multigetRowColumnRange(columnFamily, rowKeys, start, finish, reversed, max)
+	{
+		def result = [:]
+		rowKeys.each {rowKey ->
+			result[rowKey] = getColumnRange(columnFamily, rowKey, start, finish, reversed, max)
+		}
+		result
+	}
+
 	def getColumnRange(columnFamily, rowKey, start, finish, reversed, max)
 	{
 		def result = []

@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import com.reachlocal.grails.plugins.cassandra.utils.TimeZoneAdjuster
 
 /**
  * @author: Bob Florian
@@ -181,6 +182,7 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
+		// TODO - merge these methods
 		// getCounts(groupBy: 'hour')
 		// getCounts(by: 'hour', where: [usid:'xxx'])
 		// getCounts(by: ['hour','category'], where: [usid:'xxx'], groupBy: 'category')
@@ -202,7 +204,7 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				if (params.dateFormat) {
-					return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, params.dateFormat)
+					return rollUpCounterDates(value, UTC_HOUR_FORMAT, params.dateFormat)
 				}
 				else {
 					return value
@@ -210,17 +212,60 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
+		clazz.metaClass.'static'.getDateCounts = {params ->
+			if (!params.by) {
+				throw new IllegalArgumentException("The 'by' parameter must be specified")
+			}
+			else {
+				def filterList = expandFilters(params.where)
+				def counterDef = findCounter(cassandraMapping.counters, filterList, collection(params.by))
+
+				def value
+				if (params.groupBy) {
+					value = getDateCounterColumnTotal (clazz, filterList, counterDef, params.start, params.finish)
+					int groupByIndex = params.by.indexOf(params.groupBy)
+					if (groupByIndex < 0) {
+						throw new CassandraMappingException("'${params.groupBy}' is not a groupBy property name")
+					}
+					else {
+						value = groupBy(value, groupByIndex)
+					}
+				}
+				else {
+					value = getCounterColumns(clazz, filterList, counterDef, params)
+					if (params.dateFormat) {
+						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, params.dateFormat)
+					}
+				}
+				return value
+			}
+		}
+
+
+		// TODO - merge these methods
 		// getCountTotal(where: [usid:'xxx'], groupBy: 'hour')
 		clazz.metaClass.'static'.getCountTotal = {params ->
-			if (!params.groupBy) {
+			if (!params.by) {
 				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
 			}
 			else {
 				def filterList = expandFilters(params.where)
-				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.groupBy))
+				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.by))
 				return mapTotal(getCounterColumns(clazz, filterList, counter, params))
 			}
 		}
+		clazz.metaClass.'static'.getDateCountTotal = {params ->
+			if (!params.by) {
+				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
+			}
+			else {
+				def filterList = expandFilters(params.where)
+				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.by))
+				def cols = getDateCounterColumnTotal (clazz, filterList, counter, params.start, params.finish)
+				return mapTotal(cols)
+			}
+		}
+
 
 		// findWhere(params, opts?)
 		clazz.metaClass.'static'.findWhere = {params, opts=[:] ->
@@ -305,8 +350,8 @@ class ClassMethods extends MappingUtils
 				return single ? (result ? result.toList()[0] : null) : result
 			}
 			else if (name.startsWith("getCountsBy")) {
-				// getCountsByHour(where: [usid:''])
-				// getCountsByRefererIdAndHour(where: [usid:''])
+				// getCountsByTime(where: [usid:''])
+				// getCountsByTimeAndReferrerId(where: [usid:''])
 				str = name - "getCountsBy"
 				def total = str.endsWith("Total")
 				def groupByPropName = null
@@ -337,7 +382,8 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				if (opts.dateFormat) {
-					return rollUpCounterDates(value, counter.dateFormat ?: DAY_FORMAT, opts.dateFormat)
+					//return rollUpCounterDates(value, counter.dateFormat ?: UTC_HOUR_FORMAT, opts.dateFormat)
+					return rollUpCounterDates(value, UTC_HOUR_FORMAT, opts.dateFormat)
 				}
 				else {
 					return value

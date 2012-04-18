@@ -100,7 +100,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 				('2012-02-04T22'): [direct: 1],
 				('2012-02-04T23'): [campaign: 1,direct: 1],
 				('2012-02-05T00'): [campaign: 2,direct: 2],
-				('2012-02-05T01'): [campaign: 1,direct: 1]
+				('2012-02-05T01'): [campaign: 1,direct: 3]
 		]
 
 		def days = MappingUtils.rollUpCounterDates(hours, hf, df)
@@ -108,6 +108,8 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 2, days.size()
 		assertEquals 8, days['2012-02-04'].direct
 		assertEquals 12, days['2012-02-04'].campaign
+		assertEquals 3, days['2012-02-05'].campaign
+		assertEquals 5, days['2012-02-05'].direct
 	}
 
 	void testGroupByLevel0()
@@ -336,5 +338,43 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		['xx1', 'xx2', 'xx3', 'xx4', 'xx5', 'yy1'].eachWithIndex {k, index ->
 			assertEquals k, result2[index]
 		}
+	}
+
+	void testRollUpCounterDatesMapTiming()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+		def df = new SimpleDateFormat("yyyy-MM-dd")
+
+		def values = [
+				[direct: 1],
+				[direct: 1],
+				[campaign: 1,direct: 1],
+				[campaign: 3,direct: 1],
+				[campaign: 2],
+				[campaign: 2,direct: 2,organic: 1],
+				[campaign: 1],
+				[campaign: 2,organic: 2],
+				[direct: 1],
+				[campaign: 1,direct: 1],
+				[campaign: 2,direct: 2],
+				[campaign: 1,direct: 1]
+		]
+
+		def hours = [:]
+
+		def cal = Calendar.getInstance()
+		cal.setTime(hf.parse("2012-02-04T00"))
+		for (int index in 0..9999) {
+			hours[hf.format(cal.time)] = values[index % 12].clone()
+			cal.add(Calendar.HOUR_OF_DAY,1)
+		}
+
+		def t0 = System.currentTimeMillis()
+		def days = MappingUtils.rollUpCounterDates(hours, hf, df)
+		def elapsed = System.currentTimeMillis() - t0;
+		//println days
+		println "${hours.size()} items in $elapsed msec."
+
+		//assertEquals 4, days['2011-01-02'].direct
 	}
 }

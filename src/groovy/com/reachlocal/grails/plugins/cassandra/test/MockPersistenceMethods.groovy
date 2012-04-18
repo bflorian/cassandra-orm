@@ -34,28 +34,18 @@ class MockPersistenceMethods
 	def getRow(Object client, Object columnFamily, Object rowKey)
 	{
 		logOp "getRow", columnFamily, rowKey
-		//[[name: '_class_name_', value: CLASSES[columnFamily]],[name:'prop1', value: 'propVal1'],[name:'prop2', value: 'propVal2']]
-		//[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney']
 		data.getRowColumns(columnFamily, rowKey)
 	}
 
 	def getRows(Object client, Object columnFamily, Collection rowKeys)
 	{
 		logOp "getRows", columnFamily, rowKeys
-		//[
-		//		col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
-		//		col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
-		//]
 		data.multigetRowColumns(columnFamily, rowKeys)
 	}
 
 	def getRowsColumnSlice(Object client, Object columnFamily, Collection rowKeys, Collection columnNames)
 	{
 		logOp "getRowsColumnSlice", columnFamily, rowKeys, columnNames
-		//def rows = [
-		//		col1: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sally'],[name:'city', value: 'Olney'],[name:'uuid', value: 'user-xxxx-1']],
-		//		col2: [[name: '_class_name_', value: CLASSES[columnFamily]],[name:'name', value: 'Sue'],[name:'city', value: 'Ellicott City'],[name:'uuid', value: 'user-xxxx-2']]
-		//]
 		def rows = data.multigetRowColumns(columnFamily, rowKeys)
 		def result = [:]
 		rows.each {key, row ->
@@ -66,6 +56,12 @@ class MockPersistenceMethods
 			result[key] = values
 		}
 		return result
+	}
+
+	def getRowsColumnRange(Object client, Object columnFamily, Collection rowKeys, Object start, Object finish, Boolean reversed, Integer max)
+	{
+		logOp "getRowsColumnRange", columnFamily, rowKeys, start, finish, reversed, max
+		data.multigetRowColumnRange(columnFamily, rowKeys, start, finish, reversed, max)
 	}
 
 	def getRowsWithEqualityIndex(client, columnFamily, properties, max)
@@ -85,7 +81,6 @@ class MockPersistenceMethods
 	def getColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish, Boolean reversed, Integer max)
 	{
 		logOp "getColumnRange", columnFamily, rowKey, start, finish, reversed, max
-		//[[name: 'col1', value: 'val1'],[name: 'col2', value: 'val2']]
 		data.getColumnRange(columnFamily, rowKey, start, finish, reversed, max)
 	}
 
@@ -98,14 +93,6 @@ class MockPersistenceMethods
 	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames)
 	{
 		logOp "getColumnSlice", columnFamily, rowKey, columnNames
-		//def map = [('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz']
-		//def result = []
-		//columnNames.each {
-		//	def v = map[it]
-		//	if (v) {
-		//		result << [name: it, value:  v]
-		//	}
-		//}
 		data.getColumnSlice(columnFamily, rowKey, columnNames)
 
 	}
@@ -113,7 +100,6 @@ class MockPersistenceMethods
 	def getColumn(Object client, Object columnFamily, Object rowKey, Object columnName)
 	{
 		logOp "getColumnSlice", columnFamily, rowKey, columnName
-		//[('_class_name_'):'com.reachlocal.grails.plugins.cassandra.test.orm.User', name: 'Sally', city: 'Olney', userGroup_key: 'group1-zzzz-zzzz'][columnName]
 		def list = data.getColumnSlice(columnFamily, rowKey, [columnName])
 		list ? list[0] : null
 	}

@@ -21,12 +21,13 @@ import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.text.DateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
-import com.reachlocal.grails.plugins.cassandra.utils.HashCounter
+import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
+import com.reachlocal.grails.plugins.cassandra.utils.TimeZoneAdjuster
 
 /**
  * @author: Bob Florian
  */
-class MappingUtils 
+class MappingUtils extends BaseUtils
 {
 	static protected final int MAX_ROWS = 2000
 	static protected final int MAX_COUNTER_COLUMNS = Integer.MAX_VALUE
@@ -37,27 +38,23 @@ class MappingUtils
 	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace"] as Set
 	static protected final KEY_SUFFIX = "_key"
 	static protected final DIRTY_SUFFIX = "_dirty"
-	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
-	static protected final HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+	static protected final END_CHAR = "\u00ff"
+
+	static protected final UTC_YEAR_FORMAT = new SimpleDateFormat("yyyy")
 	static protected final UTC_MONTH_FORMAT = new SimpleDateFormat("yyyy-MM")
 	static protected final UTC_DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 	static protected final UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+	static protected final UTC_HOUR_ONLY_FORMAT = new SimpleDateFormat("HH")
+	static protected final UTC = TimeZone.getTimeZone("GMT") //.getDefault() //getTimeZone("GMT")
 
 	static {
-		UTC_MONTH_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
-		UTC_DAY_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
-		UTC_HOUR_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"))
+		UTC_YEAR_FORMAT.setTimeZone(UTC)
+		UTC_MONTH_FORMAT.setTimeZone(UTC)
+		UTC_DAY_FORMAT.setTimeZone(UTC)
+		UTC_HOUR_FORMAT.setTimeZone(UTC)
+		UTC_HOUR_ONLY_FORMAT.setTimeZone(UTC)
 	}
 
-	static String stringValue(String s)
-	{
-		'"' + s.replaceAll('"','\\"') + '"'
-	}
-
-	static String stringValue(s)
-	{
-		String.valueOf(s)
-	}
 
 	static Map addOptionDefaults(options, defaultCount)
 	{
@@ -71,93 +68,6 @@ class MappingUtils
 			}
 		}
 		return result
-	}
-
-	static String methodForPropertyName(prefix, propertyName)
-	{
-		return "${prefix}${propertyName[0].toUpperCase()}${propertyName.size() > 1 ? propertyName[1..-1] : ''}"
-	}
-
-	static List propertyListFromMethodName(name)
-	{
-		def exps = name.replaceAll('([a-z,0-9])And([A-Z])','$1,$2').split(",")
-		exps = exps.collect{it[0].toLowerCase() + (it.size() > 0 ? it[1..-1] : '')}
-	}
-
-	static String propertyNameFromClassName(name)
-	{
-		name[0].toLowerCase() + name[1..-1]
-	}
-
-	static collection(Collection value)
-	{
-		return value
-	}
-
-	static collection(value)
-	{
-		 return [value]
-	}
-
-	static mapTotal(Map map)
-	{
-		def total = 0
-		map.each {key, value ->
-			total += mapTotal(value)
-		}
-		return total
-	}
-
-	static mapTotal(number) {
-		return number
-	}
-
-	static groupBy(Map map, int level)
-	{
-		def result = new HashCounter()
-		processGroupByItem(map, [], level, result)
-		return result
-	}
-
-	static void processGroupByItem(Map item, List keys, int groupLevel, HashCounter result)
-	{
-		item.each {key, value ->
-			processGroupByItem(value, keys + key, groupLevel, result)
-		}
-	}
-
-	static void processGroupByItem(Number item, List keys, int groupLevel, HashCounter result)
-	{
-		result.increment(keys[groupLevel], item)
-	}
-
-	static rollUpCounterDates(Map map, DateFormat fromFormat, DateFormat toFormat)
-	{
-		def result = [:]
-		map.each {String key, value ->
-			def newKey = toFormat.format(fromFormat.parse(key))
-			mergeMapCounterValue(result, newKey, value)
-		}
-		return result
-	}
-
-	static void mergeMapCounterValue(Map map, String key, Map value)
-	{
-		def item = map[key]
-		if (item) {
-			value.each {k, v ->
-				mergeMapCounterValue(item, k, v)
-			}
-		}
-		else {
-			item = value
-		}
-		map[key] = item
-	}
-
-	static void mergeMapCounterValue(Map map, String key, value)
-	{
-		map[key] = (map[key] ?: 0) + value
 	}
 
 	static String makeComposite(list)
@@ -237,15 +147,27 @@ class MappingUtils
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 
-					// specific month row
+					// specific month/hour row
 					oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
 					gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
-
-					// add months row
+/*
+					// specific day/hour row
+					oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_ONLY_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+*/
+					// all months row
 					oldColName = counterColumnName(groupKeys, oldObj, UTC_MONTH_FORMAT)
 					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
+					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+
+					// specific year/day row
+					oldColName = counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 				}
@@ -256,7 +178,7 @@ class MappingUtils
 			def crk = counterRowKey(whereKeys, gKeys, thisObj)
 			if (colName && crk) {
 
-				// all hours row
+				// all hours row (to be deprecated)
 				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
 				// all days row
@@ -265,17 +187,30 @@ class MappingUtils
 				crk = counterRowKey(whereKeys, gKeys, thisObj)
 				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
-				// specific month row
+				// specific month/hour row
 				colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
 				gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
 				crk = counterRowKey(whereKeys, gKeys, thisObj)
 				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-
-				// specific month row
+/*
+				// specific day/hour row
+				colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_ONLY_FORMAT)
+				gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+				crk = counterRowKey(whereKeys, gKeys, thisObj)
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+*/
+				// all month row
 				colName = counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT)
 				gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
 				crk = counterRowKey(whereKeys, gKeys, thisObj)
 				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
+				// specific year/day row
+				colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
+				gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+				crk = counterRowKey(whereKeys, gKeys, thisObj)
+				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
 			}
 		}
 		else {
@@ -386,7 +321,6 @@ class MappingUtils
 	{
 		countByMappedObject(thisObj, propName, thisObj.hasMany[propName], options)
 	}
-
 
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
@@ -665,26 +599,30 @@ class MappingUtils
 		}
 	}
 
-	static getCounterColumns(clazz, filterList, counter, params)
+
+	static getCounterColumns(clazz, filterList, counterDef, params)
 	{
 		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
-		def groupBy = collection(counter.groupBy)
-		def dateFormat = counter.dateFormat ?: UTC_HOUR_FORMAT
+		def groupBy = collection(counterDef.groupBy)
+		def colDateFormat = UTC_HOUR_FORMAT
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+
 			def result = new NestedHashMap()
 			filterList.each {filter ->
-				def groupKeys = params.dateFormat ? makeGroupKeyList(groupBy, params.dateFormat.toPattern()) : groupBy
-				def rowKey = counterRowKey(counter.whereEquals, groupKeys, filter)
+
+				//def groupKeys = params.dateFormat ? makeGroupKeyList(groupBy, params.dateFormat.toPattern()) : groupBy
+				def groupKeys = groupBy
+				def rowKey = counterRowKey(counterDef.whereEquals, groupKeys, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						cf,
 						rowKey,
-						options.start ? counterColumnKey(options.start, dateFormat) : null,
-						options.finish ? counterColumnKey(options.finish, dateFormat) : null,
+						options.start ? counterColumnKey(options.start, colDateFormat) : null,
+						options.finish ? counterColumnKey(options.finish, colDateFormat) : null,
 						options.reversed,
-						options.max)
+						MAX_COUNTER_COLUMNS)
 
 				cols.each {col ->
 					result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
@@ -693,6 +631,170 @@ class MappingUtils
 			return result
 		}
 	}
+
+	/// NEW COUNTERS
+
+	static private getMonthRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+	{
+		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
+		def rowKey = counterRowKey(whereEquals, groupKeys, filter)
+
+		columnsList(persistence.getColumnRange(
+				ks,
+				cf,
+				rowKey,
+				start ? counterColumnKey(start, UTC_MONTH_FORMAT) : null,
+				finish ? counterColumnKey(finish, UTC_MONTH_FORMAT)+END_CHAR : null,
+				false,
+				MAX_COUNTER_COLUMNS))
+	}
+
+	static private getDayRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+	{
+		def cal = Calendar.getInstance(UTC)
+		cal.setTime(start)
+
+		def rowKeys = []
+		while (cal.time.before(finish)) {
+			def groupKeys = makeGroupKeyList(groupBy, UTC_YEAR_FORMAT.format(cal.time))
+			rowKeys << counterRowKey(whereEquals, groupKeys, filter)
+			cal.add(Calendar.YEAR, 1)
+		}
+
+		columnsListFromRowList(persistence.getRowsColumnRange(
+				ks,
+				cf,
+				rowKeys,
+				start ? counterColumnKey(start, UTC_DAY_FORMAT) : null,
+				finish ? counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				false,
+				MAX_COUNTER_COLUMNS))
+	}
+
+	static private getHourRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+	{
+		def cal = Calendar.getInstance(UTC)
+		cal.setTime(start)
+
+		def rowKeys = []
+		while (cal.time.before(finish)) {
+			def format = UTC_MONTH_FORMAT.format(cal.time)
+			def groupKeys = makeGroupKeyList(groupBy, format)
+			rowKeys << counterRowKey(whereEquals, groupKeys, filter)
+			cal.add(Calendar.MONTH, 1)
+		}
+
+		columnsListFromRowList(persistence.getRowsColumnRange(
+				ks,
+				cf,
+				rowKeys,
+				start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
+				finish ? counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				false,
+				MAX_COUNTER_COLUMNS))
+
+	}
+
+	static columnsList(columnsIterator)
+	{
+		// TODO - performance!
+		def cols = []
+		columnsIterator.each {
+			cols << it
+		}
+		cols
+	}
+
+	static columnsListFromRowList(rowList)
+	{
+		// TODO - performance!
+		def cols = []
+		rowList.each {row ->
+			row.columns.each {
+				cols << it
+			}
+		}
+		cols
+	}
+
+	static getDateCounterColumns_new (clazz, filterList, counterDef, start, finish, timeZone, grain)
+	{
+		def cf = clazz.counterColumnFamily
+		def persistence = clazz.cassandra.persistence
+		def groupBy = collection(counterDef.groupBy)
+
+		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+
+			def result = new NestedHashMap()
+			filterList.each {filter ->
+				def cols = getDateCounterColumns(persistence, ks, cf, counterDef.whereEquals, groupBy, filter, start, finish, grain)
+				cols.each {col ->
+					result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+				}
+
+				// get time zone offset
+				def timeZoneAdjuster = new TimeZoneAdjuster(start, finish, UTC, timeZone, grain)
+				if (timeZoneAdjuster.hasOffset) {
+					// TODO this is not right
+					def rowKeys = timeZoneAdjuster.rowKeys.collect{counterRowKey(counterDef.whereEquals, makeGroupKeyList(groupBy, it), filter)}
+					def colNames = timeZoneAdjuster.columnNames
+					def dayRows = persistence.getRowsColumnSlice(ks, cf, rowKeys, colNames)
+					def dayRowMap = new NestedHashMap()
+					dayRows.each {row ->
+						def key = persistence.getRowKey(row)
+						def p1 = key.indexOf('[')
+						def p2 = key.indexOf(']')
+						def day = key[p1+1..p2-1]
+						row.columns.each {col ->
+							dayRowMap.increment([day] + parseComposite(persistence.name(col)) + persistence.longValue(col))
+						}
+					}
+					result = timeZoneAdjuster.mergeCounts(result, dayRowMap)
+				}
+			}
+			return result
+		}
+	}
+
+	static getDateCounterColumnTotal (clazz, filterList, counterDef, start, finish)
+	{
+		def cf = clazz.counterColumnFamily
+		def persistence = clazz.cassandra.persistence
+		def groupBy = collection(counterDef.groupBy)
+		def dateRangeParser = new DateRangeParser(start, finish, UTC)
+		def dateRanges = dateRangeParser.dateRanges
+		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+
+			def result = new NestedHashMap()
+			filterList.each {filter ->
+				dateRanges.each{dateRange ->
+					def cols = getDateCounterColumns(persistence, ks, cf, counterDef.whereEquals, groupBy, filter, dateRange.start, dateRange.finish, dateRange.grain)
+					cols.each {col ->
+						result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+					}
+				}
+			}
+			return result
+		}
+	}
+
+	static getDateCounterColumns(persistence, ks, cf, whereEquals, groupBy, filter, start, finish, grain)
+	{
+		def cols
+		if (grain == Calendar.MONTH) {
+			cols = getMonthRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+		}
+		else if (grain == Calendar.DAY_OF_MONTH) {
+			cols = getDayRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+		}
+		else {
+			cols = getHourRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+		}
+		return cols
+	}
+
+	/// END NEW COUNTERS
+
 
 	static getByMappedObject(thisObj, propName, itemClass, opts=[:], listClass=LinkedHashSet)
 	{

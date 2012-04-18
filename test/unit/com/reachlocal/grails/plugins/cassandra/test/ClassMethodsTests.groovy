@@ -257,7 +257,7 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals 2, r.size()
-		assertEquals 1, r['1980-03-15T00']
+		assertEquals 1, r['1980-03-15T05']
 
 		println "\n--- User.getCounts(where: [gender: 'Female'], by: ['birthDate','city']) ---"
 		r = User.getCounts(where: [gender: 'Female'], by: ['birthDate','city'])
@@ -326,5 +326,9 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 	}
 
-	static protected final DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
+	static protected DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
+
+	static {
+		DAY_FORMAT.setTimeZone(TimeZone.getTimeZone("America/New_York"))
+	}
 }
