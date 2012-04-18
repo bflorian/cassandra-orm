@@ -242,12 +242,7 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(by: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
-		r = User.getCounts(by: 'birthDate', start: '1975-01-01', finish: '1984-12-31')
-		persistence.printClear()
-		println r
-
-		println "\n--- User.getCounts(by: 'birthDate', start: '1978-01-01', finish: '1985-12-31') ---"
+		println "\n--- User.getCounts(by: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31')) ---"
 		r = User.getCounts(by: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
 		persistence.printClear()
 		println r

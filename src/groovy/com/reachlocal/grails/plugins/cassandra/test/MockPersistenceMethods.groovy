@@ -156,6 +156,11 @@ class MockPersistenceMethods
 		rows[key]
 	}
 
+	def getColumns(row)
+	{
+		row.value
+	}
+
 	def getColumn(row, name)
 	{
 		row.find{it.name == name}

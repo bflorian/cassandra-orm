@@ -31,17 +31,34 @@ public class DateRangeParser
 	private Calendar finishMonth;
 	private Calendar startDay;
 	private Calendar finishDay;
-	private TimeZone timeZone;
 	private boolean considerDayStartTime;
 	private boolean considerDayFinishTime;
 
 	public DateRangeParser(Date start, Date finish, TimeZone timeZone)
 	{
 		this.start = Calendar.getInstance(timeZone);
-		this.start.setTime(start);
+		if (start == null) {
+			this.start.setTime(new Date(0));
+		}
+		else {
+			this.start.setTime(start);
+		}
+
 		this.finish = Calendar.getInstance(timeZone);
-		this.finish.setTime(finish);
-		this.timeZone = timeZone;
+		if (finish == null) {
+			this.finish.setTime(new Date());
+			this.finish.add(Calendar.MONTH, 1);
+			this.finish.set(Calendar.DAY_OF_MONTH, 0);
+			this.finish.set(Calendar.HOUR_OF_DAY, 0);
+			this.finish.set(Calendar.MINUTE, 0);
+			this.finish.set(Calendar.SECOND, 0);
+			this.finish.set(Calendar.MILLISECOND, 0);
+			this.finish.add(Calendar.MILLISECOND, -1);
+		}
+		else {
+			this.finish.setTime(finish);
+		}
+
 		initialize();
 	}
 
@@ -49,7 +66,6 @@ public class DateRangeParser
 	{
 		this.start = start;
 		this.finish = finish;
-		this.timeZone = start.getTimeZone();
 		initialize();
 	}
 
@@ -66,6 +82,7 @@ public class DateRangeParser
 		System.out.println("finishDay:   " + this.finishDay.getTime());
 		System.out.println("startMonth:  " + this.startMonth.getTime());
 		System.out.println("finishMonth: " + this.finishMonth.getTime());
+		System.out.println(this.toString());
         */
 		this.considerDayStartTime = startDay.get(Calendar.MONTH) < startMonth.get(Calendar.MONTH) && !startDay.getTime().after(finishDay.getTime());
 		this.considerDayFinishTime = finishDay.get(Calendar.MONTH) > finishMonth.get(Calendar.MONTH) && !startDay.getTime().after(finishDay.getTime());
@@ -216,13 +233,18 @@ public class DateRangeParser
 
 	public String toString()
 	{
-		return
-				"DateRangeParser(start: " + TF.format(start.getTime()) +
-				", finish: " + TF.format(finish.getTime()) +
-				", startDay: " + TF.format(startDay.getTime()) +
-				", finishDay: " + TF.format(finishDay.getTime()) +
-				", startMonth: " + TF.format(startMonth.getTime()) +
-				", finishMonth: " + TF.format(finishMonth.getTime()) + ")";
+		try {
+			return
+					"DateRangeParser(start: " + TF.format(start.getTime()) +
+					", finish: " + TF.format(finish.getTime()) +
+					", startDay: " + TF.format(startDay.getTime()) +
+					", finishDay: " + TF.format(finishDay.getTime()) +
+					", startMonth: " + TF.format(startMonth.getTime()) +
+					", finishMonth: " + TF.format(finishMonth.getTime()) + ")";
+		}
+		catch (Exception e) {
+			return super.toString();
+		}
 	}
 
 	static private DateFormat TF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
