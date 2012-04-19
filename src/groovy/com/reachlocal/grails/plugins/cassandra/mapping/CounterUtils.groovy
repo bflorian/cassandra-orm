@@ -70,19 +70,29 @@ class CounterUtils extends KeyUtils
 			def result = new NestedHashMap()
 			filterList.each {filter ->
 
-				def cols = getDateCounterColumns(
-						persistence,
-						ks,
-						cf,
-						counterDef.whereEquals,
-						groupBy,
-						filter,
-						options.start ?: new Date(0), // TODO - handle this better!
-						options.finish ?: new Date(),
-						Calendar.HOUR_OF_DAY)
+				def start = options.start
+				if (!start) {
+					def day = getEarliestDay(persistence, ks, cf, counterDef.whereEquals, groupBy, filter)
+					if (day) {
+						start = UTC_MONTH_FORMAT.parse(day)
+					}
+				}
 
-				cols.each {col ->
-					result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+				if (start) {
+					def cols = getDateCounterColumns(
+							persistence,
+							ks,
+							cf,
+							counterDef.whereEquals,
+							groupBy,
+							filter,
+							start,
+							options.finish ?: new Date(),
+							Calendar.HOUR_OF_DAY)
+
+					cols.each {col ->
+						result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+					}
 				}
 			}
 			return result
@@ -94,10 +104,25 @@ class CounterUtils extends KeyUtils
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
-		def dateRangeParser = new DateRangeParser(start, finish, UTC)
-		def dateRanges = dateRangeParser.dateRanges
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+
+
+			def firstStart = start
+			if (!firstStart) {
+				filterList.each {filter ->
+					def day = getEarliestDay(persistence, ks, cf, counterDef.whereEquals, groupBy, filter)
+					if (day) {
+						def date = UTC_MONTH_FORMAT.parse(day)
+						if (firstStart == null || date.before(firstStart)) {
+							firstStart = date
+						}
+					}
+				}
+			}
+
+			def dateRangeParser = new DateRangeParser(firstStart, finish, UTC)
+			def dateRanges = dateRangeParser.dateRanges
 
 			def result = new NestedHashMap()
 			filterList.each {filter ->
@@ -197,6 +222,15 @@ class CounterUtils extends KeyUtils
 				MAX_COUNTER_COLUMNS), persistence)
 
 	}
+
+	static private getEarliestDay(persistence, ks, cf, whereEquals, groupBy, filter)
+	{
+		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
+		def rowKey = counterRowKey(whereEquals, groupKeys, filter)
+		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1)
+		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
+	}
+
 
 	static columnsList(columnsIterator)
 	{
