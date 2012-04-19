@@ -66,7 +66,7 @@ public class ClassMethodsTests extends OrmTestCase
 				phone: '301-555-1111',
 				gender: 'Female',
 				city:  'Pleasanton',
-				birthDate:  DAY_FORMAT.parse('1962-06-10')).save()
+				birthDate:  DAY_FORMAT.parse('1982-06-10')).save()
 
 		new User(
 				uuid: "x5xx-xxxx-xxxx-xxxx",

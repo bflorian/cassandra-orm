@@ -77,7 +77,7 @@ class CounterUtils extends KeyUtils
 						counterDef.whereEquals,
 						groupBy,
 						filter,
-						options.start ?: new Date(0),
+						options.start ?: new Date(0), // TODO - handle this better!
 						options.finish ?: new Date(),
 						Calendar.HOUR_OF_DAY)
 
