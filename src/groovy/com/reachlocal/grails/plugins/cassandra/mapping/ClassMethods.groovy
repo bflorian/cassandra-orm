@@ -225,6 +225,10 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
+		clazz.metaClass.'static'.groupCounts = {value, index=1 ->
+			groupBy(value, index)
+		}
+
 		// getCounts(where: [usid:'xxx'])
 		clazz.metaClass.'static'.getCountTotal = {params ->
 			if (!params.by) {
