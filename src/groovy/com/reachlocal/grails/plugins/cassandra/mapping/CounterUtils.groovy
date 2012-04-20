@@ -181,6 +181,12 @@ class CounterUtils extends KeyUtils
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
+		cal.set(Calendar.MONTH, 0)
+		cal.set(Calendar.DAY_OF_MONTH, 1)
+		cal.set(Calendar.HOUR_OF_DAY, 0)
+		cal.set(Calendar.MINUTE, 0)
+		cal.set(Calendar.SECOND, 0)
+		cal.set(Calendar.MILLISECOND, 0)
 
 		def rowKeys = []
 		while (cal.time.before(finish)) {
@@ -203,6 +209,11 @@ class CounterUtils extends KeyUtils
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
+		cal.set(Calendar.DAY_OF_MONTH, 1)
+		cal.set(Calendar.HOUR_OF_DAY, 0)
+		cal.set(Calendar.MINUTE, 0)
+		cal.set(Calendar.SECOND, 0)
+		cal.set(Calendar.MILLISECOND, 0)
 
 		def rowKeys = []
 		while (cal.time.before(finish)) {
