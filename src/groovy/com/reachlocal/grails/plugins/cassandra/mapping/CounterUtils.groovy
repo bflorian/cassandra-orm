@@ -95,7 +95,12 @@ class CounterUtils extends KeyUtils
 					}
 				}
 			}
-			return result
+			if (params.sort) {
+				sort(result);
+			}
+			else {
+				return result;
+			}
 		}
 	}
 

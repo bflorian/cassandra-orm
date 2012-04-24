@@ -143,4 +143,14 @@ class BaseUtils
 		}
 		return result
 	}
+
+	static sort(map)
+	{
+		def sorted = [:]
+		map.collect{it}.sort{it.key}.each {
+			sorted[it.key] = it.value
+		}
+		return sorted;
+	}
+
 }
