@@ -3,6 +3,8 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
 import java.text.SimpleDateFormat
+import java.text.DateFormat
+import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 
 /**
  * @author: Bob Florian
@@ -24,6 +26,30 @@ class CounterUtils extends KeyUtils
 		UTC_DAY_FORMAT.setTimeZone(UTC)
 		UTC_HOUR_FORMAT.setTimeZone(UTC)
 		UTC_HOUR_ONLY_FORMAT.setTimeZone(UTC)
+	}
+
+	static dateFormat(int grain, TimeZone timeZone)
+	{
+		def result = dateFormat(grain)
+		if (timeZone) {
+			result = new SimpleDateFormat(result.pattern)
+			result.setTimeZone(timeZone);
+		}
+		return result
+	}
+
+	static dateFormat(int grain)
+	{
+		switch(grain) {
+			case Calendar.YEAR:
+				return UTC_YEAR_FORMAT
+			case Calendar.MONTH:
+				return UTC_MONTH_FORMAT
+			case Calendar.DAY_OF_MONTH:
+				return UTC_DAY_FORMAT
+			default:
+				return UTC_HOUR_FORMAT
+		}
 	}
 
 	static getCounterColumns(clazz, filterList, counterDef, params)
@@ -268,5 +294,39 @@ class CounterUtils extends KeyUtils
 			}
 		}
 		cols
+	}
+
+	static rollUpCounterDates(Map map, DateFormat fromFormat, params)
+	{
+		int grain = params.grain
+		def toFormat = dateFormat(params.grain, params.timeZone)
+		def result = DateHelper.rollUpCounterDates(map, fromFormat, toFormat)
+		if (params.fill) {
+			// TODO - implement
+			if (!params.sort) {
+				result = sort(result)
+			}
+
+			def rollUp = [:]
+			def cal = null
+			result.each {key, value ->
+				def date = fromFormat.parse(key)
+				if (cal == null) {
+					cal = Calendar.getInstance(UTC)
+					cal.setTime(date)
+				}
+				else {
+					while (date.before(cal.time)) {
+						def key2 = fromFormat.format(cal.time)
+						rollUp[key2] = null
+						cal.add(grain, 1)
+					}
+				}
+				rollUp[key] = value
+				cal.add(grain, 1)
+			}
+			result = rollUp
+		}
+		return result
 	}
 }

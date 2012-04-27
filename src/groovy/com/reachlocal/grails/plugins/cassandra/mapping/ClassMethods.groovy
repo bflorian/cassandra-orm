@@ -217,8 +217,8 @@ class ClassMethods extends MappingUtils
 					else {
 						value = getCounterColumns(clazz, filterList, counterDef, params)
 					}
-					if (params.dateFormat) {
-						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, params.dateFormat)
+					if (params.grain) {
+						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, params)
 					}
 				}
 				return value
@@ -375,8 +375,8 @@ class ClassMethods extends MappingUtils
 					else {
 						value = getCounterColumns(clazz, filterList, counterDef, opts)
 					}
-					if (opts.dateFormat) {
-						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, opts.dateFormat)
+					if (opts.grain) {
+						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, opts)
 					}
 				}
 				return value

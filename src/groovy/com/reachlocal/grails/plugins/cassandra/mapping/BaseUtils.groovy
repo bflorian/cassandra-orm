@@ -87,11 +87,6 @@ class BaseUtils
 		result.increment(keys[groupLevel], item)
 	}
 
-	static rollUpCounterDates(Map map, DateFormat fromFormat, DateFormat toFormat)
-	{
-		return DateHelper.rollUpCounterDates(map, fromFormat, toFormat)
-	}
-
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}
