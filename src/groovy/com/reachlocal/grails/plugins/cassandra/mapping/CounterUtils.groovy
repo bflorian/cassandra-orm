@@ -52,6 +52,20 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
+	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
+	{
+		try {
+			return makeComposite(
+					groupKeys.collect{
+						counterColumnKey(bean.getProperty(it), dateFormat)
+					}
+			)
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
+	}
+
 	static getCounterColumns(clazz, filterList, counterDef, params)
 	{
 		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)

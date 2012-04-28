@@ -41,20 +41,6 @@ class KeyUtils extends BaseUtils
 		key ? "${key}#${makeComposite(groupKeys)}".toString() : null
 	}
 
-	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
-	{
-		try {
-			return makeComposite(
-					groupKeys.collect{
-						counterColumnKey(bean.getProperty(it), dateFormat)
-					}
-			)
-		}
-		catch (CassandraMappingNullIndexException e) {
-			return null
-		}
-	}
-
 	static makeGroupKeyList(keys, dateSuffix)
 	{
 		def result = keys.clone()
