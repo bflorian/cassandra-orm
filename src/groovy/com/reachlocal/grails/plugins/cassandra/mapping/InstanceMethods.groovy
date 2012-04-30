@@ -107,7 +107,6 @@ class InstanceMethods extends MappingUtils
 				def indexRows = [:]
 				def oldIndexRows = [:]
 				def indexColumnFamily = thisObj.indexColumnFamily
-				def counterColumnFamily = thisObj.counterColumnFamily
 
 				// primary key index
 				if (cassandraMapping.primaryKey) {
@@ -144,23 +143,6 @@ class InstanceMethods extends MappingUtils
 				// counters
 				cassandraMapping.counters?.each {ctr ->
 					updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
-					/*
-					def whereKeys = ctr.whereEquals
-					def groupKeys = collection(ctr.groupBy)
-					def dateFormat = ctr.dateFormat ?: DAY_FORMAT
-					if (oldObj) {
-						def oldColName = counterColumnName(groupKeys, oldObj, dateFormat)
-						def ocrk = counterRowKey(whereKeys, groupKeys, oldObj)
-						if (oldColName && ocrk) {
-							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
-						}
-					}
-					def colName = counterColumnName(groupKeys, thisObj, dateFormat)
-					def crk = counterRowKey(whereKeys, groupKeys, thisObj)
-					if (colName && crk) {
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-					}
-					*/
 				}
 
 				cassandra.persistence.execute(m)

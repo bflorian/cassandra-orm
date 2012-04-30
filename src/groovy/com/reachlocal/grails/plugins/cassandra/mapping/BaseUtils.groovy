@@ -55,6 +55,16 @@ class BaseUtils
 		return [value]
 	}
 
+	static containsElement(Collection col1, Collection col2)
+	{
+		for (obj in col1) {
+			if (col2.contains(obj)) {
+				return true
+			}
+		}
+		return false
+	}
+
 	static mapTotal(Map map)
 	{
 		def total = 0
