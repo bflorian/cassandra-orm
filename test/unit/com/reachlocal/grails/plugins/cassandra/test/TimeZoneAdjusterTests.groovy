@@ -26,8 +26,7 @@ class TimeZoneAdjusterTests extends GroovyTestCase
 {
 	static tf = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss')
 	def dataTimeZone = TimeZone.getTimeZone("GMT");
-	def clientTimeZone = TimeZone.getDefault();
-
+	def clientTimeZone = TimeZone.getTimeZone("America/New_York")
 	public TimeZoneAdjusterTests()
 	{
 

@@ -18,52 +18,17 @@ package com.reachlocal.grails.plugins.cassandra.test
 
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
+import grails.test.GrailsUnitTestCase
+import java.text.SimpleDateFormat
+import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
 
 /**
  * @author: Bob Florian
  */
-class TempTests extends OrmTestCase
+class TempTests extends GrailsUnitTestCase
 {
-	void testDelete()
+	void testTemp()
 	{
-		initialize()
 
-		def userGroup = new UserGroup(uuid: "group1-zzzz-zzzz", name: "JUG", constructedCustom: "XYZ")
-		def meeting1 = new UserGroupMeeting(date:  new Date())
-
-		println "\nuserGroup.save()"
-		userGroup.assignedCustom = "ABC"
-		userGroup.save()
-		persistence.printClear()
-
-		println "BEFORE GET: ${userGroup.constructedCustom}"
-		def g2 = UserGroup.get("group1-zzzz-zzzz")
-		println "AFTER GET: ${g2.constructedCustom}"
-		println "DATA: ${g2.data}"
-
-/*
-		println "\nUserGroup.get('group1-zzzz-zzzz')"
-		def g = UserGroup.get('group1-zzzz-zzzz')
-		assertEquals "JUG", g.name
-		persistence.printClear()
-
-		println "\nuserGroup.addToMeetings(meeting1)"
-		userGroup.addToMeetings(meeting1)
-		persistence.printClear()
-
-		println "\nUserGroupMeeting.get([userGroup, meeting1.date])"
-		def m1a = UserGroupMeeting.get([meeting1.date, meeting1.uuid])
-		persistence.printClear()
-		assertNotNull m1a
-		assertEquals meeting1.uuid, m1a.uuid
-
-		println "\nm1a.userGroup"
-		def ug1a = m1a.userGroup
-		assertEquals userGroup.uuid, ug1a.uuid
-
-		println "\n--- delete() ---"
-		userGroup.delete()
-		persistence.printClear()
-*/
 	}
 }

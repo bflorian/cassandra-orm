@@ -80,7 +80,7 @@ class CounterUtils extends KeyUtils
 
 				//def groupKeys = params.dateFormat ? makeGroupKeyList(groupBy, params.dateFormat.toPattern()) : groupBy
 				def groupKeys = groupBy
-				def rowKey = counterRowKey(counterDef.whereEquals, groupKeys, filter)
+				def rowKey = counterRowKey(counterDef.findBy, groupKeys, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						cf,
@@ -112,7 +112,7 @@ class CounterUtils extends KeyUtils
 
 				def start = options.start
 				if (!start) {
-					def day = getEarliestDay(persistence, ks, cf, counterDef.whereEquals, groupBy, filter)
+					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter)
 					if (day) {
 						start = UTC_MONTH_FORMAT.parse(day)
 					}
@@ -123,7 +123,7 @@ class CounterUtils extends KeyUtils
 							persistence,
 							ks,
 							cf,
-							counterDef.whereEquals,
+							counterDef.findBy,
 							groupBy,
 							filter,
 							start,
@@ -156,7 +156,7 @@ class CounterUtils extends KeyUtils
 			def firstStart = start
 			if (!firstStart) {
 				filterList.each {filter ->
-					def day = getEarliestDay(persistence, ks, cf, counterDef.whereEquals, groupBy, filter)
+					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter)
 					if (day) {
 						def date = UTC_MONTH_FORMAT.parse(day)
 						if (firstStart == null || date.before(firstStart)) {
@@ -176,7 +176,7 @@ class CounterUtils extends KeyUtils
 							persistence,
 							ks,
 							cf,
-							counterDef.whereEquals,
+							counterDef.findBy,
 							groupBy,
 							filter,
 							dateRange.start,
@@ -192,25 +192,25 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumns(persistence, ks, cf, whereEquals, groupBy, filter, start, finish, grain)
+	static getDateCounterColumns(persistence, ks, cf, findBy, groupBy, filter, start, finish, grain)
 	{
 		def cols
 		if (grain == Calendar.MONTH) {
-			cols = getMonthRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+			cols = getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 		}
 		else if (grain == Calendar.DAY_OF_MONTH) {
-			cols = getDayRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+			cols = getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 		}
 		else {
-			cols = getHourRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+			cols = getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 		}
 		return cols
 	}
 
-	static private getMonthRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+	static private getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 	{
 		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
-		def rowKey = counterRowKey(whereEquals, groupKeys, filter)
+		def rowKey = counterRowKey(findBy, groupKeys, filter)
 
 		columnsList(persistence.getColumnRange(
 				ks,
@@ -222,7 +222,7 @@ class CounterUtils extends KeyUtils
 				MAX_COUNTER_COLUMNS))
 	}
 
-	static private getDayRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+	static private getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
@@ -236,7 +236,7 @@ class CounterUtils extends KeyUtils
 		def rowKeys = []
 		while (cal.time.before(finish)) {
 			def groupKeys = makeGroupKeyList(groupBy, UTC_YEAR_FORMAT.format(cal.time))
-			rowKeys << counterRowKey(whereEquals, groupKeys, filter)
+			rowKeys << counterRowKey(findBy, groupKeys, filter)
 			cal.add(Calendar.YEAR, 1)
 		}
 
@@ -250,7 +250,7 @@ class CounterUtils extends KeyUtils
 				MAX_COUNTER_COLUMNS), persistence)
 	}
 
-	static private getHourRange(persistence, ks, cf, whereEquals, groupBy, filter, start, finish)
+	static private getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
@@ -264,7 +264,7 @@ class CounterUtils extends KeyUtils
 		while (cal.time.before(finish)) {
 			def format = UTC_MONTH_FORMAT.format(cal.time)
 			def groupKeys = makeGroupKeyList(groupBy, format)
-			rowKeys << counterRowKey(whereEquals, groupKeys, filter)
+			rowKeys << counterRowKey(findBy, groupKeys, filter)
 			cal.add(Calendar.MONTH, 1)
 		}
 
@@ -279,10 +279,10 @@ class CounterUtils extends KeyUtils
 
 	}
 
-	static private getEarliestDay(persistence, ks, cf, whereEquals, groupBy, filter)
+	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter)
 	{
 		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
-		def rowKey = counterRowKey(whereEquals, groupKeys, filter)
+		def rowKey = counterRowKey(findBy, groupKeys, filter)
 		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1)
 		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
 	}

@@ -97,6 +97,35 @@ class BaseUtils
 		result.increment(keys[groupLevel], item)
 	}
 
+	static void filterBy(Map map, List groupByPropNames, Map propValues)
+	{
+		def name = groupByPropNames[0]
+		if (propValues.containsKey(name)) {
+			def valuesToRemove = new LinkedHashSet()
+			valuesToRemove.addAll(map.keySet())
+			valuesToRemove.removeAll(collection(propValues[name]))
+			valuesToRemove.each {
+				map.remove(it)
+			}
+		}
+
+		if (groupByPropNames.size() > 1) {
+			def remainingNames = groupByPropNames[1..-1]
+			def keys = new LinkedHashSet()
+			keys.addAll(map.keySet())
+			keys.each {k ->
+				def v = map[k]
+				// TODO - don't really need to test each one
+				if (v instanceof Map) {
+					filterBy(v, remainingNames, propValues)
+					if (v.size() == 0) {
+						map.remove(k)
+					}
+				}
+			}
+		}
+	}
+
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}

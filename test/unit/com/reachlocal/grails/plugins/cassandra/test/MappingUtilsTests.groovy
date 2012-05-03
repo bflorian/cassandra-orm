@@ -265,11 +265,11 @@ class MappingUtilsTests extends GrailsUnitTestCase
 	void testFindCounter()
 	{
 		def counters = [
-				[whereEquals: ['state'], groupBy: ['city']],
+				[findBy: ['state'], groupBy: ['city']],
 				[groupBy: ['birthDate']],
-				[whereEquals: ['gender'], groupBy: ['birthDate']],
+				[findBy: ['gender'], groupBy: ['birthDate']],
 				[groupBy: ['birthDate','state']],
-				[whereEquals: ['gender'], groupBy: ['birthDate','city'], dateFormat: new SimpleDateFormat("yyyy-MM-dd'T'HH")],
+				[findBy: ['gender'], groupBy: ['birthDate','city'], dateFormat: new SimpleDateFormat("yyyy-MM-dd'T'HH")],
 		]
 
 		def filters = MappingUtils.expandFilters([state:'MD'])

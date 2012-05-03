@@ -23,7 +23,7 @@ class MappingUtils extends CounterUtils
 {
 	static updateCounterColumns(Class clazz, Map counterDef, m, oldObj, thisObj)
 	{
-		def whereKeys = counterDef.whereEquals
+		def whereKeys = counterDef.findBy
 		def groupKeys = collection(counterDef.groupBy)
 		def counterColumnFamily = clazz.counterColumnFamily
 		def cassandra = clazz.cassandra
@@ -205,13 +205,13 @@ class MappingUtils extends CounterUtils
 		return null
 	}
 
-	static findCounter(counterList, filterList, groupByList)
+	static findCounterOld(counterList, filterList, byList)
 	{
 		def filter1 = filterList[0]
 		for (counter in counterList) {
-			def index = counter.whereEquals ?: [] //TODO - right?
+			def findBy = counter.findBy ?: [] //TODO - right?
 			def groupBy = collection(counter.groupBy)
-			def params = index instanceof List ? index.clone() : [index]
+			def params = findBy instanceof List ? findBy : [findBy]
 			if (params.size() == filter1.size()) {
 				def all = true
 				for (item in filter1) {
@@ -220,8 +220,10 @@ class MappingUtils extends CounterUtils
 						break
 					}
 				}
+
+				// found an exact findBy match, look for matches of all groupBy options
 				if (all) {
-					for (item in groupByList) {
+					for (item in byList) {
 						if (!groupBy.contains(item)) {
 							all = false
 							break
@@ -234,6 +236,68 @@ class MappingUtils extends CounterUtils
 			}
 		}
 		return null
+	}
+
+	static findCounter(counterList, queryFilterList, queryGroupByList)
+	{
+		def exactMatch = null
+		def bestMatch = null
+		def queryFilterPropNames = queryFilterList[0].collect{it.key}
+		for (counter in counterList) {
+			def counterFindBy = counter.findBy ?: [] //TODO - right?
+			def counterFilterPropNames = counterFindBy instanceof List ? counterFindBy : [counterFindBy]
+			def counterGroupPropNames = collection(counter.groupBy)
+			def queryFilterPropsRemaining = queryFilterPropNames.toSet()
+			def found = true
+
+			// check each filter prop in this counter to see if its in the query
+			for (name in counterFilterPropNames) {
+				if (queryFilterPropsRemaining.contains(name)) {
+					queryFilterPropsRemaining.remove(name)
+				}
+				else {
+					found = false
+					break
+				}
+			}
+
+			// found a counter with a findBy that matches, check that all query groupBy are in the counter
+			if (found) {
+				for (item in queryGroupByList) {
+					if (!counterGroupPropNames.contains(item)) {
+						found = false
+						break
+					}
+				}
+			}
+
+			// now check for exact or partial filter match
+			if (found) {
+				if (queryFilterPropsRemaining.size() == 0) {
+					exactMatch = counter
+					break
+				}
+				else {
+					for (name in queryFilterPropsRemaining) {
+						if (!counterGroupPropNames.contains(name)) {
+							found = false
+							break
+						}
+					}
+					if (found) {
+						if (bestMatch) {
+							if(queryGroupByList && counterGroupPropNames.size() < collection(bestMatch.groupBy).size()) {
+								bestMatch = counter
+							}
+						}
+						else {
+							bestMatch = counter
+						}
+					}
+				}
+			}
+		}
+		return exactMatch ?: bestMatch
 	}
 
 	static mergeKeys(List<List> keys, Integer max)

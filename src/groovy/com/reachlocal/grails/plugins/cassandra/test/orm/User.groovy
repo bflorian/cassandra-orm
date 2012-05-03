@@ -44,11 +44,11 @@ class User
 			explicitIndexes: ["email","phone","city",["city","gender"]],
 			secondaryIndexes: ["gender","state"],
 			counters: [
-					[whereEquals: ['state'], groupBy: ['city']],
+					[findBy: ['state'], groupBy: ['city']],
 					[groupBy: ['birthDate']],
-					[whereEquals: ['gender'], groupBy: ['birthDate']],
+					[findBy: ['gender'], groupBy: ['birthDate']],
 					[groupBy: ['birthDate','state']],
-					[whereEquals: ['gender'], groupBy: ['birthDate','city']],
+					[findBy: ['gender'], groupBy: ['birthDate','city']],
 			]
 	]
 }

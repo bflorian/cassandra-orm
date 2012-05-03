@@ -217,6 +217,9 @@ class ClassMethods extends MappingUtils
 					else {
 						value = getCounterColumns(clazz, filterList, counterDef, params)
 					}
+					if (params.where?.size() > counterDef.findBy?.size()) {
+						filterBy(value, counterDef.groupBy, params.where)
+					}
 					if (params.grain) {
 						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, params)
 					}
