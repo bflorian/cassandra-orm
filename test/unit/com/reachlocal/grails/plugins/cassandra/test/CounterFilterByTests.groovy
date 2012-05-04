@@ -41,11 +41,32 @@ class CounterFilterByTests  extends GrailsUnitTestCase
 				('2012-02-05T01'): [ReachLocal: 1,OtherPaid: 1]
 		]
 
-		CounterUtils.filterBy(data, ['occurTime','refClass'], [refClass: 'Organic'])
-		println data
+		def result = CounterUtils.filterBy(data, ['occurTime','refClass'], [refClass: 'Organic'])
+		println result
 	}
 
 	void testFilterBy2()
+	{
+		def data = [
+				('2012-02-04T14'): [OtherPaid: 1],
+				('2012-02-04T15'): [OtherPaid: 1],
+				('2012-02-04T16'): [ReachLocal: 1,OtherPaid: 1],
+				('2012-02-04T17'): [ReachLocal: 3,OtherPaid: 1],
+				('2012-02-04T18'): [ReachLocal: 2],
+				('2012-02-04T19'): [ReachLocal: 2,OtherPaid: 2,Organic: 1],
+				('2012-02-04T20'): [ReachLocal: 1],
+				('2012-02-04T21'): [ReachLocal: 2,Organic: 2],
+				('2012-02-04T22'): [OtherPaid: 1],
+				('2012-02-04T23'): [ReachLocal: 1,OtherPaid: 1],
+				('2012-02-05T00'): [ReachLocal: 2,OtherPaid: 2],
+				('2012-02-05T01'): [ReachLocal: 1,OtherPaid: 1]
+		]
+
+		def result = CounterUtils.filterBy(data, ['occurTime','refClass'], [refClass: ['Organic','ReachLocal']])
+		println result
+	}
+
+	void testFilterBy3()
 	{
 		def data = [
 				('2012-02-04T14'): [OtherPaid: [Google:10,Bing:4]],
@@ -56,7 +77,7 @@ class CounterFilterByTests  extends GrailsUnitTestCase
 				('2012-02-04T19'): [ReachLocal: [Google:12,Bing:2,Yahoo:3],OtherPaid: [Google:8,Yahoo:3],Organic: [Google:4,Bing:1]]
 		]
 
-		CounterUtils.filterBy(data, ['occurTime','refClass','refName'], [refName: ['Yahoo','Bing']])
-		println data
+		def result = CounterUtils.filterBy(data, ['occurTime','refClass','refName'], [refName: ['Yahoo','Bing']])
+		println result
 	}
 }

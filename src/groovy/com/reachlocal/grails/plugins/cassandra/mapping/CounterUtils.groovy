@@ -66,12 +66,13 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getCounterColumns(clazz, filterList, counterDef, params)
+	static getCounterColumns(clazz, filterList, columnFilter, counterDef, params)
 	{
 		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
+		def matchIndexes = columnFilter ? filterMatchIndexes(columnFilter, groupBy) : null
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 
@@ -90,25 +91,38 @@ class CounterUtils extends KeyUtils
 						options.reversed,
 						MAX_COUNTER_COLUMNS)
 
-				cols.each {col ->
-					result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+				if (columnFilter) {
+					cols.each {col ->
+						def keyValues = parseComposite(persistence.name(col))
+						def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+						if (passed) {
+							def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
+							result.increment(resultKeyValues + persistence.longValue(col))
+						}
+					}
+				}
+				else {
+					cols.each {col ->
+						result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+					}
 				}
 			}
 			return result
 		}
 	}
 
-	static getDateCounterColumns(clazz, filterList, counterDef, params)
+	static getDateCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
 	{
 		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
+		def matchIndexes = columnFilter ? filterMatchIndexes(columnFilter, groupBy) : null
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 
 			def result = new NestedHashMap()
-			filterList.each {filter ->
+			rowFilterList.each {filter ->
 
 				def start = options.start
 				if (!start) {
@@ -130,8 +144,20 @@ class CounterUtils extends KeyUtils
 							options.finish ?: new Date(),
 							Calendar.HOUR_OF_DAY)
 
-					cols.each {col ->
-						result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+					if (columnFilter) {
+						cols.each {col ->
+							def keyValues = parseComposite(persistence.name(col))
+							def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+							if (passed) {
+								def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
+								result.increment(resultKeyValues + persistence.longValue(col))
+							}
+						}
+					}
+					else {
+						cols.each {col ->
+							result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+						}
 					}
 				}
 			}
@@ -144,18 +170,55 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumnsForTotals (clazz, filterList, counterDef, start, finish)
+	static filterMatchIndexes(columnFilter, groupBy)
+	{
+		def matchKeys = columnFilter.keySet()
+		def matchIndexes = []
+		groupBy.eachWithIndex {key, index ->
+			if (matchKeys.contains(key)) {
+				matchIndexes << index
+			}
+		}
+		return
+	}
+
+	static filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+	{
+		def passed = true
+		for (index in matchIndexes) {
+			def kv = keyValues[index]
+			def k = groupBy[index]
+			def fv = columnFilter[k]
+			if (!fv.contains(kv)) {
+				passed = false
+				break
+			}
+		}
+		return passed
+	}
+
+	static filterResultKeyValues(keyValues, matchIndexes)
+	{
+		def resultKeyValues = []
+		keyValues.eachWithIndex {kv, index ->
+			if (!matchIndexes.contains(index)) {
+				resultKeyValues << kv
+			}
+		}
+		resultKeyValues
+	}
+
+	static getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, start, finish)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
+		def matchIndexes = columnFilter ? filterMatchIndexes(columnFilter, groupBy) : null
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
-
-
 			def firstStart = start
 			if (!firstStart) {
-				filterList.each {filter ->
+				rowFilterList.each {filter ->
 					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter)
 					if (day) {
 						def date = UTC_MONTH_FORMAT.parse(day)
@@ -170,7 +233,7 @@ class CounterUtils extends KeyUtils
 			def dateRanges = dateRangeParser.dateRanges
 
 			def result = new NestedHashMap()
-			filterList.each {filter ->
+			rowFilterList.each {filter ->
 				dateRanges.each{dateRange ->
 					def cols = getDateCounterColumns(
 							persistence,
@@ -183,8 +246,20 @@ class CounterUtils extends KeyUtils
 							dateRange.finish,
 							dateRange.grain)
 
-					cols.each {col ->
-						result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+					if (columnFilter) {
+						cols.each {col ->
+							def keyValues = parseComposite(persistence.name(col))
+							def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+							if (passed) {
+								def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
+								result.increment(resultKeyValues + persistence.longValue(col))
+							}
+						}
+					}
+					else {
+						cols.each {col ->
+							result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+						}
 					}
 				}
 			}

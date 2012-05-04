@@ -191,16 +191,18 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'by' parameter must be specified")
 			}
 			else {
-				def filterList = expandFilters(params.where)
-				def counterDef = findCounter(cassandraMapping.counters, filterList, collection(params.by))
+				def whereFilter = params.where
+				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(params.by))
+				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
+				def columnFilter = counterColumnFilter(whereFilter, counterDef)
 
 				def value
 				if (params.groupBy) {
 					if (counterDef.isDateIndex) {
-						value = getDateCounterColumnsForTotals (clazz, filterList, counterDef, params.start, params.finish)
+						value = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, params.start, params.finish)
 					}
 					else {
-						value = getCounterColumns(clazz, filterList, counterDef, params)
+						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
 					}
 					int groupByIndex = params.by.indexOf(params.groupBy)
 					if (groupByIndex < 0) {
@@ -212,13 +214,10 @@ class ClassMethods extends MappingUtils
 				}
 				else {
 					if (counterDef.isDateIndex)  {
-						value = getDateCounterColumns(clazz, filterList, counterDef, params)
+						value = getDateCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
 					}
 					else {
-						value = getCounterColumns(clazz, filterList, counterDef, params)
-					}
-					if (params.where?.size() > counterDef.findBy?.size()) {
-						filterBy(value, counterDef.groupBy, params.where)
+						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
 					}
 					if (params.grain) {
 						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, params)
@@ -238,9 +237,11 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
 			}
 			else {
-				def filterList = expandFilters(params.where)
-				def counter = findCounter(cassandraMapping.counters, filterList, collection(params.by))
-				def cols = getDateCounterColumnsForTotals (clazz, filterList, counter, params.start, params.finish)
+				def whereFilter = params.where
+				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(params.by))
+				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
+				def columnFilter = counterColumnFilter(whereFilter, counterDef)
+				def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, params.start, params.finish)
 				return mapTotal(cols)
 			}
 		}
@@ -344,24 +345,27 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				def groupByList = propertyListFromMethodName(str)
-				def filterList = expandFilters(opts.where)
-				def counterDef = findCounter(cassandraMapping.counters, filterList, groupByList)
-				def value // = getCounterColumns(clazz, filterList, counterDef, opts)
+				def whereFilter = opts.where
+				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(groupByList))
+				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
+				def columnFilter = counterColumnFilter(whereFilter, counterDef)
+
+				def value
 				if (total) {
 					if (counterDef.isDateIndex) {
-						value = getDateCounterColumnsForTotals (clazz, filterList, counterDef, opts.start, opts.finish)
+						value = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, opts.start, opts.finish)
 					}
 					else {
-						value = getCounterColumns(clazz, filterList, counterDef, opts)
+						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
 					}
 					return mapTotal(value)
 				}
 				else if (groupByPropName) {
 					if (counterDef.isDateIndex) {
-						value = getDateCounterColumnsForTotals (clazz, filterList, counterDef, opts.start, opts.finish)
+						value = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, opts.start, opts.finish)
 					}
 					else {
-						value = getCounterColumns(clazz, filterList, counterDef, opts)
+						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
 					}
 					int groupByIndex = groupByList.indexOf(groupByPropName)
 					if (groupByIndex < 0) {
@@ -373,10 +377,10 @@ class ClassMethods extends MappingUtils
 				}
 				else {
 					if (counterDef.isDateIndex)  {
-						value = getDateCounterColumns(clazz, filterList, counterDef, opts)
+						value = getDateCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
 					}
 					else {
-						value = getCounterColumns(clazz, filterList, counterDef, opts)
+						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
 					}
 					if (opts.grain) {
 						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, opts)

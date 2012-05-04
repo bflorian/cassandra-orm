@@ -238,11 +238,35 @@ class MappingUtils extends CounterUtils
 		return null
 	}
 
-	static findCounter(counterList, queryFilterList, queryGroupByList)
+	static counterRowFilter(whereFilter, counterDef)
+	{
+		def findByNames = counterDef.findBy
+		def result = [:]
+		whereFilter.each {name, values ->
+			if (findByNames.contains(name)) {
+				result[name] = values
+			}
+		}
+		return result
+	}
+
+	static counterColumnFilter(whereFilter, counterDef)
+	{
+		def findByNames = counterDef.findBy
+		def result = [:]
+		whereFilter.each {name, values ->
+			if (!findByNames.contains(name)) {
+				result[name] = collection(values)
+			}
+		}
+		return result
+	}
+
+	static findCounter(counterList, queryFilter, queryGroupByList)
 	{
 		def exactMatch = null
 		def bestMatch = null
-		def queryFilterPropNames = queryFilterList[0].collect{it.key}
+		def queryFilterPropNames = queryFilter.collect{it.key}
 		for (counter in counterList) {
 			def counterFindBy = counter.findBy ?: [] //TODO - right?
 			def counterFilterPropNames = counterFindBy instanceof List ? counterFindBy : [counterFindBy]

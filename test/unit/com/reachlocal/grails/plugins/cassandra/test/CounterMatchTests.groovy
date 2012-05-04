@@ -37,8 +37,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city']],
 		]
 
-		def filters = MappingUtils.expandFilters([state:'MD'])
-		def result = MappingUtils.findCounter(counters, filters, ['city'])
+		def result = MappingUtils.findCounter(counters, [state:'MD'], ['city'])
 		assertEquals "city", result.groupBy[0]
 		assertEquals 1, result.findBy.size()
 	}
@@ -54,8 +53,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender','status'], groupBy: ['birthDate','city']],
 		]
 
-		def filters = MappingUtils.expandFilters([status:'Married', gender:'Male'])
-		def result = MappingUtils.findCounter(counters, filters, ['city'])
+		def result = MappingUtils.findCounter(counters, [status:'Married', gender:'Male'], ['city'])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "city", result.groupBy[1]
 		assertEquals 2, result.findBy.size()
@@ -71,8 +69,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city']],
 		]
 
-		def filters = MappingUtils.expandFilters([gender:'Female', city:'Olney'])
-		def result = MappingUtils.findCounter(counters, filters, [])
+		def result = MappingUtils.findCounter(counters, [gender:'Female', city:'Olney'], [])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "city", result.groupBy[1]
 		assertEquals 1, result.findBy.size()
@@ -88,8 +85,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city']],
 		]
 
-		def filters = MappingUtils.expandFilters([status:'Female', state:'MD'])
-		def result = MappingUtils.findCounter(counters, filters, [])
+		def result = MappingUtils.findCounter(counters, [status:'Female', state:'MD'], [])
 		assertNull result
 	}
 
@@ -102,8 +98,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city','zip5','zip4']],
 		]
 
-		def filters = MappingUtils.expandFilters([gender:'Female', city:'Olney'])
-		def result = MappingUtils.findCounter(counters, filters, [])
+		def result = MappingUtils.findCounter(counters, [gender:'Female', city:'Olney'], [])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "city", result.groupBy[1]
 		assertEquals 2, result.groupBy.size()
@@ -120,8 +115,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender','city'], groupBy: ['birthDate','zip5','zip4']],
 		]
 
-		def filters = MappingUtils.expandFilters([gender:'Female', city:'Olney'])
-		def result = MappingUtils.findCounter(counters, filters, [])
+		def result = MappingUtils.findCounter(counters, [gender:'Female', city:'Olney'], [])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "zip5", result.groupBy[1]
 		assertEquals 2, result.findBy.size()
@@ -137,8 +131,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city','zip5','zip4']],
 		]
 
-		def filters = MappingUtils.expandFilters([gender:'Female', city:'Olney'])
-		def result = MappingUtils.findCounter(counters, filters, [])
+		def result = MappingUtils.findCounter(counters, [gender:'Female', city:'Olney'], [])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "zip5", result.groupBy[1]
 		assertEquals 2, result.findBy.size()
@@ -153,8 +146,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city']],
 		]
 
-		def filters = MappingUtils.expandFilters([gender:'Female', city:'Olney'])
-		def result = MappingUtils.findCounter(counters, filters, ['city'])
+		def result = MappingUtils.findCounter(counters, [gender:'Female', city:'Olney'], ['city'])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "city", result.groupBy[1]
 		assertEquals 2, result.groupBy.size()
@@ -171,8 +163,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 				[findBy: ['gender'], groupBy: ['birthDate','city']],
 		]
 
-		def filters = MappingUtils.expandFilters([gender:'Female', city:'Olney'])
-		def result = MappingUtils.findCounter(counters, filters, ['city','zip5'])
+		def result = MappingUtils.findCounter(counters, [gender:'Female', city:'Olney'], ['city','zip5'])
 		assertEquals "birthDate", result.groupBy[0]
 		assertEquals "city", result.groupBy[1]
 		assertEquals 3, result.groupBy.size()
