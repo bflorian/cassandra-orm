@@ -96,36 +96,6 @@ class BaseUtils
 		result.increment(keys[groupLevel], item)
 	}
 
-	static filterBy(Map map, List groupByPropNames, Map propValues)
-	{
-		def result = new NestedHashMap()
-		processFilterBy(map, groupByPropNames, propValues, [], result)
-		return result
-	}
-
-	static void processFilterBy(Map item, List groupByPropNames, Map propValues, List keyList, NestedHashMap result)
-	{
-		def remainingNames = groupByPropNames?.size() > 1 ? groupByPropNames[1..-1] : []
-
-		if (groupByPropNames && propValues.containsKey(groupByPropNames[0])) {
-			def name = groupByPropNames[0]
-			def keys = collection(propValues[name])
-			keys.each {key ->
-				processFilterBy(item[key], remainingNames, propValues, keyList, result)
-			}
-		}
-		else {
-			item.each {key, value ->
-				processFilterBy(value, remainingNames, propValues, keyList + [key], result)
-			}
-		}
-	}
-
-	static void processFilterBy(Number item, List groupByPropNames, Map propValues, List keyList, NestedHashMap result)
-	{
-		result.increment(keyList + [item])
-	}
-
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}

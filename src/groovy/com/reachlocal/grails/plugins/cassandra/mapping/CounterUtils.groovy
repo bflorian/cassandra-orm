@@ -179,7 +179,7 @@ class CounterUtils extends KeyUtils
 				matchIndexes << index
 			}
 		}
-		return
+		return matchIndexes
 	}
 
 	static filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
