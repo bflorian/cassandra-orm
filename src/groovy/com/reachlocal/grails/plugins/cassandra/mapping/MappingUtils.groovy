@@ -70,44 +70,46 @@ class MappingUtils extends CounterUtils
 				}
 			}
 
-			def colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
-			def gKeys = groupKeys
-			def crk = counterRowKey(whereKeys, gKeys, thisObj)
-			if (colName && crk) {
-/*
-				// all hours row (to be deprecated)
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-*/
-				// all days row
-				colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
-				gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
-				crk = counterRowKey(whereKeys, gKeys, thisObj)
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+			if (thisObj) {
+				def colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+				def gKeys = groupKeys
+				def crk = counterRowKey(whereKeys, gKeys, thisObj)
+				if (colName && crk) {
+	/*
+					// all hours row (to be deprecated)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+	*/
+					// all days row
+					colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
+					crk = counterRowKey(whereKeys, gKeys, thisObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
-				// specific month/hour row
-				colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
-				gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
-				crk = counterRowKey(whereKeys, gKeys, thisObj)
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-/*
-				// specific day/hour row
-				colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_ONLY_FORMAT)
-				gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(thisObj.getProperty(groupKeys[0])))
-				crk = counterRowKey(whereKeys, gKeys, thisObj)
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-*/
-				// all month row
-				colName = counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT)
-				gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
-				crk = counterRowKey(whereKeys, gKeys, thisObj)
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+					// specific month/hour row
+					colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+					crk = counterRowKey(whereKeys, gKeys, thisObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+	/*
+					// specific day/hour row
+					colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_ONLY_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, UTC_DAY_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+					crk = counterRowKey(whereKeys, gKeys, thisObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+	*/
+					// all month row
+					colName = counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
+					crk = counterRowKey(whereKeys, gKeys, thisObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
-				// specific year/day row
-				colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
-				gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
-				crk = counterRowKey(whereKeys, gKeys, thisObj)
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+					// specific year/day row
+					colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
+					gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+					crk = counterRowKey(whereKeys, gKeys, thisObj)
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
+				}
 			}
 		}
 		else {
@@ -118,10 +120,12 @@ class MappingUtils extends CounterUtils
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 				}
 			}
-			def colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
-			def crk = counterRowKey(whereKeys, groupKeys, thisObj)
-			if (colName && crk) {
-				cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+			if (thisObj) {
+				def colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+				def crk = counterRowKey(whereKeys, groupKeys, thisObj)
+				if (colName && crk) {
+					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+				}
 			}
 		}
 	}

@@ -105,6 +105,10 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.save()
 		persistence.printClear()
 
+		println "\n--- userGroup.insert(name: JUG2) ---"
+		userGroup.insert(name: 'JUG2')
+		persistence.printClear()
+
 		println "\n--- userGroup.color [EXPANDO] ---"
 		println userGroup.color
 		assertEquals "Blue", userGroup.color

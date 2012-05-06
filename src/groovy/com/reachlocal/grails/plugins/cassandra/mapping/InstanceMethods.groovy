@@ -150,6 +150,100 @@ class InstanceMethods extends MappingUtils
 			thisObj
 		}
 
+		// insert(properties)
+		clazz.metaClass.insert = {properties ->
+			def thisObj = delegate
+			cassandra.withKeyspace(thisObj.keySpace) {ks ->
+				def m = cassandra.persistence.prepareMutationBatch(ks)
+
+				// check one-to-one relationship properties
+				def keyDeleted = false
+				properties.each {name, value ->
+					if (value == null) {
+						def prop = PropertyUtils.getProperty(thisObj, name)
+						if (prop != null && isMappedObject(prop)) {
+							def cName = "${pName}${KEY_SUFFIX}".toString()
+							cassandra.persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
+							keyDeleted = true
+						}
+
+					}
+				}
+
+				// commit deletion of relationship keys
+				if (keyDeleted) {
+					cassandra.persistence.execute(m)
+					m = cassandra.persistence.prepareMutationBatch(ks)
+				}
+
+				// manage index rows
+				def indexRows = [:]
+				def oldIndexRows = [:]
+				def indexColumnFamily = thisObj.indexColumnFamily
+
+				// remove old explicit indexes
+				def propertyNames = properties.keySet()
+				cassandraMapping.explicitIndexes?.each {propName ->
+					def names = collection(propName)
+					if (!Collections.disjoint(propertyNames, names)) {
+						def oldIndexRowKey = objectIndexRowKey(propName, thisObj)
+						if (oldIndexRowKey) {
+							oldIndexRows[oldIndexRowKey] = [(thisObj.id):'']
+						}
+					}
+				}
+
+				// decrement old counters
+				// TODO - filter out those not in properties?
+				cassandraMapping.counters?.each {ctr ->
+					updateCounterColumns(clazz, ctr, m, thisObj, null)
+				}
+
+				// set the new properties
+				properties.each {name, value ->
+					thisObj.setProperty(name, value)
+				}
+
+				// insert this object
+				def dataProperties = cassandra.mapping.dataProperties(properties)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties)
+
+				// add new explicit indexes
+				cassandraMapping.explicitIndexes?.each {propName ->
+					def names = collection(propName)
+					if (!Collections.disjoint(propertyNames, names)) {
+						def indexRowKey = objectIndexRowKey(propName, thisObj)
+						if (indexRowKey) {
+							indexRows[indexRowKey] = [(thisObj.id):'']
+						}
+					}
+				}
+
+				// do the deletions
+				oldIndexRows.each {rowKey, col ->
+					col.each {colKey, v ->
+						cassandra.persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
+					}
+				}
+
+				// do the additions
+				if (indexRows) {
+					indexRows.each {rowKey, cols ->
+						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols)
+					}
+				}
+
+				// increment new counters
+				// TODO - filter out those not in properties?
+				cassandraMapping.counters?.each {ctr ->
+					updateCounterColumns(clazz, ctr, m, null, thisObj)
+				}
+
+				cassandra.persistence.execute(m)
+			}
+			thisObj
+		}
+
 		// delete()
 		clazz.metaClass.delete = {
 			def thisObj = delegate
