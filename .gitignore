@@ -1,5 +1,7 @@
 .idea/
 .settings/
 *.iml
+.DS_Store
 stacktrace.log
+out/
 target/
