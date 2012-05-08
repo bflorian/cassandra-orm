@@ -109,7 +109,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 			User.cassandraMapping.counters,
 			[gender:  ['Male','Female']],
-			['birthDate','state','city'],
 			['state'],
 			null, null, null, null, null, null, null)
 
@@ -121,7 +120,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
-				['birthDate','state','city'],
 				['state','city'],
 				null, null, null, null, null, null, null)
 
@@ -133,7 +131,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
-				['birthDate','state','city'],
 				['gender','city'],
 				null, null, null, null, null, null, null)
 
@@ -145,7 +142,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
-				['birthDate','state','city'],
 				['gender','state','city'],
 				null, null, null, null, null, null, null)
 
@@ -157,7 +153,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
-				['birthDate','state','city'],
 				['gender','city','state'],
 				null, null, null, null, null, null, null)
 
@@ -169,7 +164,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
-				['birthDate','state','city'],
 				['gender','period','state','city'],
 				null, null, null, null, null, null, null)
 
@@ -181,7 +175,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
-				['birthDate','state','city'],
 				['period','gender','state','city'],
 				null, null, null, null, null, null, null)
 
@@ -193,7 +186,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
-				['birthDate','state','city'],
 				['birthDate','state'],
 				null, null, null, null, null, null, null)
 
@@ -205,7 +197,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
-				['birthDate','state','city'],
 				['birthDate','state','gender'],
 				null, null, null, null, null, null, null)
 
@@ -217,7 +208,6 @@ class CounterUtilsTests extends OrmTestCase
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
-				['birthDate','state','city'],
 				['birthDate','state','gender'],
 				null, null, null, null, Calendar.YEAR, null, null)
 

@@ -26,13 +26,8 @@ class MappingUtils extends CounterUtils
 			List counterDefs,
 			Map whereFilter,
 			byPropNames,
-			groupByProps,
 			start, finish, sort, reversed, grain, timeZone, fill)
 	{
-		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames))
-		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
-		def columnFilter = counterColumnFilter(whereFilter, counterDef)
-
 		// TODO - combine with rowFilterList
 		def multiWhereKeys = []
 		whereFilter.each {key, values ->
@@ -41,8 +36,16 @@ class MappingUtils extends CounterUtils
 			}
 		}
 
+		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames), multiWhereKeys)
+		if (counterDef == null) {
+			throw new CassandraMappingException("Counter definition not found, where: ${whereFilter}, groupBy: ${byPropNames}")
+		}
+		def counterGroupByNames = counterDef.groupBy
+		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
+		def columnFilter = counterColumnFilter(whereFilter, counterDef)
+
 		def value
-		def groupByPropNames = groupByProps ? collection(groupByProps) : []
+		def groupByPropNames = byPropNames ? collection(byPropNames) : []
 		if (groupByPropNames) {
 			def i = 0
 			def indexes = []
@@ -73,7 +76,7 @@ class MappingUtils extends CounterUtils
 
 			def j = multiWhereKeys.size()
 			groupByPropNames.each {gbpName ->
-				int groupByIndex = byPropNames.indexOf(gbpName)
+				int groupByIndex = counterGroupByNames.indexOf(gbpName)
 				if (groupByIndex < 0) {
 					throw new CassandraMappingException("'${gbpName}' is not a groupBy property name")
 				}
@@ -81,7 +84,7 @@ class MappingUtils extends CounterUtils
 					indexes << groupByIndex + j
 				}
 			}
-			value = groupBy(value, indexes)
+ 			value = groupBy(value, indexes)
 		}
 		else {
 			if (counterDef.isDateIndex)  {
@@ -355,10 +358,10 @@ class MappingUtils extends CounterUtils
 		return result
 	}
 
-	static findCounter(counterList, queryFilter, queryGroupByList)
+	static findCounter(counterList, queryFilter, queryGroupByList, multiWhereKeys=[])
 	{
-		def exactMatch = null
-		def bestMatch = null
+		def exactMatches = []
+		def bestMatches = []
 		def queryFilterPropNames = queryFilter.collect{it.key}
 		for (counter in counterList) {
 			def counterFindBy = counter.findBy ?: [] //TODO - right?
@@ -381,7 +384,7 @@ class MappingUtils extends CounterUtils
 			// found a counter with a findBy that matches, check that all query groupBy are in the counter
 			if (found) {
 				for (item in queryGroupByList) {
-					if (!counterGroupPropNames.contains(item)) {
+					if (!counterGroupPropNames.contains(item) && !multiWhereKeys.contains(item)) {
 						found = false
 						break
 					}
@@ -391,8 +394,7 @@ class MappingUtils extends CounterUtils
 			// now check for exact or partial filter match
 			if (found) {
 				if (queryFilterPropsRemaining.size() == 0) {
-					exactMatch = counter
-					break
+					exactMatches << counter
 				}
 				else {
 					for (name in queryFilterPropsRemaining) {
@@ -402,19 +404,28 @@ class MappingUtils extends CounterUtils
 						}
 					}
 					if (found) {
-						if (bestMatch) {
-							if(queryGroupByList && counterGroupPropNames.size() < collection(bestMatch.groupBy).size()) {
-								bestMatch = counter
-							}
+						if (bestMatches) {
+							//if(queryGroupByList && counterGroupPropNames.size() < collection(bestMatch.groupBy).size()) {
+								bestMatches << counter
+							//}
 						}
 						else {
-							bestMatch = counter
+							bestMatches << counter
 						}
 					}
 				}
 			}
 		}
-		return exactMatch ?: bestMatch
+		def matches = exactMatches ?: bestMatches
+		def bestTotalMatch = matches ? matches[0] : null
+		if (matches.size() > 1) {
+			matches[1..-1].each {counter ->
+				if (counter.groupBy.size() < bestTotalMatch.groupBy.size()) {
+					bestTotalMatch = counter
+				}
+			}
+		}
+		return bestTotalMatch
 	}
 
 	static mergeKeys(List<List> keys, Integer max)

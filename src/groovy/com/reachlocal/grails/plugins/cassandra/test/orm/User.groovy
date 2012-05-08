@@ -51,7 +51,8 @@ class User
 					[groupBy: ['birthDate','state']],
 					[findBy: ['gender'], groupBy: ['birthDate','city']],
 					[findBy: ['gender'], groupBy: ['birthDate','state','city']],
-					[findBy: ['gender','period'], groupBy: ['birthDate','state','city']]
+					[findBy: ['gender','period'], groupBy: ['birthDate','state','city']],
+					[findBy: ['gender','period'], groupBy: ['birthDate','city']]
 			]
 	]
 }

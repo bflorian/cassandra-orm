@@ -190,12 +190,12 @@ class ClassMethods extends MappingUtils
 		// getCounts(by: 'hour', where: [usid:'xxx'])
 		// getCounts(by: ['hour','category'], where: [usid:'xxx'], groupBy: 'category')
 		clazz.metaClass.'static'.getCounts = {params ->
-			if (!params.by) {
+			if (!params.groupBy) {
 				throw new IllegalArgumentException("The 'by' parameter must be specified")
 			}
 			else {
 				getCounters(
-						clazz, cassandraMapping.counters, params.where, params.by, params.groupBy,
+						clazz, cassandraMapping.counters, params.where, params.groupBy,
 						params.start, params.finish, params.sort, params.reversed, params.grain,
 						params.timeZone, params.fill)
 			}
@@ -297,30 +297,51 @@ class ClassMethods extends MappingUtils
 				}
 				return single ? (result ? result.toList()[0] : null) : result
 			}
-			else if (name.startsWith("getCountsBy")) {
-				// getCountsByTime(where: [usid:''])
-				// getCountsByTimeAndReferrerId(where: [usid:''])
-				str = name - "getCountsBy"
-				def total = str.endsWith("Total")
-				def groupByPropName = null
-				if (total) {
-					str = str - "Total"
+			else if (name.startsWith("getCounts")) {
+				def total = false
+				def wherePropList = []
+				def groupByPropList = []
+				if (name.startsWith("getCountsBy")) {
+					str = name - "getCountsBy"
+					total = str.endsWith("Total")
+					if (total) {
+						str = str - "Total"
+					}
+					else {
+						def pos = str.indexOf("GroupBy")
+						if (pos > 0) {
+							groupByPropList = propertyListFromMethodName(str[pos+7..-1])
+							str = str[0..pos-1]
+						}
+					}
+					wherePropList = propertyListFromMethodName(str)
+				}
+				else if (name.startsWith("getCountsGroupBy")) {
+					str = name - "getCountsGroupBy"
+					total = str.endsWith("Total")
+					if (total) {
+						str = str - "Total"
+					}
+					groupByPropList = propertyListFromMethodName(str)
+				}
+				else if (name == "getCountsTotal") {
+					total = true
 				}
 				else {
-					def pos = str.indexOf("GroupBy")
-					if (pos > 0) {
-						groupByPropName = propertyNameFromClassName(str[pos+7..-1])
-						str = str[0..pos-1]
-					}
+					throw new MissingPropertyException(name, clazz)
 				}
-				def groupByList = propertyListFromMethodName(str)
+
+				def whereMap = [:]
+				wherePropList.eachWithIndex {propName, index ->
+					whereMap[propName] = args[index]
+				}
 
 				if (total) {
-					return getCountersForTotals(clazz, cassandraMapping.counters, opts.where, groupByList, opts.start, opts.finish)
+					return getCountersForTotals(clazz, cassandraMapping.counters, whereMap, groupByPropList, opts.start, opts.finish)
 				}
 				else {
 					return getCounters(
-							clazz, cassandraMapping.counters, opts.where, groupByList, groupByPropName,
+							clazz, cassandraMapping.counters, whereMap, groupByPropList,
 							opts.start, opts.finish, opts.sort, opts.reversed, opts.grain,
 							opts.timeZone, opts.fill)
 				}

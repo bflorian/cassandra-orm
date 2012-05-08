@@ -238,34 +238,34 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals 1, r
 
 		println "\n--- User.getCounts(by: ['birthDate']) ---"
-		r = User.getCounts(by: ['birthDate'])
+		r = User.getCounts(groupBy: ['birthDate'])
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCounts(by: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31')) ---"
-		r = User.getCounts(by: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
+		r = User.getCounts(groupBy: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(where: [gender: 'Male', by: 'birthDate']) ---"
-		r = User.getCounts(where: [gender: 'Male'], by: 'birthDate')
+		println "\n--- User.getCounts(where: [gender: 'Male', groupBy: 'birthDate']) ---"
+		r = User.getCounts(where: [gender: 'Male'], groupBy: 'birthDate')
 		persistence.printClear()
 		println r
 		assertEquals 2, r.size()
 		assertEquals 1, r['1980-03-15T05']
 
-		println "\n--- User.getCounts(where: [gender: 'Female'], by: ['birthDate','city']) ---"
-		r = User.getCounts(where: [gender: 'Female'], by: ['birthDate','city'])
+		println "\n--- User.getCounts(where: [gender: 'Female'], groupBy: ['birthDate','city']) ---"
+		r = User.getCounts(where: [gender: 'Female'], groupBy: ['birthDate','city'])
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(by: ['birthDate','state']) ---"
-		r = User.getCounts(by: ['birthDate','state'])
+		println "\n--- User.getCounts(groupBy: ['birthDate','state']) ---"
+		r = User.getCounts(groupBy: ['birthDate','state'])
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(by: ['birthDate','state'], groupBy: 'state') ---"
-		r = User.getCounts(by: ['birthDate','state'], groupBy: 'state')
+		println "\n--- User.getCounts(groupBy: ['birthDate','state'], groupBy: 'state') ---"
+		r = User.getCounts(groupBy: 'state')
 		persistence.printClear()
 		println r
 
@@ -278,45 +278,52 @@ public class ClassMethodsTests extends OrmTestCase
 
 		}
 
-		println "\n--- User.getCountsGroupedByBirthDate(where: [gender: 'Male']) ---"
-		r = User.getCountsByBirthDate(where: [gender: 'Male'])
+		println "\n--- User.getCountsByGenderGroupByBirthDate('Male') ---"
+		r = User.getCountsByGenderGroupByBirthDate('Male')
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsGroupedByBirthDate() ---"
-		r = User.getCountsByBirthDate()
+		r = User.getCountsGroupByBirthDate()
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsGroupedByBirthDate() ---"
-		r = User.getCountsByBirthDateTotal()
+		r = User.getCountsTotal()
+		persistence.printClear()
+		println r
+		assertEquals 5, r
+
+		println "\n--- User.getCountsGroupedByBirthDate() ---"
+		r = User.getCountsGroupByBirthDateAndStateTotal()
 		persistence.printClear()
 		println r
 		assertEquals 5, r
 
 		println "\n--- User.getCountsByBirthDateAndCity() ---"
-		r = User.getCountsByBirthDateAndCity(where: [gender: 'Female'])
+		r = User.getCountsByGenderGroupByBirthDateAndCity('Female')
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsByBirthDateAndCityTotal() ---"
-		r = User.getCountsByBirthDateAndCityTotal(where: [gender: 'Female'])
+		//r = User.getCountsByGenderGroupByBirthDateAndCityTotal('Female')
+		r = User.getCountsByGenderTotal('Female')
 		persistence.printClear()
 		println r
 		assertEquals 3, r
 
 		println "\n--- User.getCountsByBirthDateAndCity() ---"
-		r = User.getCountsByBirthDateAndCity(where: [gender: 'Female'], dateFormat: new SimpleDateFormat("yyyy"))
+		r = User.getCountsByGenderGroupByBirthDateAndCity('Female', [grain: Calendar.YEAR])
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsByBirthDateAndCityGroupByCity() ---"
-		r = User.getCountsByBirthDateAndCityGroupByCity(where: [gender: 'Female'])
+		r = User.getCountsByGenderGroupByCity('Female')
 		persistence.printClear()
 		println r
 
 		println "\n--- User.getCountsByBirthDateAndCityGroupByCity() ---"
-		r = User.getCountsByBirthDateAndCityGroupByBirthDate(where: [gender: 'Female'], dateFormat: new SimpleDateFormat("yyyy"))
+		r = User.getCountsGroupByBirthDate(where: [gender: 'Female'], dateFormat: new SimpleDateFormat("yyyy"))
 		persistence.printClear()
 		println r
 	}
