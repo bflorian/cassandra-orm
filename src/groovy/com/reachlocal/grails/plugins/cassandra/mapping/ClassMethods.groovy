@@ -194,41 +194,6 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'by' parameter must be specified")
 			}
 			else {
-				/*
-				def whereFilter = params.where
-				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(params.by))
-				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
-				def columnFilter = counterColumnFilter(whereFilter, counterDef)
-
-				def value
-				if (params.groupBy) {
-					if (counterDef.isDateIndex) {
-						value = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, params.start, params.finish)
-					}
-					else {
-						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
-					}
-					int groupByIndex = params.by.indexOf(params.groupBy)
-					if (groupByIndex < 0) {
-						throw new CassandraMappingException("'${params.groupBy}' is not a groupBy property name")
-					}
-					else {
-						value = groupBy(value, groupByIndex)
-					}
-				}
-				else {
-					if (counterDef.isDateIndex)  {
-						value = getDateCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
-					}
-					else {
-						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
-					}
-					if (params.grain) {
-						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, params)
-					}
-				}
-				return value
-				*/
 				getCounters(
 						clazz, cassandraMapping.counters, params.where, params.by, params.groupBy,
 						params.start, params.finish, params.sort, params.reversed, params.grain,
@@ -246,14 +211,6 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
 			}
 			else {
-				/*
-				def whereFilter = params.where
-				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(params.by))
-				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
-				def columnFilter = counterColumnFilter(whereFilter, counterDef)
-				def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, params.start, params.finish)
-				return mapTotal(cols)
-				*/
 				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.by, params.start, params.finish)
 			}
 		}
@@ -367,49 +324,6 @@ class ClassMethods extends MappingUtils
 							opts.start, opts.finish, opts.sort, opts.reversed, opts.grain,
 							opts.timeZone, opts.fill)
 				}
-				/*
-				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(groupByList))
-				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
-				def columnFilter = counterColumnFilter(whereFilter, counterDef)
-
-				def value
-				if (total) {
-					if (counterDef.isDateIndex) {
-						value = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, opts.start, opts.finish)
-					}
-					else {
-						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
-					}
-					return mapTotal(value)
-				}
-				else if (groupByPropName) {
-					if (counterDef.isDateIndex) {
-						value = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, opts.start, opts.finish)
-					}
-					else {
-						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
-					}
-					int groupByIndex = groupByList.indexOf(groupByPropName)
-					if (groupByIndex < 0) {
-						throw new CassandraMappingException("'${groupByPropName}' is not a groupBy property name")
-					}
-					else {
-						value = groupBy(value, groupByIndex)
-					}
-				}
-				else {
-					if (counterDef.isDateIndex)  {
-						value = getDateCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
-					}
-					else {
-						value = getCounterColumns(clazz, rowFilterList, columnFilter, counterDef, opts)
-					}
-					if (opts.grain) {
-						value = rollUpCounterDates(value, UTC_HOUR_FORMAT, opts)
-					}
-				}
-				return value
-				*/
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)
