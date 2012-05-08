@@ -75,7 +75,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		('2012-02-05T05'): 1
 		]
 
-		def days = MappingUtils.rollUpCounterDates(hours, hf, [grain:Calendar.DAY_OF_MONTH, timeZone: TimeZone.getDefault()])
+		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null, null)
 		println days
 		assertEquals 2, days.size()
 		assertEquals 21, days['2012-02-04']
@@ -101,7 +101,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 				('2012-02-05T01'): [campaign: 1,direct: 3]
 		]
 
-		def days = MappingUtils.rollUpCounterDates(hours, hf, [grain:Calendar.DAY_OF_MONTH, timeZone: TimeZone.getDefault()])
+		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null, null)
 		println days
 		assertEquals 2, days.size()
 		assertEquals 8, days['2012-02-04'].direct
@@ -178,7 +178,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		]
 
 		def result = MappingUtils.groupBy(hours, 0)
-		def days = MappingUtils.rollUpCounterDates(result, hf, [grain:Calendar.DAY_OF_MONTH, timeZone: TimeZone.getDefault()])
+		def days = MappingUtils.rollUpCounterDates(result, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null, null)
 		println days
 		assertEquals 2, days.size()
 		assertEquals 23, days['2012-02-04']
@@ -365,7 +365,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 
 		def t0 = System.currentTimeMillis()
-		def days = MappingUtils.rollUpCounterDates(hours, hf, [grain:Calendar.DAY_OF_MONTH, timeZone: TimeZone.getDefault()])
+		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null, null)
 		def elapsed = System.currentTimeMillis() - t0;
 		//println days
 		println "${hours.size()} items in $elapsed msec."

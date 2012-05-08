@@ -21,6 +21,95 @@ package com.reachlocal.grails.plugins.cassandra.mapping
  */
 class MappingUtils extends CounterUtils
 {
+	static getCounters(
+			Class clazz,
+			List counterDefs,
+			Map whereFilter,
+			byPropNames,
+			groupByProps,
+			start, finish, sort, reversed, grain, timeZone, fill)
+	{
+		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames))
+		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
+		def columnFilter = counterColumnFilter(whereFilter, counterDef)
+
+		// TODO - combine with rowFilterList
+		def multiWhereKeys = []
+		whereFilter.each {key, values ->
+			if (collection(values).size() > 1) {
+				multiWhereKeys << key
+			}
+		}
+
+		def value
+		def groupByPropNames = groupByProps ? collection(groupByProps) : []
+		if (groupByPropNames) {
+			def i = 0
+			def indexes = []
+
+			if (counterDef.isDateIndex) {
+				if (groupByPropNames.contains(counterDef.dateIndexProp)) {
+					groupByPropNames.remove(counterDef.dateIndexProp)
+					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
+					indexes << i
+				}
+				else {
+					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
+				}
+				i = 1
+			}
+			else {
+				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed)
+			}
+
+			groupByPropNames.clone().each {gbpName ->
+				multiWhereKeys?.eachWithIndex {key, index ->
+					if (key == gbpName) {
+						groupByPropNames.remove(key)
+						indexes << index + i
+					}
+				}
+			}
+
+			def j = multiWhereKeys.size()
+			groupByPropNames.each {gbpName ->
+				int groupByIndex = byPropNames.indexOf(gbpName)
+				if (groupByIndex < 0) {
+					throw new CassandraMappingException("'${gbpName}' is not a groupBy property name")
+				}
+				else {
+					indexes << groupByIndex + j
+				}
+			}
+			value = groupBy(value, indexes)
+		}
+		else {
+			if (counterDef.isDateIndex)  {
+				value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
+			}
+			else {
+				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed)
+			}
+		}
+		if (grain) {
+			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain, timeZone, fill, sort)
+		}
+		return value
+	}
+
+	static getCountersForTotals(
+			Class clazz,
+			List counterDefs,
+			Map whereFilter,
+			byPropNames, start, finish)
+	{
+		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames))
+		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
+		def columnFilter = counterColumnFilter(whereFilter, counterDef)
+		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish)
+		return mapTotal(cols)
+	}
+
 	static updateCounterColumns(Class clazz, Map counterDef, m, oldObj, thisObj)
 	{
 		def whereKeys = counterDef.findBy

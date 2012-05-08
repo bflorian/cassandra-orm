@@ -79,21 +79,26 @@ class BaseUtils
 
 	static groupBy(Map map, int level)
 	{
-		def result = new HashCounter()
-		processGroupByItem(map, [], level, result)
+		groupBy(map, [level])
+	}
+	static groupBy(Map map, List levels)
+	{
+		def result = new NestedHashMap()
+		processGroupByItem(map, [], levels, result)
 		return result
 	}
 
-	static void processGroupByItem(Map item, List keys, int groupLevel, HashCounter result)
+	static void processGroupByItem(Map item, List keys, List groupLevels, NestedHashMap result)
 	{
 		item.each {key, value ->
-			processGroupByItem(value, keys + key, groupLevel, result)
+			processGroupByItem(value, keys + key, groupLevels, result)
 		}
 	}
 
-	static void processGroupByItem(Number item, List keys, int groupLevel, HashCounter result)
+	static void processGroupByItem(Number item, List keys, List groupLevels, NestedHashMap result)
 	{
-		result.increment(keys[groupLevel], item)
+		def resultKeys = groupLevels.collect{keys[it]}
+		result.increment(resultKeys + [item])
 	}
 
 	static boolean isMappedClass(clazz) {

@@ -42,6 +42,9 @@ class ClassMethods extends MappingUtils
 				def prop = clazz.metaClass.getMetaProperty(ctr.groupBy[0])
 				if (prop) {
 					ctr.isDateIndex = prop.type.isAssignableFrom(Date)
+					if (ctr.isDateIndex) {
+						ctr.dateIndexProp = ctr.groupBy[0]
+					}
 				}
 				else {
 					throw new CassandraMappingException("The groupBy property '${ctr.groupBy[0]}' is missing from counter ${index+1}")
@@ -191,6 +194,7 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'by' parameter must be specified")
 			}
 			else {
+				/*
 				def whereFilter = params.where
 				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(params.by))
 				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
@@ -224,6 +228,11 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				return value
+				*/
+				getCounters(
+						clazz, cassandraMapping.counters, params.where, params.by, params.groupBy,
+						params.start, params.finish, params.sort, params.reversed, params.grain,
+						params.timeZone, params.fill)
 			}
 		}
 
@@ -237,12 +246,15 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
 			}
 			else {
+				/*
 				def whereFilter = params.where
 				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(params.by))
 				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
 				def columnFilter = counterColumnFilter(whereFilter, counterDef)
 				def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, params.start, params.finish)
 				return mapTotal(cols)
+				*/
+				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.by, params.start, params.finish)
 			}
 		}
 
@@ -345,7 +357,17 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				def groupByList = propertyListFromMethodName(str)
-				def whereFilter = opts.where
+
+				if (total) {
+					return getCountersForTotals(clazz, cassandraMapping.counters, opts.where, groupByList, opts.start, opts.finish)
+				}
+				else {
+					return getCounters(
+							clazz, cassandraMapping.counters, opts.where, groupByList, groupByPropName,
+							opts.start, opts.finish, opts.sort, opts.reversed, opts.grain,
+							opts.timeZone, opts.fill)
+				}
+				/*
 				def counterDef = findCounter(cassandraMapping.counters, whereFilter, collection(groupByList))
 				def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
 				def columnFilter = counterColumnFilter(whereFilter, counterDef)
@@ -387,6 +409,7 @@ class ClassMethods extends MappingUtils
 					}
 				}
 				return value
+				*/
 			}
 			else {
 				throw new MissingPropertyException(name, clazz)

@@ -30,6 +30,7 @@ class User
 	String state
 	String phone
 	String gender
+	String period
 	Date birthDate
 	UserGroup userGroup
 
@@ -49,6 +50,8 @@ class User
 					[findBy: ['gender'], groupBy: ['birthDate']],
 					[groupBy: ['birthDate','state']],
 					[findBy: ['gender'], groupBy: ['birthDate','city']],
+					[findBy: ['gender'], groupBy: ['birthDate','state','city']],
+					[findBy: ['gender','period'], groupBy: ['birthDate','state','city']]
 			]
 	]
 }

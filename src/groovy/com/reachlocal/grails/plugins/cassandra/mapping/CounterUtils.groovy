@@ -66,9 +66,8 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getCounterColumns(clazz, filterList, columnFilter, counterDef, params)
+	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed)
 	{
-		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
@@ -79,16 +78,16 @@ class CounterUtils extends KeyUtils
 			def result = new NestedHashMap()
 			filterList.each {filter ->
 
-				//def groupKeys = params.dateFormat ? makeGroupKeyList(groupBy, params.dateFormat.toPattern()) : groupBy
+				def rowKeyValues = multiRowKeyValues(filter, multiWhereKeys)
 				def groupKeys = groupBy
 				def rowKey = counterRowKey(counterDef.findBy, groupKeys, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						cf,
 						rowKey,
-						options.start ? counterColumnKey(options.start, UTC_HOUR_FORMAT) : null,
-						options.finish ? counterColumnKey(options.finish, UTC_HOUR_FORMAT) : null,
-						options.reversed,
+						start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
+						finish ? counterColumnKey(finish, UTC_HOUR_FORMAT) : null,
+						reversed,
 						MAX_COUNTER_COLUMNS)
 
 				if (columnFilter) {
@@ -97,13 +96,13 @@ class CounterUtils extends KeyUtils
 						def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 						if (passed) {
 							def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
-							result.increment(resultKeyValues + persistence.longValue(col))
+							result.increment(mergeNonDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
 						}
 					}
 				}
 				else {
 					cols.each {col ->
-						result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+						result.increment(mergeNonDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
 					}
 				}
 			}
@@ -111,9 +110,42 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumns(clazz, rowFilterList, columnFilter, counterDef, params)
+	static multiRowKeyValues(filter, multiWhereKeys)
 	{
-		def options = addOptionDefaults(params, MAX_COUNTER_COLUMNS)
+		def result = []
+		multiWhereKeys.each {key ->
+			result << filter[key]
+		}
+		return result
+	}
+
+	static mergeDateKeys(List rowKeys, List columnKeys)
+	{
+		if (rowKeys) {
+			if (columnKeys.size() > 1) {
+				return [columnKeys[0]] + rowKeys + columnKeys[1..-1]
+			}
+			else {
+				return columnKeys + rowKeys
+			}
+		}
+		else {
+			return columnKeys
+		}
+	}
+
+	static mergeNonDateKeys(List rowKeys, List columnKeys)
+	{
+		if (rowKeys) {
+			return rowKeys + columnKeys
+		}
+		else {
+			return columnKeys
+		}
+	}
+
+	static getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sortResult)
+	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
@@ -124,7 +156,8 @@ class CounterUtils extends KeyUtils
 			def result = new NestedHashMap()
 			rowFilterList.each {filter ->
 
-				def start = options.start
+				def rowKeyValues = multiRowKeyValues(filter, multiWhereKeys)
+
 				if (!start) {
 					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter)
 					if (day) {
@@ -141,7 +174,7 @@ class CounterUtils extends KeyUtils
 							groupBy,
 							filter,
 							start,
-							options.finish ?: new Date(),
+							finish ?: new Date(),
 							Calendar.HOUR_OF_DAY)
 
 					if (columnFilter) {
@@ -150,18 +183,18 @@ class CounterUtils extends KeyUtils
 							def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 							if (passed) {
 								def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
-								result.increment(resultKeyValues + persistence.longValue(col))
+								result.increment(mergeDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
 							}
 						}
 					}
 					else {
 						cols.each {col ->
-							result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+							result.increment(mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
 						}
 					}
 				}
 			}
-			if (params.sort) {
+			if (sortResult) {
 				sort(result);
 			}
 			else {
@@ -208,7 +241,7 @@ class CounterUtils extends KeyUtils
 		resultKeyValues
 	}
 
-	static getDateCounterColumnsForTotals (clazz, rowFilterList, columnFilter, counterDef, start, finish)
+	static getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -234,6 +267,8 @@ class CounterUtils extends KeyUtils
 
 			def result = new NestedHashMap()
 			rowFilterList.each {filter ->
+				def rowKeyValues = multiRowKeyValues(filter, multiWhereKeys)
+
 				dateRanges.each{dateRange ->
 					def cols = getDateCounterColumns(
 							persistence,
@@ -252,13 +287,13 @@ class CounterUtils extends KeyUtils
 							def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 							if (passed) {
 								def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
-								result.increment(resultKeyValues + persistence.longValue(col))
+								result.increment(mergeDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
 							}
 						}
 					}
 					else {
 						cols.each {col ->
-							result.increment(parseComposite(persistence.name(col)) + persistence.longValue(col))
+							result.increment(mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
 						}
 					}
 				}
@@ -385,14 +420,13 @@ class CounterUtils extends KeyUtils
 		cols
 	}
 
-	static rollUpCounterDates(Map map, DateFormat fromFormat, params)
+	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone, fill, sort)
 	{
-		int grain = params.grain
-		def toFormat = dateFormat(params.grain, params.timeZone)
+		def toFormat = dateFormat(grain, timeZone)
 		def result = DateHelper.rollUpCounterDates(map, fromFormat, toFormat)
-		if (params.fill) {
+		if (fill) {
 			// TODO - implement
-			if (!params.sort) {
+			if (!sort) {
 				result = sort(result)
 			}
 
