@@ -76,12 +76,15 @@ class MappingUtils extends CounterUtils
 
 			def j = multiWhereKeys.size()
 			groupByPropNames.each {gbpName ->
-				int groupByIndex = counterGroupByNames.indexOf(gbpName)
-				if (groupByIndex < 0) {
-					throw new CassandraMappingException("'${gbpName}' is not a groupBy property name")
-				}
-				else {
-					indexes << groupByIndex + j
+				def idx = 0
+				for (cName in counterGroupByNames) {
+					if (cName == gbpName) {
+						indexes << idx + j
+						break
+					}
+					if (!columnFilter.containsKey(cName)) {
+						idx++
+					}
 				}
 			}
  			value = groupBy(value, indexes)
@@ -352,7 +355,7 @@ class MappingUtils extends CounterUtils
 		def result = [:]
 		whereFilter.each {name, values ->
 			if (!findByNames.contains(name)) {
-				result[name] = collection(values)
+				result[name] = collection(values).collect{it.toString()}
 			}
 		}
 		return result
