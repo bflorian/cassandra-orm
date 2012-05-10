@@ -145,7 +145,8 @@ class MappingUtils extends CounterUtils
 
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+						oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0]))+"THH")
 						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 					}
@@ -196,7 +197,8 @@ class MappingUtils extends CounterUtils
 
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+						colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0]))+"THH")
 						crk = counterRowKey(whereKeys, gKeys, thisObj)
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 					}
