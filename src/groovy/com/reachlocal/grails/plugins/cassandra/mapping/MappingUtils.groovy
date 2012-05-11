@@ -21,14 +21,14 @@ package com.reachlocal.grails.plugins.cassandra.mapping
  */
 class MappingUtils extends CounterUtils
 {
-	static final Boolean WRITE_ALTERNATES = true
+	static final Boolean WRITE_ALTERNATES = false
 
 	static getCounters(
 			Class clazz,
 			List counterDefs,
 			Map whereFilter,
 			byPropNames,
-			start, finish, sort, reversed, grain, timeZone, fill)
+			start, finish, sort, reversed, grain, timeZone, fill, nochunk=false)
 	{
 		// TODO - combine with rowFilterList
 		def multiWhereKeys = []
@@ -57,6 +57,9 @@ class MappingUtils extends CounterUtils
 					groupByPropNames.remove(counterDef.dateIndexProp)
 					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
 					indexes << i
+				}
+				else if (nochunk) {
+					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
 				}
 				else {
 					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
@@ -131,41 +134,16 @@ class MappingUtils extends CounterUtils
 				def gKeys = groupKeys
 				def ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 				if (oldColName && ocrk) {
-					if (WRITE_ALTERNATES) {
-						/** ALTERNATE ONE **/
-						// all hours row (currently not used)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 
-						// all days row
-						oldColName = counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT)
-						gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
-						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
-
-
-						/** ALTERNATE TWO **/
-						// specific year/hour row (currently not used)
-						oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
-						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0]))+"THH")
-						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
-					}
-
-					/** ALTERNATE THREE (current) **/
-					// specific month/hour row
-					oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
-					gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
-					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+					/** ALTERNATE ONE **/
+					// all hours row (currently not used)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 
-
-					/** COMMON TO TWO AND THREE **/
-					// specific year/day row
+					// all days row
 					oldColName = counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT)
-					gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
-
 
 					/** COMMON TO ALL**/
 					// all months row
@@ -174,6 +152,30 @@ class MappingUtils extends CounterUtils
 					ocrk = counterRowKey(whereKeys, gKeys, oldObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 
+					if (WRITE_ALTERNATES) {
+						/** ALTERNATE TWO **/
+						// specific year/hour row (currently not used)
+						oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0]))+"THH")
+						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+
+
+						/** ALTERNATE THREE (current) **/
+						// specific month/hour row
+						oldColName = counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+
+
+						/** COMMON TO TWO AND THREE **/
+						// specific year/day row
+						oldColName = counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
+					}
 				}
 			}
 
@@ -183,41 +185,16 @@ class MappingUtils extends CounterUtils
 				def crk = counterRowKey(whereKeys, gKeys, thisObj)
 				if (colName && crk) {
 
-					if (WRITE_ALTERNATES) {
-						/** ALTERNATE ONE **/
-						// all hours row (currently not used)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
-						// all days row
-						colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
-						gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
-						crk = counterRowKey(whereKeys, gKeys, thisObj)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-
-
-						/** ALTERNATE TWO **/
-						// specific year/hour row (currently not used)
-						colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
-						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0]))+"THH")
-						crk = counterRowKey(whereKeys, gKeys, thisObj)
-						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-					}
-
-					/** ALTERNATE THREE (current) **/
-					// specific month/hour row
-					colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
-					gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
-					crk = counterRowKey(whereKeys, gKeys, thisObj)
+					/** ALTERNATE ONE **/
+					// all hours row (currently not used)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
-
-					/** COMMON TO TWO AND THREE **/
-					// specific year/day row
+					// all days row
 					colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
-					gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+					gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
 					crk = counterRowKey(whereKeys, gKeys, thisObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
-
 
 					/** COMMON TO ALL**/
 					// all month row
@@ -226,6 +203,30 @@ class MappingUtils extends CounterUtils
 					crk = counterRowKey(whereKeys, gKeys, thisObj)
 					cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 
+					if (WRITE_ALTERNATES) {
+						/** ALTERNATE TWO **/
+						// specific year/hour row (currently not used)
+						colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0]))+"THH")
+						crk = counterRowKey(whereKeys, gKeys, thisObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
+
+						/** ALTERNATE THREE (current) **/
+						// specific month/hour row
+						colName = counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+						crk = counterRowKey(whereKeys, gKeys, thisObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+
+
+						/** COMMON TO TWO AND THREE **/
+						// specific year/day row
+						colName = counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT)
+						gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+						crk = counterRowKey(whereKeys, gKeys, thisObj)
+						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
+					}
 				}
 			}
 		}

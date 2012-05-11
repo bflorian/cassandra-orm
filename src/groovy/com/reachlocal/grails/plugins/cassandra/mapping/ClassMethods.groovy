@@ -190,12 +190,12 @@ class ClassMethods extends MappingUtils
 		// getCounts(by: 'hour', where: [usid:'xxx'])
 		// getCounts(by: ['hour','category'], where: [usid:'xxx'], groupBy: 'category')
 		clazz.metaClass.'static'.getCounts = {params ->
-			if (!params.groupBy) {
-				throw new IllegalArgumentException("The 'by' parameter must be specified")
+			if (!params.where) {
+				throw new IllegalArgumentException("The 'where' parameter must be specified")
 			}
 			else {
 				getCounters(
-						clazz, cassandraMapping.counters, params.where, params.groupBy,
+						clazz, cassandraMapping.counters, params.where, params.groupBy ?: [],
 						params.start, params.finish, params.sort, params.reversed, params.grain,
 						params.timeZone, params.fill)
 			}
@@ -207,11 +207,11 @@ class ClassMethods extends MappingUtils
 
 		// getCounts(where: [usid:'xxx'])
 		clazz.metaClass.'static'.getCountTotal = {params ->
-			if (!params.by) {
-				throw new IllegalArgumentException("The 'groupBy' parameter must be specified")
+			if (!params.where) {
+				throw new IllegalArgumentException("The 'where' parameter must be specified")
 			}
 			else {
-				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.by, params.start, params.finish)
+				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.groupBy ?: [], params.start, params.finish)
 			}
 		}
 

@@ -119,31 +119,6 @@ class CounterUtils extends KeyUtils
 		return result
 	}
 
-	static mergeDateKeys(List rowKeys, List columnKeys)
-	{
-		if (rowKeys) {
-			if (columnKeys.size() > 1) {
-				return [columnKeys[0]] + rowKeys + columnKeys[1..-1]
-			}
-			else {
-				return columnKeys + rowKeys
-			}
-		}
-		else {
-			return columnKeys
-		}
-	}
-
-	static mergeNonDateKeys(List rowKeys, List columnKeys)
-	{
-		if (rowKeys) {
-			return rowKeys + columnKeys
-		}
-		else {
-			return columnKeys
-		}
-	}
-
 	static getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sortResult)
 	{
 		def cf = clazz.counterColumnFamily
@@ -201,44 +176,6 @@ class CounterUtils extends KeyUtils
 				return result;
 			}
 		}
-	}
-
-	static filterMatchIndexes(columnFilter, groupBy)
-	{
-		def matchKeys = columnFilter.keySet()
-		def matchIndexes = []
-		groupBy.eachWithIndex {key, index ->
-			if (matchKeys.contains(key)) {
-				matchIndexes << index
-			}
-		}
-		return matchIndexes
-	}
-
-	static filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
-	{
-		def passed = true
-		for (index in matchIndexes) {
-			def kv = keyValues[index]
-			def k = groupBy[index]
-			def fv = columnFilter[k]
-			if (!fv.contains(kv)) {
-				passed = false
-				break
-			}
-		}
-		return passed
-	}
-
-	static filterResultKeyValues(keyValues, matchIndexes)
-	{
-		def resultKeyValues = []
-		keyValues.eachWithIndex {kv, index ->
-			if (!matchIndexes.contains(index)) {
-				resultKeyValues << kv
-			}
-		}
-		resultKeyValues
 	}
 
 	static getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
@@ -334,6 +271,37 @@ class CounterUtils extends KeyUtils
 
 	static private getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 	{
+		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM-dd')
+		def rowKey = counterRowKey(findBy, groupKeys, filter)
+
+		columnsList(persistence.getColumnRange(
+				ks,
+				cf,
+				rowKey,
+				start ? counterColumnKey(start, UTC_DAY_FORMAT) : null,
+				finish ? counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				false,
+				MAX_COUNTER_COLUMNS))
+	}
+
+	static private getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	{
+		def groupKeys = groupBy //makeGroupKeyList(groupBy, "yyyy-MM-dd'T'HH")
+		def rowKey = counterRowKey(findBy, groupKeys, filter)
+
+		columnsList(persistence.getColumnRange(
+				ks,
+				cf,
+				rowKey,
+				start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
+				finish ? counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				false,
+				MAX_COUNTER_COLUMNS))
+	}
+
+
+	static private getShardedDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
 		cal.set(Calendar.MONTH, 0)
@@ -360,7 +328,7 @@ class CounterUtils extends KeyUtils
 				MAX_COUNTER_COLUMNS), persistence)
 	}
 
-	static private getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	static private getShardedHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
@@ -387,6 +355,69 @@ class CounterUtils extends KeyUtils
 				false,
 				MAX_COUNTER_COLUMNS), persistence)
 
+	}
+
+	static mergeDateKeys(List rowKeys, List columnKeys)
+	{
+		if (rowKeys) {
+			if (columnKeys.size() > 1) {
+				return [columnKeys[0]] + rowKeys + columnKeys[1..-1]
+			}
+			else {
+				return columnKeys + rowKeys
+			}
+		}
+		else {
+			return columnKeys
+		}
+	}
+
+	static mergeNonDateKeys(List rowKeys, List columnKeys)
+	{
+		if (rowKeys) {
+			return rowKeys + columnKeys
+		}
+		else {
+			return columnKeys
+		}
+	}
+
+	static filterMatchIndexes(columnFilter, groupBy)
+	{
+		def matchKeys = columnFilter.keySet()
+		def matchIndexes = []
+		groupBy.eachWithIndex {key, index ->
+			if (matchKeys.contains(key)) {
+				matchIndexes << index
+			}
+		}
+		return matchIndexes
+	}
+
+	static filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+	{
+		def passed = true
+		for (index in matchIndexes) {
+			def kv = keyValues[index]
+			def k = groupBy[index]
+			def fv = columnFilter[k]
+			if (!fv.contains(kv)) {
+				passed = false
+				break
+			}
+		}
+		return passed
+	}
+
+	static filterResultKeyValues(keyValues, matchIndexes)
+	{
+		def resultKeyValues = []
+		keyValues.eachWithIndex {kv, index ->
+			if (!matchIndexes.contains(index)) {
+				resultKeyValues << kv
+			}
+		}
+		resultKeyValues
 	}
 
 	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter)
