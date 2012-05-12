@@ -18,6 +18,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import grails.converters.JSON
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
 
 /**
  * @author: Bob Florian
@@ -189,7 +190,7 @@ class DataMapping extends MappingUtils
 			case Boolean:
 				return column.booleanValue
 			case Date:
-				return new Date(new Long(persistence.stringValue(column)))
+				return ISO_TS.parse(persistence.stringValue(column))
 			case String:
 				return persistence.stringValue(column)
 			case UUID:

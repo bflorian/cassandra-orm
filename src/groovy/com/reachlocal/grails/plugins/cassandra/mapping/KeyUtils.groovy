@@ -2,6 +2,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import java.text.DateFormat
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
 
 /**
  * @author: Bob Florian
@@ -190,7 +191,7 @@ class KeyUtils extends BaseUtils
 	}
 	static dataProperty(Date value)
 	{
-		return value.time.toString()
+		return ISO_TS.format(value)
 	}
 
 	static dataProperty(Integer value)
@@ -267,5 +268,10 @@ class KeyUtils extends BaseUtils
 		else {
 			null
 		}
+	}
+
+	static protected ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+	static {
+		ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"))
 	}
 }
