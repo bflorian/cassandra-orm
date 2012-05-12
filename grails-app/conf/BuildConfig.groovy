@@ -52,5 +52,6 @@ grails.project.repos.beanstalkRepository.type = "svn"
 grails.project.repos.dreamhostRepository.url = "http://cm.florian.org/grailsplugins"
 grails.project.repos.dreamhostRepository.type = "svn"
 
-grails.project.repos.default = "dreamhostRepository"
+//grails.project.repos.default = "dreamhostRepository"
+grails.project.repos.default = "beanstalkRepository"
 grails.release.scm.enabled = false
