@@ -76,5 +76,23 @@ class NestedHashMap extends LinkedHashMap
 			put(name, value)
 		}
 	}
+
+	def total()
+	{
+		mapTotal(this)
+	}
+
+	static mapTotal(Map map)
+	{
+		def total = 0L
+		map.each {key, value ->
+			total += mapTotal(value)
+		}
+		return total
+	}
+
+	static mapTotal(number) {
+		return number
+	}
 }
 
