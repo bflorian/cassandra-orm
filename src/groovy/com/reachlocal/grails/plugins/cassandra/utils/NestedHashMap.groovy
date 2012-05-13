@@ -21,7 +21,7 @@ package com.reachlocal.grails.plugins.cassandra.utils
  */
 class NestedHashMap extends LinkedHashMap
 {
-	Object put(Collection args)
+	Object put(List args)
 	{
 		if (args.size() < 2) {
 			throw new IllegalArgumentException("There aren't enough items. Must specify at least one key and a value.")
@@ -46,7 +46,7 @@ class NestedHashMap extends LinkedHashMap
 		put(args as List)
 	}
 
-	void increment(Collection args)
+	void increment(List args)
 	{
 		if (args.size() < 2) {
 			throw new IllegalArgumentException("There aren't enough items. Must specify at least one key and a value.")
@@ -56,7 +56,8 @@ class NestedHashMap extends LinkedHashMap
 		}
 		else {
 			def map = this
-			args[0..-3].each {
+			def slice = args[0..-3]
+			slice.each {
 				if (!map.containsKey(it)) {
 					map[it] = new NestedHashMap()
 				}
@@ -93,6 +94,33 @@ class NestedHashMap extends LinkedHashMap
 
 	static mapTotal(number) {
 		return number
+	}
+
+	def groupBy(int level)
+	{
+		groupBy([level])
+	}
+
+	def groupBy(List levels)
+	{
+		def result = new NestedHashMap()
+		processGroupByItem(this, [], levels, result)
+		return result
+	}
+
+	static void processGroupByItem(Map item, List keys, List groupLevels, NestedHashMap result)
+	{
+		item.each {key, value ->
+			processGroupByItem(value, keys + [key], groupLevels, result)
+		}
+	}
+
+	static void processGroupByItem(Number item, List keys, List groupLevels, NestedHashMap result)
+	{
+		def resultKeys = groupLevels.collect{
+			keys[it]
+		}
+		result.increment(resultKeys + [item])
 	}
 }
 
