@@ -92,7 +92,7 @@ class MappingUtils extends CounterUtils
 					}
 				}
 			}
- 			value = groupBy(value, indexes)
+ 			value = value.groupBy(indexes)
 		}
 		else {
 			if (counterDef.isDateIndex)  {
@@ -118,7 +118,8 @@ class MappingUtils extends CounterUtils
 		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
 		def columnFilter = counterColumnFilter(whereFilter, counterDef)
 		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish)
-		return mapTotal(cols)
+		//return mapTotal(cols)
+		return cols.total()
 	}
 
 	static updateCounterColumns(Class clazz, Map counterDef, m, oldObj, thisObj)

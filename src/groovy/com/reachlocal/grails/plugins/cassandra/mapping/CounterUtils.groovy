@@ -5,6 +5,7 @@ import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
 import java.text.SimpleDateFormat
 import java.text.DateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
 
 /**
  * @author: Bob Florian
@@ -71,7 +72,7 @@ class CounterUtils extends KeyUtils
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
-		def matchIndexes = columnFilter ? filterMatchIndexes(columnFilter, groupBy) : null
+		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 
@@ -93,16 +94,16 @@ class CounterUtils extends KeyUtils
 				if (columnFilter) {
 					cols.each {col ->
 						def keyValues = parseComposite(persistence.name(col))
-						def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+						def passed = CounterHelper.filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 						if (passed) {
-							def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
-							result.increment(mergeNonDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
+							def resultKeyValues = CounterHelper.filterResultKeyValues(keyValues, matchIndexes)
+							result.increment(CounterHelper.mergeNonDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
 						}
 					}
 				}
 				else {
 					cols.each {col ->
-						result.increment(mergeNonDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
+						result.increment(CounterHelper.mergeNonDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
 					}
 				}
 			}
@@ -124,7 +125,7 @@ class CounterUtils extends KeyUtils
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
-		def matchIndexes = columnFilter ? filterMatchIndexes(columnFilter, groupBy) : null
+		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 
@@ -155,16 +156,16 @@ class CounterUtils extends KeyUtils
 					if (columnFilter) {
 						cols.each {col ->
 							def keyValues = parseComposite(persistence.name(col))
-							def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+							def passed = CounterHelper.filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 							if (passed) {
-								def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
-								result.increment(mergeDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
+								def resultKeyValues = CounterHelper.filterResultKeyValues(keyValues, matchIndexes)
+								result.increment(CounterHelper.mergeDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
 							}
 						}
 					}
 					else {
 						cols.each {col ->
-							result.increment(mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
+							result.increment(CounterHelper.mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
 						}
 					}
 				}
@@ -183,7 +184,7 @@ class CounterUtils extends KeyUtils
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
-		def matchIndexes = columnFilter ? filterMatchIndexes(columnFilter, groupBy) : null
+		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
 
 		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
 			def firstStart = start
@@ -221,16 +222,16 @@ class CounterUtils extends KeyUtils
 					if (columnFilter) {
 						cols.each {col ->
 							def keyValues = parseComposite(persistence.name(col))
-							def passed = filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
+							def passed = CounterHelper.filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 							if (passed) {
-								def resultKeyValues = filterResultKeyValues(keyValues, matchIndexes)
-								result.increment(mergeDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
+								def resultKeyValues = CounterHelper.filterResultKeyValues(keyValues, matchIndexes)
+								result.increment(CounterHelper.mergeDateKeys(rowKeyValues, resultKeyValues) + persistence.longValue(col))
 							}
 						}
 					}
 					else {
 						cols.each {col ->
-							result.increment(mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
+							result.increment(CounterHelper.mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
 						}
 					}
 				}
@@ -357,69 +358,6 @@ class CounterUtils extends KeyUtils
 
 	}
 
-	static mergeDateKeys(List rowKeys, List columnKeys)
-	{
-		if (rowKeys) {
-			if (columnKeys.size() > 1) {
-				return [columnKeys[0]] + rowKeys + columnKeys[1..-1]
-			}
-			else {
-				return columnKeys + rowKeys
-			}
-		}
-		else {
-			return columnKeys
-		}
-	}
-
-	static mergeNonDateKeys(List rowKeys, List columnKeys)
-	{
-		if (rowKeys) {
-			return rowKeys + columnKeys
-		}
-		else {
-			return columnKeys
-		}
-	}
-
-	static filterMatchIndexes(columnFilter, groupBy)
-	{
-		def matchKeys = columnFilter.keySet()
-		def matchIndexes = []
-		groupBy.eachWithIndex {key, index ->
-			if (matchKeys.contains(key)) {
-				matchIndexes << index
-			}
-		}
-		return matchIndexes
-	}
-
-	static filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
-	{
-		def passed = true
-		for (index in matchIndexes) {
-			def kv = keyValues[index]
-			def k = groupBy[index]
-			def fv = columnFilter[k]
-			if (!fv.contains(kv)) {
-				passed = false
-				break
-			}
-		}
-		return passed
-	}
-
-	static filterResultKeyValues(keyValues, matchIndexes)
-	{
-		def resultKeyValues = []
-		keyValues.eachWithIndex {kv, index ->
-			if (!matchIndexes.contains(index)) {
-				resultKeyValues << kv
-			}
-		}
-		resultKeyValues
-	}
-
 	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter)
 	{
 		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
@@ -427,7 +365,6 @@ class CounterUtils extends KeyUtils
 		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1)
 		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
 	}
-
 
 	static columnsList(columnsIterator)
 	{

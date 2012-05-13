@@ -63,7 +63,7 @@ class BaseUtils
 		}
 		return false
 	}
-
+/*
 	static mapTotal(Map map)
 	{
 		def total = 0
@@ -76,7 +76,8 @@ class BaseUtils
 	static mapTotal(number) {
 		return number
 	}
-
+*/
+	/*
 	static groupBy(Map map, int level)
 	{
 		groupBy(map, [level])
@@ -100,7 +101,7 @@ class BaseUtils
 		def resultKeys = groupLevels.collect{keys[it]}
 		result.increment(resultKeys + [item])
 	}
-
+    */
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}

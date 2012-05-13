@@ -81,10 +81,10 @@ class CounterUtilsTests extends OrmTestCase
 				null, null, true)
 		println cols
 
-		def g1 = BaseUtils.groupBy(cols, 1)
-		println g1
-		def g2 = BaseUtils.groupBy(cols, [1,2])
-		println g2
+		//def g1 = cols.groupBy(1)
+		//println g1
+		//def g2 = cols.groupBy([1,2])
+		//println g2
 	}
 
 	void testGetCounterColumnsMultiFilterDate2()
@@ -94,14 +94,14 @@ class CounterUtilsTests extends OrmTestCase
 				null, null, true)
 		println cols
 
-		def g1 = BaseUtils.groupBy(cols, 1)
-		println g1
-		def g2 = BaseUtils.groupBy(cols, [1,2])
-		println g2
-		def g3 = BaseUtils.groupBy(cols, [1,2,3])
-		println g3
-		def g4 = BaseUtils.groupBy(cols, [2])
-		println g4
+		//def g1 = cols.groupBy( 1)
+		//println g1
+		//def g2 = cols.groupBy( [1,2])
+		//println g2
+		//def g3 = cols.groupBy( [1,2,3])
+		//println g3
+		//def g4 = cols.groupBy( [2])
+		//println g4
 	}
 
 	void testGetCountersMultiWherGroupByOneColumn()

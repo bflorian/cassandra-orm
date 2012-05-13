@@ -269,15 +269,6 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCounts(grouped: ['birthDate','state']) ---"
-		try {
-			r = User.getCounts(grouped: ['birthDate','state'])
-			fail("Illegal argument exception now thrown when by not specified for getCounts")
-		}
-		catch (IllegalArgumentException e) {
-
-		}
-
 		println "\n--- User.getCountsByGenderGroupByBirthDate('Male') ---"
 		r = User.getCountsByGenderGroupByBirthDate('Male')
 		persistence.printClear()

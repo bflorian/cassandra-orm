@@ -19,6 +19,7 @@ package com.reachlocal.grails.plugins.cassandra.test
 import grails.test.GrailsUnitTestCase
 import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
 import java.text.SimpleDateFormat
+import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 
 /**
  * @author: Bob Florian
@@ -113,21 +114,23 @@ class MappingUtilsTests extends GrailsUnitTestCase
 	void testGroupByLevel0()
 	{
 		def hours = [
-				('2012-02-04T14'): [direct: 1],
-				('2012-02-04T15'): [direct: 1],
-				('2012-02-04T16'): [campaign: 1,direct: 1],
-				('2012-02-04T17'): [campaign: 3,direct: 1],
-				('2012-02-04T18'): [campaign: 2],
-				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
-				('2012-02-04T20'): [campaign: 1],
-				('2012-02-04T21'): [campaign: 2,organic: 2],
-				('2012-02-04T22'): [direct: 1],
-				('2012-02-04T23'): [campaign: 1,direct: 1],
-				('2012-02-05T00'): [campaign: 2,direct: 2],
-				('2012-02-05T01'): [campaign: 1,direct: 1]
+				('2012-02-04T14'): [direct: 1L],
+				('2012-02-04T15'): [direct: 1L],
+				('2012-02-04T16'): [campaign: 1L,direct: 1L],
+				('2012-02-04T17'): [campaign: 3L,direct: 1L],
+				('2012-02-04T18'): [campaign: 2L],
+				('2012-02-04T19'): [campaign: 2L,direct: 2L,organic: 1L],
+				('2012-02-04T20'): [campaign: 1L],
+				('2012-02-04T21'): [campaign: 2L,organic: 2L],
+				('2012-02-04T22'): [direct: 1L],
+				('2012-02-04T23'): [campaign: 1L,direct: 1L],
+				('2012-02-05T00'): [campaign: 2L,direct: 2L],
+				('2012-02-05T01'): [campaign: 1L,direct: 1L]
 		]
+		def map = new NestedHashMap()
+		map.putAll(hours)
 
-		def result = MappingUtils.groupBy(hours, 0)
+		def result = map.groupBy(0)
 		println result
 		assertEquals hours.size(), result.size()
 		assertEquals 5, result['2012-02-04T19']
@@ -136,21 +139,24 @@ class MappingUtilsTests extends GrailsUnitTestCase
 	void testGroupByLevel1()
 	{
 		def hours = [
-				('2012-02-04T14'): [direct: 1],
-				('2012-02-04T15'): [direct: 1],
-				('2012-02-04T16'): [campaign: 1,direct: 1],
-				('2012-02-04T17'): [campaign: 3,direct: 1],
-				('2012-02-04T18'): [campaign: 2],
-				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
-				('2012-02-04T20'): [campaign: 1],
-				('2012-02-04T21'): [campaign: 2,organic: 2],
-				('2012-02-04T22'): [direct: 1],
-				('2012-02-04T23'): [campaign: 1,direct: 1],
-				('2012-02-05T00'): [campaign: 2,direct: 2],
-				('2012-02-05T01'): [campaign: 1,direct: 1]
+				('2012-02-04T14'): [direct: 1L],
+				('2012-02-04T15'): [direct: 1L],
+				('2012-02-04T16'): [campaign: 1L,direct: 1L],
+				('2012-02-04T17'): [campaign: 3L,direct: 1L],
+				('2012-02-04T18'): [campaign: 2L],
+				('2012-02-04T19'): [campaign: 2L,direct: 2L,organic: 1L],
+				('2012-02-04T20'): [campaign: 1L],
+				('2012-02-04T21'): [campaign: 2L,organic: 2L],
+				('2012-02-04T22'): [direct: 1L],
+				('2012-02-04T23'): [campaign: 1L,direct: 1L],
+				('2012-02-05T00'): [campaign: 2L,direct: 2L],
+				('2012-02-05T01'): [campaign: 1L,direct: 1L]
 		]
 
-		def result = MappingUtils.groupBy(hours, 1)
+		def map = new NestedHashMap()
+		map.putAll(hours)
+
+		def result = map.groupBy(1)
 		println result
 		assertEquals 3, result.size()
 		assertEquals 11, result.direct
@@ -163,21 +169,23 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 
 		def hours = [
-				('2012-02-04T14'): [direct: 1],
-				('2012-02-04T15'): [direct: 1],
-				('2012-02-04T16'): [campaign: 1,direct: 1],
-				('2012-02-04T17'): [campaign: 3,direct: 1],
-				('2012-02-04T18'): [campaign: 2],
-				('2012-02-04T19'): [campaign: 2,direct: 2,organic: 1],
-				('2012-02-04T20'): [campaign: 1],
-				('2012-02-04T21'): [campaign: 2,organic: 2],
-				('2012-02-04T22'): [direct: 1],
-				('2012-02-04T23'): [campaign: 1,direct: 1],
-				('2012-02-05T00'): [campaign: 2,direct: 2],
-				('2012-02-05T01'): [campaign: 1,direct: 1]
+				('2012-02-04T14'): [direct: 1L],
+				('2012-02-04T15'): [direct: 1L],
+				('2012-02-04T16'): [campaign: 1L,direct: 1L],
+				('2012-02-04T17'): [campaign: 3L,direct: 1L],
+				('2012-02-04T18'): [campaign: 2L],
+				('2012-02-04T19'): [campaign: 2L,direct: 2L,organic: 1L],
+				('2012-02-04T20'): [campaign: 1L],
+				('2012-02-04T21'): [campaign: 2L,organic: 2L],
+				('2012-02-04T22'): [direct: 1L],
+				('2012-02-04T23'): [campaign: 1L,direct: 1L],
+				('2012-02-05T00'): [campaign: 2L,direct: 2L],
+				('2012-02-05T01'): [campaign: 1L,direct: 1L]
 		]
+		def map = new NestedHashMap()
+		map.putAll(hours)
 
-		def result = MappingUtils.groupBy(hours, 0)
+		def result = map.groupBy(0)
 		def days = MappingUtils.rollUpCounterDates(result, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null, null)
 		println days
 		assertEquals 2, days.size()
