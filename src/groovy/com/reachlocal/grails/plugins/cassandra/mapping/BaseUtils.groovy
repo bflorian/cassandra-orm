@@ -1,8 +1,6 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import com.reachlocal.grails.plugins.cassandra.utils.HashCounter
 import org.apache.commons.beanutils.PropertyUtils
-import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 
 /**
  * @author: Bob Florian
