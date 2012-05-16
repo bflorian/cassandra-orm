@@ -20,7 +20,7 @@ import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 class CassandraOrmGrailsPlugin
 {
 	// the plugin version
-	def version = "0.0.5"
+	def version = "0.0.6"
 	// the version or versions of Grails the plugin is designed for
 	def grailsVersion = "1.3.7 > *"
 	// the other plugins this plugin depends on
@@ -35,7 +35,7 @@ class CassandraOrmGrailsPlugin
 	def authorEmail = ""
 	def title = "Plugin summary/headline"
 	def description = '''\\
-Brief description of the plugin.
+Provides GORM-like dynamic method for persisting Groovy objects into Cassandra.
 '''
 
 	// URL to the plugin's documentation

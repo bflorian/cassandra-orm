@@ -394,7 +394,8 @@ class MappingUtils extends CounterUtils
 			def counterFindBy = counter.findBy ?: [] //TODO - right?
 			def counterFilterPropNames = counterFindBy instanceof List ? counterFindBy : [counterFindBy]
 			def counterGroupPropNames = collection(counter.groupBy)
-			def queryFilterPropsRemaining = queryFilterPropNames.toSet()
+			def queryFilterPropsRemaining = new LinkedHashSet()
+			queryFilterPropsRemaining.addAll(queryFilterPropNames)
 			def found = true
 
 			// check each filter prop in this counter to see if its in the query

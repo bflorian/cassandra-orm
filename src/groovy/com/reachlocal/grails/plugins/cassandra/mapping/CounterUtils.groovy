@@ -86,9 +86,9 @@ class CounterUtils extends KeyUtils
 						ks,
 						cf,
 						rowKey,
-						start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-						finish ? counterColumnKey(finish, UTC_HOUR_FORMAT) : null,
-						reversed,
+						start ? counterColumnKey(start, UTC_HOUR_FORMAT) : '',
+						finish ? counterColumnKey(finish, UTC_HOUR_FORMAT) : '',
+						reversed ?: false,
 						MAX_COUNTER_COLUMNS)
 
 				if (columnFilter) {

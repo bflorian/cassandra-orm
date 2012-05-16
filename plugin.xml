@@ -1,8 +1,8 @@
-<plugin name='cassandra-orm' version='0.0.5' grailsVersion='1.3.7 &gt; *'>
+<plugin name='cassandra-orm' version='0.0.6' grailsVersion='1.3.7 &gt; *'>
   <author>Your name</author>
   <title>Plugin summary/headline</title>
   <description>\
-Brief description of the plugin.
+Provides GORM-like dynamic method for persisting Groovy objects into Cassandra.
 </description>
   <documentation>http://grails.org/plugin/cassandra-orm</documentation>
   <type>CassandraOrmGrailsPlugin</type>
