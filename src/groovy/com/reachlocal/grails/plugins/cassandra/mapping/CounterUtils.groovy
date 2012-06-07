@@ -74,7 +74,7 @@ class CounterUtils extends KeyUtils
 		def groupBy = collection(counterDef.groupBy)
 		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
 
-		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cluster) {ks ->
 
 			def result = new NestedHashMap()
 			filterList.each {filter ->
@@ -127,7 +127,7 @@ class CounterUtils extends KeyUtils
 		def groupBy = collection(counterDef.groupBy)
 		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
 
-		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cluster) {ks ->
 
 			def result = new NestedHashMap()
 			rowFilterList.each {filter ->
@@ -186,7 +186,7 @@ class CounterUtils extends KeyUtils
 		def groupBy = collection(counterDef.groupBy)
 		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
 
-		clazz.cassandra.withKeyspace(clazz.keySpace) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cluster) {ks ->
 			def firstStart = start
 			if (!firstStart) {
 				rowFilterList.each {filter ->

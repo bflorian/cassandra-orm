@@ -29,6 +29,9 @@ class InstanceMethods extends MappingUtils
 		// cassandra
 		clazz.metaClass.getCassandra = { clazz.cassandra }
 
+		// cluster
+		clazz.metaClass.getCluster = { clazz.cluster }
+
 		// keySpace
 		clazz.metaClass.getKeySpace = { clazz.keySpace }
 
@@ -57,7 +60,7 @@ class InstanceMethods extends MappingUtils
 		// save()
 		clazz.metaClass.save = {args ->
 			def thisObj = delegate
-			cassandra.withKeyspace(thisObj.keySpace) {ks ->
+			cassandra.withKeyspace(thisObj.keySpace, thisObj.cluster) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks)
 
 				// see if it exists
@@ -153,7 +156,7 @@ class InstanceMethods extends MappingUtils
 		// insert(properties)
 		clazz.metaClass.insert = {properties ->
 			def thisObj = delegate
-			cassandra.withKeyspace(thisObj.keySpace) {ks ->
+			cassandra.withKeyspace(thisObj.keySpace, thisObj.cluster) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks)
 
 				// check one-to-one relationship properties
@@ -250,7 +253,7 @@ class InstanceMethods extends MappingUtils
 			def thisObjId = thisObj.id
 			def thisObjClass = thisObj.class
 			def persistence = cassandra.persistence
-			cassandra.withKeyspace(thisObj.keySpace) {ks ->
+			cassandra.withKeyspace(thisObj.keySpace, thisObj.cluster) {ks ->
 				def m = persistence.prepareMutationBatch(ks)
 				persistence.deleteRow(m, thisObj.columnFamily, thisObjId)
 
@@ -315,7 +318,7 @@ class InstanceMethods extends MappingUtils
 					def thisObj = delegate
 					safeSetProperty(thisObj, propName, null)
 
-					cassandra.withKeyspace(delegate.keySpace) {ks ->
+					cassandra.withKeyspace(delegate.keySpace, delegate.cluster) {ks ->
 						def m = cassandra.persistence.prepareMutationBatch(ks)
 
 						// set belongsTo value
@@ -347,7 +350,7 @@ class InstanceMethods extends MappingUtils
 					def persistence = cassandra.persistence
 					safeSetProperty(thisObj, propName, null)
 
-					cassandra.withKeyspace(delegate.keySpace) {ks ->
+					cassandra.withKeyspace(delegate.keySpace, delegate.cluster) {ks ->
 						def m = persistence.prepareMutationBatch(ks)
 
 						// remove join row from this object to the item
@@ -408,7 +411,7 @@ class InstanceMethods extends MappingUtils
 						// TODO - need to find a way to store this in the object!
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 
-						cassandra.withKeyspace(keySpace) {ks ->
+						cassandra.withKeyspace(keySpace, cluster) {ks ->
 							def colName = "${propName}${KEY_SUFFIX}".toString()
 							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
 							def col = persistence.getColumn(cols, colName)
@@ -437,7 +440,7 @@ class InstanceMethods extends MappingUtils
 						// TODO - need to find a way to store this in the object!
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 
-						cassandra.withKeyspace(keySpace) {ks ->
+						cassandra.withKeyspace(keySpace, cluster) {ks ->
 							def colName = "${propName}${KEY_SUFFIX}".toString()
 							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
 							def col = persistence.getColumn(cols, colName)
