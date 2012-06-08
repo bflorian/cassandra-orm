@@ -40,6 +40,7 @@ class User
 
 	static cassandraMapping = [
 			keySpace: 'mock',
+			cassandraCluster: 'mockCluster',
 			columnFamily: 'MockUser',
 			primaryKey: 'uuid',
 			explicitIndexes: ["email","phone","city",["city","gender"]],

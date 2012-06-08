@@ -483,7 +483,7 @@ class MappingUtils extends CounterUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cluster) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
 			def columns = []
 			filterList.each {filter ->
 				def rowKey = objectIndexRowKey(index, filter)
@@ -519,7 +519,7 @@ class MappingUtils extends CounterUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cluster) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
 			def total = 0
 			filterList.each {filter ->
 				def rowKey = objectIndexRowKey(index, filter)
@@ -544,7 +544,7 @@ class MappingUtils extends CounterUtils
 		def persistence = thisObj.cassandra.persistence
 		def belongsToPropName = itemClass.belongsToPropName(thisObj.getClass())
 
-		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cluster) {ks ->
+		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
@@ -574,7 +574,7 @@ class MappingUtils extends CounterUtils
 		def result = []
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def persistence = thisObj.cassandra.persistence
-		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cluster) {ks ->
+		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
