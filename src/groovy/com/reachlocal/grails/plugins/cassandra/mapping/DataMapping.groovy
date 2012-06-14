@@ -16,10 +16,6 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import grails.converters.JSON
-import java.nio.ByteBuffer
-import java.text.SimpleDateFormat
-
 /**
  * @author: Bob Florian
  */
@@ -199,15 +195,11 @@ class DataMapping extends MappingUtils
 				return persistence.byteArrayValue(column)
 			default:
 				if (Collection.isAssignableFrom(clazz) || Map.isAssignableFrom(clazz)) {
-					return JSON.parse(persistence.stringValue(column))
+					return mapper.readValue(persistence.stringValue(column), clazz)
 				}
 				else if (clazz.isEnum()) {
-					clazz.values().each() {
-						if (it.toString() == persistence.stringValue(column)) {
-							return persistence.stringValue(column)
-						}
-					}
-					return null
+					def value = persistence.stringValue(column)
+					return clazz.values().find{it.toString() == value}
 				}
 		}
 	}

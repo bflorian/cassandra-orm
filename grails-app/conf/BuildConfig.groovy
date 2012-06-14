@@ -41,6 +41,8 @@ grails.project.dependency.resolution = {
     }
     dependencies {
         // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
+		compile 'org.codehaus.jackson:jackson-core-asl:1.9.7'
+		compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.7'
 		runtime 'com.github.stephenc.eaio-uuid:uuid:3.2.0'
 
 		// runtime 'mysql:mysql-connector-java:5.1.13'

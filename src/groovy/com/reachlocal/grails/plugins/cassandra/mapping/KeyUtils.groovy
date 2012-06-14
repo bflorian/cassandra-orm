@@ -4,7 +4,7 @@ import java.text.DateFormat
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 
-/**
+ /**
  * @author: Bob Florian
  */
 class KeyUtils extends BaseUtils
@@ -226,12 +226,12 @@ class KeyUtils extends BaseUtils
 
 	static dataProperty(Collection value)
 	{
-		return value.encodeAsJSON()
+		mapper.writeValueAsString(value)
 	}
 
 	static dataProperty(Map value)
 	{
-		return value.encodeAsJSON()
+		mapper.writeValueAsString(value)
 	}
 
 	static dataProperty(Boolean value)

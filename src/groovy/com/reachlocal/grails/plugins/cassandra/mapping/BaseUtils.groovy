@@ -1,6 +1,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.apache.commons.beanutils.PropertyUtils
+import org.codehaus.jackson.map.ObjectMapper
 
 /**
  * @author: Bob Florian
@@ -12,7 +13,7 @@ class BaseUtils
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
 	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
 	static protected final CLASS_NAME_KEY = '_class_name_'
-	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","metaClass","keySpace","cassandraCluster"] as Set
+	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","counterColumnFamily","metaClass","keySpace","cassandraCluster"] as Set
 	static protected final KEY_SUFFIX = "_key"
 	static protected final DIRTY_SUFFIX = "_dirty"
 
@@ -161,4 +162,5 @@ class BaseUtils
 		return sorted;
 	}
 
+	static mapper = new ObjectMapper()
 }

@@ -19,7 +19,8 @@ package com.reachlocal.grails.plugins.cassandra.test;
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
-import java.text.SimpleDateFormat;
+import java.text.SimpleDateFormat
+import com.reachlocal.grails.plugins.cassandra.test.orm.Color;
 
 
 /**
@@ -39,6 +40,8 @@ public class ClassMethodsTests extends OrmTestCase
 				phone: '301-555-1212',
 				gender: 'Male',
 				city:  'Ellicott City',
+				favoriteColor: Color.BLUE,
+				favoriteSports: ['Skiing','Cycling','Sailing'],
 				birthDate:  DAY_FORMAT.parse('1980-03-15')).save()
 
 		new User(
@@ -48,6 +51,7 @@ public class ClassMethodsTests extends OrmTestCase
 				state:  "VA", phone: '301-555-1212',
 				gender: 'Female',
 				city: 'Reston',
+				favoriteColor: Color.RED,
 				birthDate:  DAY_FORMAT.parse('1985-09-14')).save()
 
 		new User(
@@ -57,6 +61,7 @@ public class ClassMethodsTests extends OrmTestCase
 				phone: '301-555-1234',
 				gender: 'Female',
 				city:  'Ellicott City',
+				favoriteColor: Color.GREEN,
 				birthDate:  DAY_FORMAT.parse('1976-07-04')).save()
 
 		new User(
@@ -66,6 +71,7 @@ public class ClassMethodsTests extends OrmTestCase
 				phone: '301-555-1111',
 				gender: 'Female',
 				city:  'Pleasanton',
+				favoriteColor: Color.YELLOW,
 				birthDate:  DAY_FORMAT.parse('1962-06-10')).save()
 
 		new User(
@@ -75,6 +81,7 @@ public class ClassMethodsTests extends OrmTestCase
 				phone: '301-555-1212',
 				gender: 'Male',
 				city:  'Olney',
+				favoriteColor: Color.ORANGE ,
 				birthDate:  DAY_FORMAT.parse('1991-11-12')).save()
 
 		persistence.printClear()
@@ -118,6 +125,8 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals "Get Test", r.name
+		assertEquals 3, r.favoriteSports.size()
+		assertEquals Color.BLUE, r.favoriteColor
 
 		println "\n--- list() ---"
 		r = User.list()

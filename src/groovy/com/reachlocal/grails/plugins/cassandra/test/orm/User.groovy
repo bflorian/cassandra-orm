@@ -32,6 +32,9 @@ class User
 	String gender
 	String period
 	Date birthDate
+	Color favoriteColor
+	List favoriteSports
+
 	UserGroup userGroup
 
 	static belongsTo = [userGroup: UserGroup]
@@ -57,3 +60,5 @@ class User
 			]
 	]
 }
+
+enum Color {RED, GREEN, BLUE, YELLOW, ORANGE, PURPLE}
