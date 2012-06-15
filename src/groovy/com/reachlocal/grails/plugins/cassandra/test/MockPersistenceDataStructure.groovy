@@ -103,21 +103,29 @@ class MockPersistenceDataStructure
 
 	}
 
-	void putColumn(columnFamily, rowKey, columnName, columnValue)
+	void putColumn(columnFamily, rowKey, columnName, columnValue, ttl=null)
 	{
 		def cf = data[columnFamily] ?: [:]
 		def row = cf[rowKey] ?: [:]
 		row[columnName] = columnValue
+		if (ttl) {
+			row["${columnName}_TTL"] = ttl
+		}
 		cf[rowKey] = row
 		data[columnFamily] = cf
 	}
 
-	void putColumns(columnFamily, rowKey, columnMap)
+	void putColumns(columnFamily, rowKey, columnMap, ttlMap=[:])
 	{
 		def cf = data[columnFamily] ?: [:]
 		def row = cf[rowKey] ?: [:]
+
 		columnMap.each {k,v ->
+			def ttl = ttlMap[k]
 			row[k] = v
+			if (ttl) {
+				row["${k}_TTL"] = ttl
+			}
 		}
 		cf[rowKey] = row
 		data[columnFamily] = cf

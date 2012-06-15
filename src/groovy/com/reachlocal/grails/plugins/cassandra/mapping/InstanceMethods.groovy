@@ -104,7 +104,7 @@ class InstanceMethods extends MappingUtils
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(thisObj)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.ttl)
 
 				// manage index rows
 				def indexRows = [:]
@@ -209,7 +209,7 @@ class InstanceMethods extends MappingUtils
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(properties)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.ttl)
 
 				// add new explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->

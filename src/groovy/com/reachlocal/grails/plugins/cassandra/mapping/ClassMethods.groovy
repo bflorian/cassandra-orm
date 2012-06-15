@@ -28,6 +28,7 @@ class ClassMethods extends MappingUtils
 
 	static void addDynamicOrmMethods(clazz, ctx) throws CassandraMappingException
 	{
+		// check completeness
 		if (!clazz.metaClass.hasMetaProperty('cassandraMapping')) {
 			throw new CassandraMappingException("cassandraMapping not specified")
 		} else if (!safeGetStaticProperty(clazz, 'cassandraMapping')?.primaryKey &&
@@ -35,7 +36,29 @@ class ClassMethods extends MappingUtils
 			throw new CassandraMappingException("cassandraMapping.primaryKey not specified")
 		}
 
-		// counter types
+		// cassandra
+		clazz.metaClass.'static'.getCassandra = {
+			ctx.getBean("cassandraOrmService")
+		}
+
+		// set options mapping properties
+		if (!clazz.cassandraMapping.ttl) {
+			clazz.cassandraMapping.ttl = [:]
+		}
+		if (!clazz.cassandraMapping.cluster) {
+			clazz.cassandraMapping.cluster = "standars"
+		}
+		if (!clazz.cassandraMapping.keySpace) {
+			clazz.cassandraMapping.keySpace = ConfigurationHolder.config.cassandra.keySpace //TODO - Update grails 2.0
+		}
+		if (!clazz.cassandraMapping.columnFamily) {
+			clazz.cassandraMapping.columnFamily = clazz.name.split("\\.")[-1]
+		}
+		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.persistence.columnFamily(clazz.cassandraMapping.columnFamily)
+		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.persistence.columnFamily("${clazz.cassandraMapping.columnFamily}_IDX".toString())
+		clazz.cassandraMapping.counterColumnFamily_object = clazz.cassandra.persistence.columnFamily("${clazz.cassandraMapping.columnFamily}_CTR".toString())
+
+		// initialize counter types
 		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->
 			if (ctr.groupBy) {
 				ctr.groupBy = collection(ctr.groupBy)
@@ -55,69 +78,34 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
-		// cassandra
-		clazz.metaClass.'static'.getCassandra = {
-			ctx.getBean("cassandraOrmService")
-		}
-
 		// cassandraCluster
 		clazz.metaClass.'static'.getCassandraCluster = {
-			if (clazz.metaClass.hasMetaProperty('cassandraMapping') && cassandraMapping?.keySpace) {
-				return cassandraMapping?.cluster
-			}
-			else {
-				return "standard"
-			}
+			return cassandraMapping.cluster
 		}
 
 		// keySpace
 		clazz.metaClass.'static'.getKeySpace = {
-			if (clazz.metaClass.hasMetaProperty('cassandraMapping') && cassandraMapping?.keySpace) {
-				return cassandraMapping?.keySpace
-			}
-			else {
-				return ConfigurationHolder.config.cassandra.keySpace
-			}
+			return cassandraMapping.keySpace
 		}
 
 		// columnFamilyName
 		clazz.metaClass.'static'.getColumnFamilyName = {
-			if (clazz.metaClass.hasMetaProperty('cassandraMapping') && cassandraMapping?.columnFamily) {
-				cassandraMapping?.columnFamily
-			}
-			else {
-				clazz.name.split("\\.")[-1]
-			}
+			return cassandraMapping.columnFamily
 		}
 
 		// columnFamily
 		clazz.metaClass.'static'.getColumnFamily = {
-			def cf = cassandraMapping.columnFamily_object
-			if (cf == null) {
-				cf = cassandra.persistence.columnFamily(columnFamilyName)
-				cassandraMapping.columnFamily_object = cf
-			}
-			return cf
+			return cassandraMapping.columnFamily_object
 		}
 
 		// indexColumnFamily
 		clazz.metaClass.'static'.getIndexColumnFamily = {
-			def cf = cassandraMapping.indexColumnFamily_object
-			if (cf == null) {
-				cf = cassandra.persistence.columnFamily("${columnFamilyName}_IDX".toString())
-				cassandraMapping.indexColumnFamily_object = cf
-			}
-			return cf
+			return cassandraMapping.indexColumnFamily_object
 		}
 
 		// counterColumnFamily
 		clazz.metaClass.'static'.getCounterColumnFamily = {
-			def cf = cassandraMapping.counterColumnFamily_object
-			if (cf == null) {
-				cf = cassandra.persistence.columnFamily("${columnFamilyName}_CTR".toString())
-				cassandraMapping.counterColumnFamily_object = cf
-			}
-			return cf
+			return cassandraMapping.counterColumnFamily_object
 		}
 
 		// belongsToClass(clazz2)

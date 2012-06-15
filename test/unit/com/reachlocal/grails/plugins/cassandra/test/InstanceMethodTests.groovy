@@ -43,7 +43,8 @@ class InstanceMethodTests extends OrmTestCase
 				uuid: "user1-zzzz-zzzz",
 				name: "Jane",
 				city: "Reston",
-				state:  "VA")
+				state:  "VA",
+				username: "janer")
 
 		def user2 = new User(
 				uuid: "user2-zzzz-zzzz",
@@ -51,7 +52,8 @@ class InstanceMethodTests extends OrmTestCase
 				phone:  "301-555-1111",
 				city: "Olney",
 				state:  "MD",
-				gender:  "Male")
+				gender:  "Male",
+				username: "jimo")
 
 		def user3 = new User(
 				uuid: "user3-zzzz-zzzz",
@@ -59,7 +61,8 @@ class InstanceMethodTests extends OrmTestCase
 				phone:  "301-555-1111",
 				city: "Olney",
 				state:  "MD",
-				gender:  "Female")
+				gender:  "Female",
+				username:  "jillo")
 
 		def user4 = new User(
 				uuid: "user4-zzzz-zzzz",
@@ -67,7 +70,8 @@ class InstanceMethodTests extends OrmTestCase
 				phone:  "301-555-1212",
 				city: "Ellicott City",
 				state:  "MD",
-				gender:  "Male")
+				gender:  "Male",
+				username:  "johne")
 
 		def meeting1 = new UserGroupMeeting(date:  new Date())
 		def meeting2 = new UserGroupMeeting(date:  new Date()+1)

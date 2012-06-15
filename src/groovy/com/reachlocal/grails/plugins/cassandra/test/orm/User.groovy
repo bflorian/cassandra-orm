@@ -33,6 +33,7 @@ class User
 	String period
 	Date birthDate
 	Color favoriteColor
+	String username
 	List favoriteSports
 
 	UserGroup userGroup
@@ -48,6 +49,7 @@ class User
 			primaryKey: 'uuid',
 			explicitIndexes: ["email","phone","city",["city","gender"]],
 			secondaryIndexes: ["gender","state"],
+			ttl: [username: 10000],
 			counters: [
 					[findBy: ['state'], groupBy: ['city']],
 					[groupBy: ['birthDate']],
