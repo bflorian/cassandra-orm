@@ -281,7 +281,7 @@ class MappingUtils extends CounterUtils
 		def len = 1
 		def lengths = []
 		params.each {name, value ->
-			if (value instanceof List || value.class.isArray()) {
+			if (value instanceof List || value.getClass().isArray()) {
 				len = len * value.size()
 			}
 			lengths << len
@@ -291,7 +291,7 @@ class MappingUtils extends CounterUtils
 		}
 
 		params.eachWithIndex {name, value, pindex ->
-			if (value instanceof List || value.class.isArray()) {
+			if (value instanceof List || value.getClass().isArray()) {
 				result.eachWithIndex {item, index ->
 				   def i = (index * lengths[pindex] / len).toInteger() % value.size()
 				   item[name] = value[i]

@@ -104,7 +104,7 @@ class InstanceMethods extends MappingUtils
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(thisObj)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.ttl)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.timeToLive)
 
 				// manage index rows
 				def indexRows = [:]
@@ -209,7 +209,7 @@ class InstanceMethods extends MappingUtils
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(properties)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.ttl)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.timeToLive)
 
 				// add new explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
@@ -482,7 +482,7 @@ class InstanceMethods extends MappingUtils
 
 		// toString()
 		clazz.metaClass.toString = {
-			"${delegate.class.name.split('\\.')[-1]}(${delegate.id})"
+			"${delegate.getClass().getName().split('\\.')[-1]}(${delegate.id})"
 		}
 	}
 

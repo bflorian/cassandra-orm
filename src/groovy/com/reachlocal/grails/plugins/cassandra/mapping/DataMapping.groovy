@@ -55,7 +55,7 @@ class DataMapping extends MappingUtils
 					{
 						def prop = data.getProperty(it.name)
 						if (prop != null) {
-							if (MappingUtils.isMappedClass(prop.class)) {
+							if (MappingUtils.isMappedObject(prop)) {
 								map["${it.name}${KEY_SUFFIX}"] = prop.id
 							}
 							else {

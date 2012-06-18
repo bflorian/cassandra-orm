@@ -62,51 +62,13 @@ class BaseUtils
 		}
 		return false
 	}
-/*
-	static mapTotal(Map map)
-	{
-		def total = 0
-		map.each {key, value ->
-			total += mapTotal(value)
-		}
-		return total
-	}
 
-	static mapTotal(number) {
-		return number
-	}
-*/
-	/*
-	static groupBy(Map map, int level)
-	{
-		groupBy(map, [level])
-	}
-	static groupBy(Map map, List levels)
-	{
-		def result = new NestedHashMap()
-		processGroupByItem(map, [], levels, result)
-		return result
-	}
-
-	static void processGroupByItem(Map item, List keys, List groupLevels, NestedHashMap result)
-	{
-		item.each {key, value ->
-			processGroupByItem(value, keys + key, groupLevels, result)
-		}
-	}
-
-	static void processGroupByItem(Number item, List keys, List groupLevels, NestedHashMap result)
-	{
-		def resultKeys = groupLevels.collect{keys[it]}
-		result.increment(resultKeys + [item])
-	}
-    */
 	static boolean isMappedClass(clazz) {
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}
 
 	static boolean isMappedObject(object) {
-		return object ? object.class.metaClass.hasMetaProperty("cassandraMapping") : false
+		return object ? object.getClass().metaClass.hasMetaProperty("cassandraMapping") : false
 	}
 
 	static safeGetStaticProperty(clazz, name)

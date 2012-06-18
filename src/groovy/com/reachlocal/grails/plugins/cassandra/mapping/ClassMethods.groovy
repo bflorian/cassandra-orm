@@ -42,11 +42,11 @@ class ClassMethods extends MappingUtils
 		}
 
 		// set options mapping properties
-		if (!clazz.cassandraMapping.ttl) {
-			clazz.cassandraMapping.ttl = [:]
+		if (!clazz.cassandraMapping.timeToLive) {
+			clazz.cassandraMapping.timeToLive = [:]
 		}
 		if (!clazz.cassandraMapping.cluster) {
-			clazz.cassandraMapping.cluster = "standars"
+			clazz.cassandraMapping.cluster = "standard"
 		}
 		if (!clazz.cassandraMapping.keySpace) {
 			clazz.cassandraMapping.keySpace = ConfigurationHolder.config.cassandra.keySpace //TODO - Update grails 2.0
