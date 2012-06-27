@@ -29,6 +29,9 @@ class InstanceMethods extends MappingUtils
 		// cassandra
 		clazz.metaClass.getCassandra = { clazz.cassandra }
 
+		// cassandra client used by ORM
+		clazz.metaClass.getCassandraClient = { clazz.cassandraClient }
+
 		// cassandraCluster
 		clazz.metaClass.getCassandraCluster = { clazz.cassandraCluster }
 

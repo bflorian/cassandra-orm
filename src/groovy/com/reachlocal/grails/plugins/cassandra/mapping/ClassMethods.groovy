@@ -41,6 +41,11 @@ class ClassMethods extends MappingUtils
 			ctx.getBean("cassandraOrmService")
 		}
 
+		// cassandra client used by ORM
+		clazz.metaClass.'static'.getCassandraClient = {
+			clazz.cassandra.client
+		}
+
 		// set options mapping properties
 		if (!clazz.cassandraMapping.timeToLive) {
 			clazz.cassandraMapping.timeToLive = [:]

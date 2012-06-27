@@ -72,7 +72,9 @@ class DataMapping extends MappingUtils
 			if (expandoMapName) {
 				def expandoMap = data.getProperty(expandoMapName)
 				expandoMap?.each {name, value ->
-					map[name] = value
+					if (value != null) {
+						map[name] = value
+					}
 				}
 			}
 		}
