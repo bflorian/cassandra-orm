@@ -22,6 +22,7 @@ package com.reachlocal.grails.plugins.cassandra.test
 
 import org.apache.commons.codec.binary.Base64
 import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
+import java.text.SimpleDateFormat
 
 /**
  * @author: Bob Florian
@@ -64,7 +65,7 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		
 		assertNotNull u1
 		assertNotNull u2
-		assertTrue u2 > u1
+		assertTrue u2.time > u1.time
 	}
 
 	void testReverseTimeUUID()
@@ -75,7 +76,7 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 
 		assertNotNull u1
 		assertNotNull u2
-		assertTrue u2 < u1
+		assertTrue u2.time < u1.time
 	}
 	
 	void testFromBytes()
@@ -92,6 +93,20 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		assertEquals 16, bytes.size()
 	}
 
+	void testFromTime()
+	{
+		def t0 = TF.parse("2012-07-04 10:00:00")
+		def t1 = TF.parse("2012-07-10 10:00:01")
+		def u0 = UUID.timeUUID(t0.time)
+		def u1 = UUID.timeUUID(t1.time)
+		println u0
+		println u1
+
+		assertTrue u0.time < u1.time
+		assertEquals t0.time, u0.time
+		assertEquals t1.time, u1.time
+	}
+
 	// Problem with version of Base64
 	/*
 	void testUUID_toUrlSafeString()
@@ -104,4 +119,6 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		assertEquals uuid, u2
 	}
 	*/
+
+	static TF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 }

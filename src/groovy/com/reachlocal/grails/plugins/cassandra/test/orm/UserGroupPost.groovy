@@ -21,7 +21,7 @@ package com.reachlocal.grails.plugins.cassandra.test.orm
  */
 class UserGroupPost 
 {
-	UUID uuid = UUID.randomUUID()
+	UUID uuid = UUID.timeUUID()
 	String text
 	UserGroup userGroup
 

@@ -2,6 +2,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.apache.commons.beanutils.PropertyUtils
 import org.codehaus.jackson.map.ObjectMapper
+import java.text.DecimalFormat
 
 /**
  * @author: Bob Florian

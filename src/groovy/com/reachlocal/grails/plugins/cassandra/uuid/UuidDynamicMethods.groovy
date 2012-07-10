@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.uuid
 
 import org.apache.commons.codec.binary.Base64
+import com.eaio.uuid.UUIDGen
 
 /**
  * @author: Bob Florian
@@ -42,13 +43,17 @@ class UuidDynamicMethods
 		}
 
 		UUID.metaClass.'static'.timeUUID = {
-			def u1 = new com.eaio.uuid.UUID()
-			return new UUID(u1.time, u1.clockSeqAndNode)
+			return new java.util.UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode())
 		}
 
 		UUID.metaClass.'static'.reverseTimeUUID = {
-			def u1 = new com.eaio.uuid.UUID()
-			return new UUID(Long.MAX_VALUE - u1.time, u1.clockSeqAndNode)
+			long t = createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
+			return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+		}
+
+		UUID.metaClass.'static'.timeUUID = {msec ->
+			long t = createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
+			return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
 		}
 
 		UUID.metaClass.'static'.fromBytes = {uuid ->
@@ -83,5 +88,29 @@ class UuidDynamicMethods
 		UUID.metaClass.toUrlSafeString = {
 			Base64.encodeBase64URLSafeString(delegate.bytes)
 		}
+
+		UUID.metaClass.getTime = {
+			return (delegate.timestamp() - NUM_100NS_INTERVALS_SINCE_UUID_EPOCH) / 10000 as Long
+		}
 	}
+
+	private static long createTimeFromMicros(long currentTime) {
+		long time;
+
+		// UTC time
+		long timeToUse = (currentTime * 10) + NUM_100NS_INTERVALS_SINCE_UUID_EPOCH;
+
+		// time low
+		time = timeToUse << 32;
+
+		// time mid
+		time |= (timeToUse & 0xFFFF00000000L) >> 16;
+
+		// time hi and version
+		time |= 0x1000 | ((timeToUse >> 48) & 0x0FFF); // version 1
+		return time;
+	}
+
+	static final long NUM_100NS_INTERVALS_SINCE_UUID_EPOCH = 0x01b21dd213814000L;
+	static rand = new Random()
 }

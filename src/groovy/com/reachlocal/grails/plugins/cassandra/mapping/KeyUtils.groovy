@@ -3,8 +3,9 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 import java.text.DateFormat
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
+import java.text.DecimalFormat
 
- /**
+/**
  * @author: Bob Florian
  */
 class KeyUtils extends BaseUtils
@@ -174,7 +175,14 @@ class KeyUtils extends BaseUtils
 
 	static primaryRowKey(UUID id)
 	{
-		dataProperty(id)
+		if (id.version() == 1) {
+			def time = id.time
+			def ts = time < 0L  ? INT_KEY_FMT2.format(time) : INT_KEY_FMT1.format(time)
+			return "${ts}_${id}".toString()
+		}
+		else {
+			return id.toString()
+		}
 	}
 
 	static primaryRowKey(obj) throws CassandraMappingNullIndexException
@@ -269,6 +277,9 @@ class KeyUtils extends BaseUtils
 			null
 		}
 	}
+
+	static final INT_KEY_FMT1 = new DecimalFormat("000000000000000")
+	static final INT_KEY_FMT2 = new DecimalFormat("00000000000000")
 
 	static protected ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 	static {
