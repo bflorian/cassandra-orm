@@ -141,6 +141,30 @@ class ClassMethods extends MappingUtils
 			return result
 		}
 
+		// findOrCreate(id, options?)
+		clazz.metaClass.'static'.findOrCreate = {id, opts=[:] ->
+			def result = get(id, opts)
+			if (!result) {
+				def names = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
+				if (names.size() > 1) {
+					throw new CassandraMappingException("findOrCreate() and findOrSave() methods not defined for classes with compound keys")
+				}
+				else {
+					clazz.newInstance()
+					result = clazz.newInstance()
+					result.setProperty(names[0], id)
+				}
+			}
+			return result
+		}
+
+		// findOrCreate(id, options?)
+		clazz.metaClass.'static'.findOrSave = {id, opts=[:] ->
+			def result = findOrCreate(id, opts)
+			result.save()
+			return result
+		}
+
 		// list(opts?)
 		// list(max: max_rows)
 		// list(start: id1, max: max_rows)

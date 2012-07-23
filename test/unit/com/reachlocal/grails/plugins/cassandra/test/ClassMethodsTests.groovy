@@ -128,11 +128,28 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals 3, r.favoriteSports.size()
 		assertEquals Color.BLUE, r.favoriteColor
 
+		println "\n -- findOrCreate(), existing ---"
+		r = User.findOrCreate("x5xx-xxxx-xxxx-xxxx")
+		assertNotNull r
+		assertEquals "Get Test 5", r.name
+
+		println "\n -- findOrCreate(), not existing ---"
+		r = User.findOrCreate("x5xx-xxxx-yyyy-zzzz")
+		assertNotNull r
+		assertEquals "x5xx-xxxx-yyyy-zzzz", r.uuid
+		assertNull User.get("x5xx-xxxx-yyyy-zzzz")
+
+		println "\n -- findOrSave(), not existing ---"
+		r = User.findOrSave("aaaa-xxxx-yyyy-zzz1")
+		assertNotNull r
+		assertEquals "aaaa-xxxx-yyyy-zzz1", r.uuid
+		assertNotNull User.get("aaaa-xxxx-yyyy-zzz1")
+
 		println "\n--- list() ---"
 		r = User.list()
 		persistence.printClear()
 		println r
-		assertEquals 5, r.size()
+		assertEquals 6, r.size()
 
 		println "\n--- list(max: 2) ---"
 		r = User.list(max: 2)

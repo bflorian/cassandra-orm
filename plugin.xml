@@ -1,4 +1,4 @@
-<plugin name='cassandra-orm' version='0.0.13' grailsVersion='1.3.7 &gt; *'>
+<plugin name='cassandra-orm' version='0.0.14' grailsVersion='1.3.7 &gt; *'>
   <author>Your name</author>
   <title>Plugin summary/headline</title>
   <description>\
@@ -18,8 +18,8 @@ Provides GORM-like dynamic method for persisting Groovy objects into Cassandra.
   </repositories>
   <dependencies>
     <compile>
-      <dependency group='org.codehaus.jackson' name='jackson-core-asl' version='1.9.7' />
       <dependency group='org.codehaus.jackson' name='jackson-mapper-asl' version='1.9.7' />
+      <dependency group='org.codehaus.jackson' name='jackson-core-asl' version='1.9.7' />
     </compile>
     <runtime>
       <dependency group='com.github.stephenc.eaio-uuid' name='uuid' version='3.2.0' />
