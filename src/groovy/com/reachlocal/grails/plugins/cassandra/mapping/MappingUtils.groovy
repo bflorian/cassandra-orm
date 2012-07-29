@@ -456,7 +456,7 @@ class MappingUtils extends CounterUtils
 		return bestTotalMatch
 	}
 
-	static mergeKeys(List<List> keys, Integer max)
+	static mergeKeys(List<List> keys, Integer max, Boolean reverse=false)
 	{
 		if (keys.size() == 1) {
 			def last = Math.min(keys[0].size(), max)-1
@@ -474,7 +474,7 @@ class MappingUtils extends CounterUtils
 			for (int i=0; i < max && iter.hasNext(); i++) {
 				result << iter.next()
 			}
-			return result
+			return reverse ? result.reverse() : result
 		}
 	}
 

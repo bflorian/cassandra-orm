@@ -323,6 +323,26 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 	}
 
+	void testMergeKeys_TwoReversed()
+	{
+		def keys = [
+
+				['xx1', 'xx2', 'xx5', 'yy1', 'zz3'],
+				['xx2', 'xx3', 'yy2','zz1']
+		]
+		def result = MappingUtils.mergeKeys(keys, 10, true)
+		assertEquals 8, result.size()
+		['xx1', 'xx2', 'xx3', 'xx5', 'yy1', 'yy2', 'zz1', 'zz3'].reverse().eachWithIndex {k, index ->
+			assertEquals k, result[index]
+		}
+
+		def result2 = MappingUtils.mergeKeys(keys, 5, true)
+		assertEquals 5, result2.size()
+		['xx1','xx2', 'xx3', 'xx5', 'yy1'].reverse().eachWithIndex {k, index ->
+			assertEquals k, result2[index]
+		}
+	}
+
 	void testMergeKeys_Three()
 	{
 		def keys = [
