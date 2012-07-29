@@ -498,7 +498,7 @@ class MappingUtils extends CounterUtils
 
 				columns << cols.collect{persistence.name(it)}
 			}
-			def keys = mergeKeys(columns, options.max)
+			def keys = mergeKeys(columns, options.max, options.reversed)
 
 			def result
 			def names = columnNames(options)
