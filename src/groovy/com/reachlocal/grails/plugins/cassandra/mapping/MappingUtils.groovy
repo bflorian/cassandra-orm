@@ -16,6 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
+import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+
 /**
  * @author: Bob Florian
  */
@@ -55,11 +57,13 @@ class MappingUtils extends CounterUtils
 			if (counterDef.isDateIndex) {
 				if (groupByPropNames.contains(counterDef.dateIndexProp)) {
 					groupByPropNames.remove(counterDef.dateIndexProp)
-					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
+					// TODO - should we bother doing the sort here, doesn't currently work
+					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false)
 					indexes << i
 				}
 				else if (nochunk) {
-					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
+					// TODO - should we bother doing the sort here, doesn't currently work
+					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false)
 				}
 				else {
 					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
@@ -103,7 +107,16 @@ class MappingUtils extends CounterUtils
 			}
 		}
 		if (grain) {
-			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain, timeZone, fill, sort)
+			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain, timeZone)
+		}
+		if (fill) {
+			value = DateHelper.fillDates(value, grain ?: Calendar.HOUR_OF_DAY)
+		}
+		if (sort) {
+			value = DateHelper.sort(value, reversed ? true : false)
+		}
+		else if (reversed) {
+			value = DateHelper.reverse(value)
 		}
 		return value
 	}

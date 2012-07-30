@@ -28,6 +28,66 @@ class DateHelperTests extends GroovyTestCase
 	static tf = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss')
 	static tsf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 
+	void testFillDates()
+	{
+		def hours = [
+				('2012-02-04T16'): 2,
+				//('2012-02-04T17'): 4,
+				('2012-02-04T18'): 2,
+				('2012-02-04T19'): 5,
+				//('2012-02-04T20'): 1,
+				//('2012-02-04T21'): 4,
+				('2012-02-04T22'): 1,
+				('2012-02-04T23'): 2,
+				//('2012-02-05T00'): 4,
+				//('2012-02-05T01'): 2,
+				//('2012-02-05T02'): 1,
+				('2012-02-05T04'): 2,
+				('2012-02-05T05'): 1
+		]
+
+		def hours2 = DateHelper.fillDates(hours, Calendar.HOUR_OF_DAY)
+		println hours2
+		assertEquals 2, hours2['2012-02-04T16']
+		assertEquals 2, hours2['2012-02-04T18']
+		assertEquals 5, hours2['2012-02-04T19']
+		assertEquals 1, hours2['2012-02-04T22']
+		assertEquals 2, hours2['2012-02-04T23']
+		assertEquals 2, hours2['2012-02-05T04']
+		assertEquals 1, hours2['2012-02-05T05']
+		assertTrue hours2.keySet().contains('2012-02-04T17')
+		assertTrue hours2.keySet().contains('2012-02-04T20')
+		assertTrue hours2.keySet().contains('2012-02-04T21')
+		assertTrue hours2.keySet().contains('2012-02-05T00')
+		assertTrue hours2.keySet().contains('2012-02-05T01')
+		assertTrue hours2.keySet().contains('2012-02-05T02')
+		assertTrue hours2.keySet().contains('2012-02-05T05')
+	}
+
+	void testFillDatesDay()
+	{
+		def hours = [
+				('2012-01-15'): 2,
+				('2012-02-01'): 2,
+				('2012-02-02'): 5,
+				('2012-02-04'): 1,
+				('2012-02-05'): 2,
+				('2012-02-10'): 2,
+				('2012-02-15'): 1
+		]
+
+		def hours2 = DateHelper.fillDates(hours, Calendar.DAY_OF_MONTH)
+		println hours2
+		assertEquals 32, hours2.size()
+		assertEquals 2, hours2['2012-01-15']
+		assertEquals 2, hours2['2012-02-01']
+		assertEquals 5, hours2['2012-02-02']
+		assertEquals 1, hours2['2012-02-04']
+		assertEquals 2, hours2['2012-02-05']
+		assertEquals 2, hours2['2012-02-10']
+		assertEquals 1, hours2['2012-02-15']
+	}
+
 	void testLastDayOfMonth()
 	{
 		def cal = Calendar.getInstance()

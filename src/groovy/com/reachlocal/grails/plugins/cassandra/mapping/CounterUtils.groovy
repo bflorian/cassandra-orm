@@ -388,10 +388,11 @@ class CounterUtils extends KeyUtils
 		cols
 	}
 
-	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone, fill, sort)
+	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone)
 	{
 		def toFormat = dateFormat(grain, timeZone)
 		def result = DateHelper.rollUpCounterDates(map, fromFormat, toFormat)
+		/*
 		if (fill) {
 			// TODO - implement
 			if (!sort) {
@@ -418,6 +419,7 @@ class CounterUtils extends KeyUtils
 			}
 			result = rollUp
 		}
+		*/
 		return result
 	}
 }

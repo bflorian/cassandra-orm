@@ -300,12 +300,28 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCountsGroupedByBirthDate() ---"
+		println "\n--- User.getCountsGroupByBirthDate() ---"
 		r = User.getCountsGroupByBirthDate()
 		persistence.printClear()
 		println r
 
-		println "\n--- User.getCountsGroupedByBirthDate() ---"
+		println "\n--- User.getCountsGroupByBirthDate(grain: Calendar.DAY_OF_MONTH, reversed:  true) ---"
+		r = User.getCountsGroupByBirthDate(grain: Calendar.DAY_OF_MONTH, reversed:  true)
+		persistence.printClear()
+		println r
+		def keys = r.keySet().toList()
+		assertEquals '1991-11-12', keys[0]
+		assertEquals '1962-06-10', keys[-1]
+
+		println "\n--- User.getCountsGroupByBirthDate(grain: Calendar.DAY_OF_MONTH, sort: true, reversed:  true) ---"
+		r = User.getCountsGroupByBirthDate(grain: Calendar.DAY_OF_MONTH, sort: true, reversed:  true)
+		persistence.printClear()
+		println r
+		keys = r.keySet().toList()
+		assertEquals '1991-11-12', keys[0]
+		assertEquals '1962-06-10', keys[-1]
+
+		println "\n--- User.getCountsTotal() ---"
 		r = User.getCountsTotal()
 		persistence.printClear()
 		println r

@@ -1,7 +1,9 @@
 package com.reachlocal.grails.plugins.cassandra.utils;
 
+import java.security.InvalidParameterException;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -9,6 +11,81 @@ import java.util.*;
  */
 public class DateHelper
 {
+	public static Map<String, Object> fillDates(Map<String, Object> source, int grain)
+			throws ParseException
+	{
+		DateFormat format;
+		switch (grain) {
+			case Calendar.DAY_OF_MONTH:
+				format = new SimpleDateFormat("yyyy-MM-dd");
+				break;
+			case Calendar.MONTH:
+				format = new SimpleDateFormat("yyyy-MM");
+				break;
+			case Calendar.YEAR:
+				format = new SimpleDateFormat("yyyy");
+				break;
+			case Calendar.HOUR_OF_DAY:
+				format = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+				break;
+			default:
+				throw new InvalidParameterException("Specified time grain is not supported.  Must be HOUR_OF_DAY, DAY_OF_MONTH, MONTH, or YEAR");
+		}
+
+		Set<String> keys = source.keySet();
+		Iterator<String> iter = keys.iterator();
+		String minKey = "z";
+		String maxKey = "";
+		while (iter.hasNext()) {
+			String key = iter.next();
+			if (key.compareTo(minKey) < 0) {
+				minKey = key;
+			}
+			else if (key.compareTo(maxKey) > 0) {
+				maxKey = key;
+			}
+		}
+
+		Date date = format.parse(minKey);
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+
+		Date endDate = format.parse(maxKey);
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		while (!date.after(endDate)) {
+			String key = format.format(date);
+			result.put(key, source.get(key));
+			cal.add(grain, 1);
+			date = cal.getTime();
+		}
+		return result;
+	}
+
+	static public Map<String, Object> sort(Map<String, Object> source, boolean reverse)
+	{
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		List<String> keys = new ArrayList<String>(source.keySet());
+		Collections.sort(keys);
+		if (reverse) {
+			Collections.reverse(keys);
+		}
+		for (String key: keys) {
+			result.put(key, source.get(key));
+		}
+		return result;
+	}
+
+	static public Map<String, Object> reverse(Map<String, Object> source)
+	{
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		List<String> keys = new ArrayList<String>(source.keySet());
+		Collections.reverse(keys);
+		for (String key: keys) {
+			result.put(key, source.get(key));
+		}
+		return result;
+	}
+
 	static public boolean isLastDayOfMonth(Calendar cal)
 	{
 		int m1 = cal.get(Calendar.MONTH);
