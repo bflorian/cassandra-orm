@@ -121,10 +121,12 @@ class MockPersistenceDataStructure
 		def row = cf[rowKey] ?: [:]
 
 		columnMap.each {k,v ->
-			def ttl = ttlMap[k]
 			row[k] = v
-			if (ttl) {
-				row["${k}_TTL"] = ttl
+			if (ttlMap instanceof Number) {
+				row["${k}_TTL"] = ttlMap
+			}
+			else if (ttlMap[k]) {
+				row["${k}_TTL"] = ttlMap[k]
 			}
 		}
 		cf[rowKey] = row

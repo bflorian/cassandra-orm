@@ -142,7 +142,7 @@ class InstanceMethods extends MappingUtils
 				}
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
-						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols)
+						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, cassandraMapping.timeToLive)
 					}
 				}
 
@@ -235,7 +235,7 @@ class InstanceMethods extends MappingUtils
 				// do the additions
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
-						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols)
+						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, cassandraMapping.timeToLive)
 					}
 				}
 

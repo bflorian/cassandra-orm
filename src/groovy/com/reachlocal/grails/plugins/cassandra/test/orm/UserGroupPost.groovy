@@ -23,11 +23,13 @@ class UserGroupPost
 {
 	UUID uuid = UUID.timeUUID()
 	String text
+	String formContent
 	UserGroup userGroup
 
 	static belongsTo = [userGroup: UserGroup]
 
 	static cassandraMapping = [
-			unindexedPrimaryKey: 'uuid'
+			unindexedPrimaryKey: 'uuid',
+			timeToLive: [formContent: 48 * 3600]
 	]
 }
