@@ -63,6 +63,7 @@ class InstanceMethods extends MappingUtils
 		// save()
 		clazz.metaClass.save = {args ->
 			def thisObj = delegate
+			def ttl = args?.ttl ?: cassandraMapping.timeToLive
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks)
 
@@ -107,7 +108,7 @@ class InstanceMethods extends MappingUtils
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(thisObj)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.timeToLive)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
 
 				// manage index rows
 				def indexRows = [:]
@@ -142,7 +143,7 @@ class InstanceMethods extends MappingUtils
 				}
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
-						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, cassandraMapping.timeToLive)
+						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
 					}
 				}
 
@@ -157,8 +158,9 @@ class InstanceMethods extends MappingUtils
 		}
 
 		// insert(properties)
-		clazz.metaClass.insert = {properties ->
+		clazz.metaClass.insert = {properties, timeToLive=null ->
 			def thisObj = delegate
+			def ttl = timeToLive ?: cassandraMapping.timeToLive
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks)
 
@@ -212,7 +214,7 @@ class InstanceMethods extends MappingUtils
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(properties)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, cassandraMapping.timeToLive)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
 
 				// add new explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
@@ -235,7 +237,7 @@ class InstanceMethods extends MappingUtils
 				// do the additions
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
-						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, cassandraMapping.timeToLive)
+						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
 					}
 				}
 

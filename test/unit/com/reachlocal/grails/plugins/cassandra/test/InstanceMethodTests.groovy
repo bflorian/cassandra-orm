@@ -39,6 +39,11 @@ class InstanceMethodTests extends OrmTestCase
 				uuid: "group2-zzzz-zzzz",
 				name: "CUG")
 
+		def userGroup3 = new UserGroup(
+				uuid: "group3-zzzz-zzzz",
+				name: "GUG",
+				color: "Green")
+
 		def user = new User(
 				uuid: "user1-zzzz-zzzz",
 				name: "Jane",
@@ -109,8 +114,20 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.save()
 		persistence.printClear()
 
+		println "\n--- userGroup3.save(ttl: [color:  20]) ---"
+		userGroup3.save(ttl: [color:  20])
+		persistence.printClear()
+
+		println "\n--- userGroup3.save(ttl: 60) ---"
+		userGroup3.save(ttl: 60)
+		persistence.printClear()
+
 		println "\n--- userGroup.insert(name: JUG2) ---"
 		userGroup.insert(name: 'JUG2')
+		persistence.printClear()
+
+		println "\n--- userGroup.insert(name: JUG2) ---"
+		userGroup3.insert([name: 'GUG2'], 75)
 		persistence.printClear()
 
 		println "\n--- userGroup.color [EXPANDO] ---"
