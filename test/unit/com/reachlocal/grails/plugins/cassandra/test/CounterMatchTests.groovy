@@ -16,17 +16,16 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
-import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
-import grails.test.GrailsUnitTestCase
-import java.text.SimpleDateFormat
 import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
+import org.junit.Test;
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
  */
-class CounterMatchTests extends GrailsUnitTestCase
+class CounterMatchTests
 {
+	@Test
 	void testFindExact1()
 	{
 		def counters = [
@@ -42,6 +41,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 1, result.findBy.size()
 	}
 
+	@Test
 	void testFindExact2()
 	{
 		def counters = [
@@ -59,6 +59,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 2, result.findBy.size()
 	}
 
+	@Test
 	void testFindBest1()
 	{
 		def counters = [
@@ -75,6 +76,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 1, result.findBy.size()
 	}
 
+	@Test
 	void testFindBest1Fail()
 	{
 		def counters = [
@@ -105,6 +107,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 1, result.findBy.size()
 	}
 
+	@Test
 	void testFindExactAfterBest()
 	{
 		def counters = [
@@ -121,6 +124,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 2, result.findBy.size()
 	}
 
+	@Test
 	void testFindExactBeforeBest()
 	{
 		def counters = [
@@ -137,6 +141,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 2, result.findBy.size()
 	}
 
+	@Test
 	void testFindBestGroupOptimum1()
 	{
 		def counters = [
@@ -153,6 +158,7 @@ class CounterMatchTests extends GrailsUnitTestCase
 		assertEquals 1, result.findBy.size()
 	}
 
+	@Test
 	void testFindBestGroupOptimum2()
 	{
 		def counters = [

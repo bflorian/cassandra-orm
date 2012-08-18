@@ -17,7 +17,6 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
-import com.reachlocal.grails.plugins.cassandra.utils.TimeZoneAdjuster
 
 /**
  * @author: Bob Florian

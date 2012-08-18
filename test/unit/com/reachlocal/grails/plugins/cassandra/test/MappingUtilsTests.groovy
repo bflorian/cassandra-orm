@@ -20,24 +20,29 @@ import grails.test.GrailsUnitTestCase
 import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
 import java.text.SimpleDateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
  */
 class MappingUtilsTests extends GrailsUnitTestCase
 {
+	@Test
 	void testStringValue()
 	{
 		assertEquals '"value"', MappingUtils.stringValue("value")
 		assertEquals '123', MappingUtils.stringValue(123)
 	}
 
+	@Test
 	void testMethodForPropertyName()
 	{
 		assertEquals "getSomeOtherProperty", MappingUtils.methodForPropertyName("get", "someOtherProperty")
 		assertEquals "setX", MappingUtils.methodForPropertyName("set", "x")
 	}
 
+	@Test
 	void testPropertyListFromMethodName()
 	{
 		assertEquals "name", MappingUtils.propertyListFromMethodName("Name")[0]
@@ -45,17 +50,20 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals "rank", MappingUtils.propertyListFromMethodName("NameAndRank")[1]
 	}
 
+	@Test
 	void testCollection()
 	{
 		assertEquals "name", MappingUtils.collection("name")[0]
 		assertEquals "rank", MappingUtils.collection(["rank"])[0]
 	}
 
+	@Test
 	void testMakeComposite()
 	{
 		assertEquals "one__two", MappingUtils.makeComposite(["one","two"])
 	}
 
+	@Test
 	void testRollUpCounterDates()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
@@ -83,6 +91,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 10, days['2012-02-05']
 	}
 
+	@Test
 	void testRollUpCounterDatesMap()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
@@ -111,6 +120,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 5, days['2012-02-05'].direct
 	}
 
+	@Test
 	void testGroupByLevel0()
 	{
 		def hours = [
@@ -136,6 +146,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 5, result['2012-02-04T19']
 	}
 
+	@Test
 	void testGroupByLevel1()
 	{
 		def hours = [
@@ -164,6 +175,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 3, result.organic
 	}
 
+	@Test
 	void testGroupByLevel0RollupDates()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
@@ -193,11 +205,13 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 6, days['2012-02-05']
 	}
 
+	@Test
 	void testPrimaryKeyRowKey()
 	{
 		assertEquals "this", MappingUtils.primaryKeyIndexRowKey()
 	}
 
+	@Test
 	void testObjectIndexRowKey_Map()
 	{
 		assertEquals "this?name=Joe", MappingUtils.objectIndexRowKey("name", [name:"Joe", color:"blue", zip:"20832", gender:"F"])
@@ -240,6 +254,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 2, sourceCnt.TripAdvisor
 	}
 */
+	@Test
 	void testFindIndex()
 	{
 		def indexes = ["eventType",["eventType","subType"],["eventType","subType","source"], ["eventType","subType","category"]]
@@ -270,6 +285,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertNull result
 	}
 
+	@Test
 	void testFindCounter()
 	{
 		def counters = [
@@ -284,6 +300,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals "city", result.groupBy[0]
 	}
 
+	@Test
 	void testMergeKeys_One()
 	{
 		def keys = [
@@ -303,6 +320,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 	}
 
+	@Test
 	void testMergeKeys_Two()
 	{
 		def keys = [
@@ -323,6 +341,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 	}
 
+	@Test
 	void testMergeKeys_TwoReversed()
 	{
 		def keys = [
@@ -343,6 +362,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 	}
 
+	@Test
 	void testMergeKeys_Three()
 	{
 		def keys = [
@@ -364,6 +384,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 	}
 
+	@Test
 	void testRollUpCounterDatesMapTiming()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")

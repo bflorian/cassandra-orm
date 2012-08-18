@@ -18,28 +18,31 @@ package com.reachlocal.grails.plugins.cassandra.test
 
 import com.reachlocal.grails.plugins.cassandra.utils.TimeZoneAdjuster
 import java.text.SimpleDateFormat
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
  */
-class TimeZoneAdjusterTests extends GroovyTestCase
+class TimeZoneAdjusterTests
 {
 	static tf = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss')
 	def dataTimeZone = TimeZone.getTimeZone("GMT");
 	def clientTimeZone = TimeZone.getTimeZone("America/New_York")
-	public TimeZoneAdjusterTests()
-	{
 
-	}
-
+	@Test
 	void testConstructorDay()
 	{
 		def start = tf.parse("2012-03-01 00:00:00")
 		def finish = tf.parse("2012-03-31 23:59:59")
 		def adjuster = new TimeZoneAdjuster(start, finish, dataTimeZone, clientTimeZone, Calendar.DAY_OF_MONTH );
-		println adjuster
+		println adjuster.rowKeys
+		println adjuster.columnNames
+		assertEquals 32, adjuster.rowKeys.size()
+
 	}
 
+	@Test
 	void testConstructorMonth()
 	{
 		def start = tf.parse("2012-02-01 00:00:00")
@@ -48,6 +51,7 @@ class TimeZoneAdjusterTests extends GroovyTestCase
 		println adjuster
 	}
 
+	@Test
 	void testMergeMonth()
 	{
 		def primary = [
@@ -90,6 +94,7 @@ class TimeZoneAdjusterTests extends GroovyTestCase
 		assertEquals 499, counts['2012-06']
 	}
 
+	@Test
 	void testMergeDay()
 	{
 		def primary = [
@@ -124,6 +129,7 @@ class TimeZoneAdjusterTests extends GroovyTestCase
 		assertEquals 494, counts['2012-03-12']
 	}
 
+	@Test
 	void testMergeMonthMap()
 	{
 		def primary = [

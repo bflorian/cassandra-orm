@@ -20,14 +20,16 @@ import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
 import java.text.SimpleDateFormat
-import com.reachlocal.grails.plugins.cassandra.test.orm.Color;
-
+import com.reachlocal.grails.plugins.cassandra.test.orm.Color
+import org.junit.Test;
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
  */
 public class ClassMethodsTests extends OrmTestCase
 {
+	@Test
 	void testAll()
 	{
 		initialize()

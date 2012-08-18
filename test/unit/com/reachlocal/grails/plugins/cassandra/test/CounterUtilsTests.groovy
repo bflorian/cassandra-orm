@@ -19,8 +19,9 @@ package com.reachlocal.grails.plugins.cassandra.test
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.mapping.CounterUtils
 import java.text.SimpleDateFormat
-import com.reachlocal.grails.plugins.cassandra.mapping.BaseUtils
 import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
+import org.junit.Test;
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
@@ -29,7 +30,6 @@ class CounterUtilsTests extends OrmTestCase
 {
 	protected void setUp()
 	{
-		super.setUp()
 		initialize()
 		new User(uuid: 'x1', period: 'Month', gender: 'Male', state: 'MD', city: 'Olney', birthDate:  DAY_FORMAT.parse('1980-03-15')).save()
 		new User(uuid: 'x2', period: 'Year', gender: 'Male', state: 'MD', city: 'Rockville', birthDate:  DAY_FORMAT.parse('1981-03-15')).save()
@@ -47,6 +47,7 @@ class CounterUtilsTests extends OrmTestCase
 		new User(uuid: 'y7', period: 'Year', gender: 'Female', state: 'CA', city: 'Pleasanton', birthDate:  DAY_FORMAT.parse('1989-03-15')).save()
 	}
 
+	@Test
 	void testGetCounterColumnsSingleFilter()
 	{
 		def cols = CounterUtils.getCounterColumns(User, [[state: 'MD']], [], null,
@@ -58,6 +59,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCounterColumnsMultiFilter()
 	{
 		def cols = CounterUtils.getCounterColumns(User, [[state: 'MD'],[state: 'VA']], ['state'], null,
@@ -66,6 +68,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCounterColumnsMultiFilterDate()
 	{
 		def cols = CounterUtils.getDateCounterColumns(User, [[gender: 'Male'],[gender: 'Female']], ['gender'], null,
@@ -74,6 +77,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCounterColumnsSingleFilterDate2()
 	{
 		def cols = CounterUtils.getDateCounterColumns(User, [[gender: 'Male']], [], null,
@@ -87,6 +91,7 @@ class CounterUtilsTests extends OrmTestCase
 		//println g2
 	}
 
+	@Test
 	void testGetCounterColumnsMultiFilterDate2()
 	{
 		def cols = CounterUtils.getDateCounterColumns(User, [[gender: 'Male'],[gender: 'Female']], ['gender'], null,
@@ -104,6 +109,7 @@ class CounterUtilsTests extends OrmTestCase
 		//println g4
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByOneColumn()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -115,6 +121,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByTwoColumns()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -126,6 +133,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByOneRowOneColumn()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -137,6 +145,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByOneRowTwoColumns()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -148,6 +157,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByOneRowTwoColumnsReversed()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -159,6 +169,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByTwoRowsTwoColumns()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -170,6 +181,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByTwoRowsTwoColumnsReversed()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -181,6 +193,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByZeroRowsTwoColumnsWithDate()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -192,6 +205,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByOneRowTwoColumnsWithDate()
 	{
 		def cols = MappingUtils.getCounters(User,
@@ -203,6 +217,7 @@ class CounterUtilsTests extends OrmTestCase
 		println cols
 	}
 
+	@Test
 	void testGetCountersMultiWherGroupByOneRowTwoColumnsWithDateAndGrain()
 	{
 		def cols = MappingUtils.getCounters(User,

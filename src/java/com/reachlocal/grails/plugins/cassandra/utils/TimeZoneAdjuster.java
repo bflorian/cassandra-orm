@@ -13,8 +13,6 @@ public class TimeZoneAdjuster
 {
 	private TimeZone dataTimeZone;
 	private TimeZone clientTimeZone;
-	private int grain;
-	private Calendar calendar;
 	private long offsetHours;
 	private Set<String> rowKeys = new LinkedHashSet<String>();
 	private List<String> columnNames = new ArrayList<String>();
@@ -24,12 +22,11 @@ public class TimeZoneAdjuster
 
 	public TimeZoneAdjuster(Date start, Date finish, TimeZone dataTimeZone, TimeZone clientTimeZone, int grain)
 	{
+		Calendar calendar = Calendar.getInstance(dataTimeZone);
+		calendar.setTime(start);
+
 		this.dataTimeZone = dataTimeZone;
 		this.clientTimeZone = clientTimeZone;
-		this.grain = grain;
-
-		this.calendar = Calendar.getInstance(dataTimeZone);
-		this.calendar.setTime(start);
 
 		this.keyFormat = grain == Calendar.DAY_OF_MONTH ? new SimpleDateFormat("yyyy-MM-dd") : new SimpleDateFormat("yyyy-MM");
 		this.keyFormat.setTimeZone(dataTimeZone);
@@ -84,6 +81,9 @@ public class TimeZoneAdjuster
 		}
 	}
 
+	/**
+	 * Returns true if this
+	 */
 	public boolean getHasOffset()
 	{
 		return offsetHours != 0;

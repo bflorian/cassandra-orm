@@ -20,15 +20,17 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
+import static org.junit.Assert.*
 import org.apache.commons.codec.binary.Base64
-import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 import java.text.SimpleDateFormat
+import org.junit.Test
 
 /**
  * @author: Bob Florian
  */
-class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
+class UuidDynamicMethodsIntegrationTests
 {
+	@Test
 	void testInteger_getBytes()
 	{
 		def bytes = Integer.MAX_VALUE.bytes
@@ -41,6 +43,7 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		assertEquals(-1, bytes[3])
 	}
 
+	@Test
 	void testLong_getBytes()
 	{
 		def bytes = Long.MAX_VALUE.bytes
@@ -57,6 +60,7 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		assertEquals(-1, bytes[7])
 	}
 
+	@Test
 	void testTimeUUID()
 	{
 		def u1 = UUID.timeUUID()
@@ -68,6 +72,7 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		assertTrue u2.time > u1.time
 	}
 
+	@Test
 	void testReverseTimeUUID()
 	{
 		def u1 = UUID.reverseTimeUUID()
@@ -78,7 +83,8 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		assertNotNull u2
 		assertTrue u2.time < u1.time
 	}
-	
+
+	@Test
 	void testFromBytes()
 	{
 		def list = (Long.MAX_VALUE.bytes as List) + (Long.MAX_VALUE.bytes as List) 
@@ -86,13 +92,15 @@ class UuidDynamicMethodsIntegrationTests extends GroovyTestCase
 		println uuid
 		assertEquals "7fffffff-ffff-ffff-7fff-ffffffffffff", uuid.toString()
 	}
-	
+
+	@Test
 	void testUUID_getBytes()
 	{
 		def bytes = UUID.randomUUID().bytes
 		assertEquals 16, bytes.size()
 	}
 
+	@Test
 	void testFromTime()
 	{
 		def t0 = TF.parse("2012-07-04 10:00:00")

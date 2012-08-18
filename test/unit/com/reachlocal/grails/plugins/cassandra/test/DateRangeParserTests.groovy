@@ -18,6 +18,8 @@ package com.reachlocal.grails.plugins.cassandra.test
 
 import java.text.SimpleDateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
+import org.junit.Test;
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
@@ -28,6 +30,7 @@ class DateRangeParserTests extends GroovyTestCase
 	static tf = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss')
 	static tsf = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss.SSS')
 
+	@Test
 	void testOne_Hour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -46,6 +49,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[0].finish
 	}
 
+	@Test
 	void testOne_Day()
 	{
 		def cal1 = Calendar.getInstance()
@@ -64,6 +68,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[0].finish
 	}
 
+	@Test
 	void testOne_Month()
 	{
 		def cal1 = Calendar.getInstance()
@@ -82,6 +87,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[0].finish
 	}
 
+	@Test
 	void testTwo_HourDay()
 	{
 		def cal1 = Calendar.getInstance()
@@ -103,6 +109,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[1].finish
 	}
 
+	@Test
 	void testTwo_HourMonth()
 	{
 		def cal1 = Calendar.getInstance()
@@ -124,6 +131,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[1].finish
 	}
 
+	@Test
 	void testTwo_DayHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -145,6 +153,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[1].finish
 	}
 
+	@Test
 	void testThree_HourDayHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -169,6 +178,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testThree_HourDayMonth()
 	{
 		def cal1 = Calendar.getInstance()
@@ -193,6 +203,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testThree_HourMonthHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -217,6 +228,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testThree_HourMonthDay()
 	{
 		def cal1 = Calendar.getInstance()
@@ -241,6 +253,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testThree_DayMonthHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -265,6 +278,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testThree_DayMonthDay()
 	{
 		def cal1 = Calendar.getInstance()
@@ -289,6 +303,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testThree_MonthDayHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -313,6 +328,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[2].finish
 	}
 
+	@Test
 	void testFour_HourDayMonthDay()
 	{
 		def cal1 = Calendar.getInstance()
@@ -340,6 +356,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[3].finish
 	}
 
+	@Test
 	void testFour_HourDayMonthHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -367,6 +384,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[3].finish
 	}
 
+	@Test
 	void testFour_HourMonthDayHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -394,6 +412,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[3].finish
 	}
 
+	@Test
 	void testFour_DayMonthDayHour()
 	{
 		def cal1 = Calendar.getInstance()
@@ -421,6 +440,7 @@ class DateRangeParserTests extends GroovyTestCase
 		assertEquals cal2.time, ranges[3].finish
 	}
 
+	@Test
 	void testAllFive()
 	{
 		def cal1 = Calendar.getInstance()

@@ -18,6 +18,8 @@ package com.reachlocal.grails.plugins.cassandra.test
 
 import java.text.SimpleDateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+import org.junit.Test;
+import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
@@ -28,6 +30,7 @@ class DateHelperTests extends GroovyTestCase
 	static tf = new SimpleDateFormat('yyyy-MM-dd HH:mm:ss')
 	static tsf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 
+	@Test
 	void testFillDates()
 	{
 		def hours = [
@@ -64,6 +67,7 @@ class DateHelperTests extends GroovyTestCase
 		assertTrue hours2.keySet().contains('2012-02-05T05')
 	}
 
+	@Test
 	void testFillDatesDay()
 	{
 		def hours = [
@@ -88,6 +92,7 @@ class DateHelperTests extends GroovyTestCase
 		assertEquals 1, hours2['2012-02-15']
 	}
 
+	@Test
 	void testLastDayOfMonth()
 	{
 		def cal = Calendar.getInstance()
@@ -101,6 +106,7 @@ class DateHelperTests extends GroovyTestCase
 		assertFalse DateHelper.isLastDayOfMonth(cal)
 	}
 
+	@Test
 	void testSetBeginningOfWholeMonth()
 	{
 		def cal = Calendar.getInstance()
@@ -127,6 +133,7 @@ class DateHelperTests extends GroovyTestCase
 		assertEquals cal.get(Calendar.MONTH), cal2.get(Calendar.MONTH)
 	}
 
+	@Test
 	void testSetEndOfWholeMonth()
 	{
 		def cal = Calendar.getInstance()
@@ -154,6 +161,7 @@ class DateHelperTests extends GroovyTestCase
 
 	}
 
+	@Test
 	void testSetBeginningOfWholeDay()
 	{
 		def cal = Calendar.getInstance()
@@ -175,6 +183,7 @@ class DateHelperTests extends GroovyTestCase
 		assertEquals cal.get(Calendar.DAY_OF_MONTH)+1, cal2.get(Calendar.DAY_OF_MONTH)
 	}
 
+	@Test
 	void testSetEndOfWholeDay()
 	{
 		def cal = Calendar.getInstance()
@@ -202,6 +211,7 @@ class DateHelperTests extends GroovyTestCase
 
 	}
 
+	@Test
 	void testNoMonth()
 	{
 		def cal1 = Calendar.getInstance()
@@ -217,6 +227,7 @@ class DateHelperTests extends GroovyTestCase
 		assertTrue cal1.time.after(cal2.time)
 	}
 
+	@Test
 	void testRollUpCounterDates()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
@@ -245,6 +256,7 @@ class DateHelperTests extends GroovyTestCase
 		assertEquals 10, days['2012-02-05']
 	}
 
+	@Test
 	void testRollUpCounterDatesMap()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
@@ -272,6 +284,7 @@ class DateHelperTests extends GroovyTestCase
 		assertEquals 12, days['2012-02-04'].campaign
 	}
 
+	@Test
 	void testRollUpCounterDatesMapTiming()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
