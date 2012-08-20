@@ -65,7 +65,7 @@ class InstanceMethods extends MappingUtils
 			def thisObj = delegate
 			def ttl = args?.ttl ?: cassandraMapping.timeToLive
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
-				def m = cassandra.persistence.prepareMutationBatch(ks)
+				def m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 
 				// see if it exists
 				def id = thisObj.id
@@ -103,7 +103,7 @@ class InstanceMethods extends MappingUtils
 				// commit deletion of relationship keys
 				if (keyDeleted) {
 					cassandra.persistence.execute(m)
-					m = cassandra.persistence.prepareMutationBatch(ks)
+					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				}
 
 				// insert this object
@@ -158,11 +158,11 @@ class InstanceMethods extends MappingUtils
 		}
 
 		// insert(properties)
-		clazz.metaClass.insert = {properties, timeToLive=null ->
+		clazz.metaClass.insert = {properties, timeToLive=null, consistencyLevel=null ->
 			def thisObj = delegate
 			def ttl = timeToLive ?: cassandraMapping.timeToLive
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
-				def m = cassandra.persistence.prepareMutationBatch(ks)
+				def m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
 
 				// check one-to-one relationship properties
 				def keyDeleted = false
@@ -181,7 +181,7 @@ class InstanceMethods extends MappingUtils
 				// commit deletion of relationship keys
 				if (keyDeleted) {
 					cassandra.persistence.execute(m)
-					m = cassandra.persistence.prepareMutationBatch(ks)
+					m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
 				}
 
 				// manage index rows
@@ -253,13 +253,13 @@ class InstanceMethods extends MappingUtils
 		}
 
 		// delete()
-		clazz.metaClass.delete = {
+		clazz.metaClass.delete = {args=[:] ->
 			def thisObj = delegate
 			def thisObjId = thisObj.id
 			def thisObjClass = thisObj.class
 			def persistence = cassandra.persistence
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
-				def m = persistence.prepareMutationBatch(ks)
+				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				persistence.deleteRow(m, thisObj.columnFamily, thisObjId)
 
 				if (clazz.metaClass.hasMetaProperty('hasMany')) {
@@ -319,12 +319,12 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// addTo...
-				clazz.metaClass."${addToName}" = { item ->
+				clazz.metaClass."${addToName}" = { item, consistencyLevel=null ->
 					def thisObj = delegate
 					safeSetProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
-						def m = cassandra.persistence.prepareMutationBatch(ks)
+						def m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
 
 						// set belongsTo value
 						safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
@@ -350,13 +350,13 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// removeFrom...
-				clazz.metaClass."${removeFromName}" = { item ->
+				clazz.metaClass."${removeFromName}" = { item, consistencyLevel=null ->
 					def thisObj = delegate
 					def persistence = cassandra.persistence
 					safeSetProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
-						def m = persistence.prepareMutationBatch(ks)
+						def m = persistence.prepareMutationBatch(ks, consistencyLevel)
 
 						// remove join row from this object to the item
 						removeJoinRow(persistence, m, clazz, thisObj, item.class, item, propName)
@@ -417,12 +417,13 @@ class InstanceMethods extends MappingUtils
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 
 						cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+							def consistencyLevel = null //TODO - this OK?
 							def colName = "${propName}${KEY_SUFFIX}".toString()
-							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
+							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName], consistencyLevel)
 							def col = persistence.getColumn(cols, colName)
 							if (col) {
 								def pid = persistence.stringValue(col)
-								def data = persistence.getRow(ks, cf, pid)
+								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
 							    value = cassandra.mapping.newObject(data)
 							}
 						}
@@ -446,8 +447,9 @@ class InstanceMethods extends MappingUtils
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 
 						cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+							def consistencyLevel = null //TODO - this OK?
 							def colName = "${propName}${KEY_SUFFIX}".toString()
-							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName])
+							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName], consistencyLevel)
 							def col = persistence.getColumn(cols, colName)
 							if (col) {
 								result = persistence.stringValue(col)

@@ -68,7 +68,7 @@ public class CounterHelper
 		return resultKeyValues;
 	}
 
-	static List<String> mergeDateKeys(List<String> rowKeys, List<String> columnKeys)
+	static public List<String> mergeDateKeys(List<String> rowKeys, List<String> columnKeys)
 	{
 		if (rowKeys.size() > 0) {
 			List<String> result = new ArrayList<String>(rowKeys.size() + columnKeys.size());
@@ -88,7 +88,7 @@ public class CounterHelper
 		}
 	}
 
-	static List<String> mergeNonDateKeys(List<String> rowKeys, List<String> columnKeys)
+	static public List<String> mergeNonDateKeys(List<String> rowKeys, List<String> columnKeys)
 	{
 		if (rowKeys.size() > 0) {
 			List<String> result = new ArrayList<String>(rowKeys.size() + columnKeys.size());

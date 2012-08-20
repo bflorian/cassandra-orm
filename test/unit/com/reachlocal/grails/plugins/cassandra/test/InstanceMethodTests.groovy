@@ -117,6 +117,11 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.save()
 		persistence.printClear()
 
+		println "\n--- userGroup.save(consistencyLevel: 'CL_LOCAL_QUORUM') ---"
+		userGroup.save(consistencyLevel: 'CL_LOCAL_QUORUM')
+		assertEquals 'CL_LOCAL_QUORUM', persistence.firstCall.args[-1]
+		persistence.printClear()
+
 		println "\n--- userGroup3.save(ttl: [color:  20]) ---"
 		userGroup3.save(ttl: [color:  20])
 		persistence.printClear()

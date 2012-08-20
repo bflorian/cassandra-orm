@@ -31,21 +31,21 @@ class MockPersistenceMethods
 		"${name}_CFO".toString()
 	}
 
-	def getRow(Object client, Object columnFamily, Object rowKey)
+	def getRow(Object client, Object columnFamily, Object rowKey, Object consistencyLevel)
 	{
 		logOp "getRow", columnFamily, rowKey
 		data.getRowColumns(columnFamily, rowKey)
 	}
 
-	def getRows(Object client, Object columnFamily, Collection rowKeys)
+	def getRows(Object client, Object columnFamily, Collection rowKeys, Object consistencyLevel)
 	{
-		logOp "getRows", columnFamily, rowKeys
+		logOp "getRows", columnFamily, rowKeys, consistencyLevel
 		data.multigetRowColumns(columnFamily, rowKeys)
 	}
 
-	def getRowsColumnSlice(Object client, Object columnFamily, Collection rowKeys, Collection columnNames)
+	def getRowsColumnSlice(Object client, Object columnFamily, Collection rowKeys, Collection columnNames, Object consistencyLevel)
 	{
-		logOp "getRowsColumnSlice", columnFamily, rowKeys, columnNames
+		logOp "getRowsColumnSlice", columnFamily, rowKeys, columnNames, consistencyLevel
 		def rows = data.multigetRowColumns(columnFamily, rowKeys)
 		def result = [:]
 		rows.each {key, row ->
@@ -58,55 +58,55 @@ class MockPersistenceMethods
 		return result
 	}
 
-	def getRowsColumnRange(Object client, Object columnFamily, Collection rowKeys, Object start, Object finish, Boolean reversed, Integer max)
+	def getRowsColumnRange(Object client, Object columnFamily, Collection rowKeys, Object start, Object finish, Boolean reversed, Integer max, Object consistencyLevel)
 	{
-		logOp "getRowsColumnRange", columnFamily, rowKeys, start, finish, reversed, max
+		logOp "getRowsColumnRange", columnFamily, rowKeys, start, finish, reversed, max, consistencyLevel
 		data.multigetRowColumnRange(columnFamily, rowKeys, start, finish, reversed, max)
 	}
 
-	def getRowsWithEqualityIndex(client, columnFamily, properties, max)
+	def getRowsWithEqualityIndex(client, columnFamily, properties, max, Object consistencyLevel)
 	{
 		logOp "getRowsWithEqualityIndex", columnFamily, properties, max
 		// TODO ??
 		[]
 	}
 
-	def countRowsWithEqualityIndex(client, columnFamily, properties)
+	def countRowsWithEqualityIndex(client, columnFamily, properties, Object consistencyLevel)
 	{
-		logOp "countRowsWithEqualityIndex", columnFamily, properties
+		logOp "countRowsWithEqualityIndex", columnFamily, properties, consistencyLevel
 		// TODO ??
 		0
 	}
 
-	def getColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish, Boolean reversed, Integer max)
+	def getColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish, Boolean reversed, Integer max, Object consistencyLevel)
 	{
-		logOp "getColumnRange", columnFamily, rowKey, start, finish, reversed, max
+		logOp "getColumnRange", columnFamily, rowKey, start, finish, reversed, max, consistencyLevel
 		data.getColumnRange(columnFamily, rowKey, start, finish, reversed, max)
 	}
 
-	def countColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish)
+	def countColumnRange(Object client, Object columnFamily, Object rowKey, Object start, Object finish, Object consistencyLevel)
 	{
-		logOp "countColumnRange", columnFamily, rowKey, start, finish
+		logOp "countColumnRange", columnFamily, rowKey, start, finish, consistencyLevel
 		data.getColumnRange(columnFamily, rowKey, start, finish, false, Integer.MAX_VALUE).size()
 	}
 
-	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames)
+	def getColumnSlice(Object client, Object columnFamily, Object rowKey, Collection columnNames, Object consistencyLevel)
 	{
 		logOp "getColumnSlice", columnFamily, rowKey, columnNames
 		data.getColumnSlice(columnFamily, rowKey, columnNames)
 
 	}
 
-	def getColumn(Object client, Object columnFamily, Object rowKey, Object columnName)
+	def getColumn(Object client, Object columnFamily, Object rowKey, Object columnName, Object consistencyLevel)
 	{
-		logOp "getColumnSlice", columnFamily, rowKey, columnName
+		logOp "getColumnSlice", columnFamily, rowKey, columnName, consistencyLevel
 		def list = data.getColumnSlice(columnFamily, rowKey, [columnName])
 		list ? list[0] : null
 	}
 	
-	def prepareMutationBatch(client)
+	def prepareMutationBatch(client, Object consistencyLevel)
 	{
-		logOp "prepareMutationBatch"
+		logOp "prepareMutationBatch", consistencyLevel
 		"mutation"
 	}
 
@@ -124,7 +124,7 @@ class MockPersistenceMethods
 
 	void putColumn(mutationBatch, columnFamily, rowKey, name, value, ttl)
 	{
-		logOp "putColumn", columnFamily, rowKey, name, value
+		logOp "putColumn", columnFamily, rowKey, name, value, ttl
 		data.putColumn(columnFamily, rowKey, name, value, ttl)
 	}
 
@@ -136,7 +136,7 @@ class MockPersistenceMethods
 
 	void putColumns(mutationBatch, columnFamily, rowKey, columnMap, ttlMap)
 	{
-		logOp "putColumns", columnFamily, rowKey, columnMap
+		logOp "putColumns", columnFamily, rowKey, columnMap, ttlMap
 		data.putColumns(columnFamily, rowKey, columnMap, ttlMap)
 	}
 
@@ -206,21 +206,20 @@ class MockPersistenceMethods
 
 	void logOp(String msg)
 	{
-		calls << msg
+		calls <<  [method: msg, args: [], message: msg]
 	}
 
 	void logOp(String method, Object... args)
 	{
 		def argStr = args.collect{it.toString()}.join(", ")
 		def s = "$method(${argStr})"
-		//println s
-		calls << s
+		calls << [method: method, args: args, message: s]
 	}
 	
 	void print(out=System.out)
 	{
 		calls.eachWithIndex {it, index ->
-			out.println "${index}: ${it}"
+			out.println "${index}: ${it.message}"
 		}
 	}
 
@@ -228,7 +227,6 @@ class MockPersistenceMethods
 	{
 		print out
 		data.print(out)
-		//out.println MD5Codec.encode(calls.collect{it.toString()}.join("\n"))
 		clear()
 	}
 	
@@ -237,5 +235,20 @@ class MockPersistenceMethods
 	void clear()
 	{
 		calls = []
+	}
+
+	def getFirstCall()
+	{
+		calls[0]
+	}
+
+	def getLastCall()
+	{
+		calls[-1]
+	}
+
+	def getCallHash()
+	{
+		MD5Codec.encode(calls.collect{it.toString()}.join("\n"))
 	}
 }

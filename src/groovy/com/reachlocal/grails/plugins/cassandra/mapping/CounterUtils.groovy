@@ -67,7 +67,7 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed)
+	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -89,7 +89,8 @@ class CounterUtils extends KeyUtils
 						start ? counterColumnKey(start, UTC_HOUR_FORMAT) : '',
 						finish ? counterColumnKey(finish, UTC_HOUR_FORMAT) : '',
 						reversed ?: false,
-						MAX_COUNTER_COLUMNS)
+						MAX_COUNTER_COLUMNS,
+						consistencyLevel)
 
 				if (columnFilter) {
 					cols.each {col ->
@@ -120,7 +121,7 @@ class CounterUtils extends KeyUtils
 		return result
 	}
 
-	static getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sortResult)
+	static getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sortResult, consistencyLevel)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -135,7 +136,7 @@ class CounterUtils extends KeyUtils
 				def rowKeyValues = multiRowKeyValues(filter, multiWhereKeys)
 
 				if (!start) {
-					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter)
+					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter, consistencyLevel)
 					if (day) {
 						start = UTC_MONTH_FORMAT.parse(day)
 					}
@@ -151,7 +152,8 @@ class CounterUtils extends KeyUtils
 							filter,
 							start,
 							finish ?: new Date(),
-							Calendar.HOUR_OF_DAY)
+							Calendar.HOUR_OF_DAY,
+							consistencyLevel)
 
 					if (columnFilter) {
 						cols.each {col ->
@@ -179,7 +181,7 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
+	static getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, consistencyLevel)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -190,7 +192,7 @@ class CounterUtils extends KeyUtils
 			def firstStart = start
 			if (!firstStart) {
 				rowFilterList.each {filter ->
-					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter)
+					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter, consistencyLevel)
 					if (day) {
 						def date = UTC_MONTH_FORMAT.parse(day)
 						if (firstStart == null || date.before(firstStart)) {
@@ -217,7 +219,8 @@ class CounterUtils extends KeyUtils
 							filter,
 							dateRange.start,
 							dateRange.finish,
-							dateRange.grain)
+							dateRange.grain,
+							consistencyLevel)
 
 					if (columnFilter) {
 						cols.each {col ->
@@ -240,22 +243,22 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumns(persistence, ks, cf, findBy, groupBy, filter, start, finish, grain)
+	static getDateCounterColumns(persistence, ks, cf, findBy, groupBy, filter, start, finish, grain, consistencyLevel)
 	{
 		def cols
 		if (grain == Calendar.MONTH) {
-			cols = getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+			cols = getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 		}
 		else if (grain == Calendar.DAY_OF_MONTH) {
-			cols = getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+			cols = getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 		}
 		else {
-			cols = getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+			cols = getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 		}
 		return cols
 	}
 
-	static private getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	static private getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
 		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
 		def rowKey = counterRowKey(findBy, groupKeys, filter)
@@ -267,10 +270,11 @@ class CounterUtils extends KeyUtils
 				start ? counterColumnKey(start, UTC_MONTH_FORMAT) : null,
 				finish ? counterColumnKey(finish, UTC_MONTH_FORMAT)+END_CHAR : null,
 				false,
-				MAX_COUNTER_COLUMNS))
+				MAX_COUNTER_COLUMNS,
+				consistencyLevel))
 	}
 
-	static private getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	static private getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
 		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM-dd')
 		def rowKey = counterRowKey(findBy, groupKeys, filter)
@@ -282,10 +286,11 @@ class CounterUtils extends KeyUtils
 				start ? counterColumnKey(start, UTC_DAY_FORMAT) : null,
 				finish ? counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
 				false,
-				MAX_COUNTER_COLUMNS))
+				MAX_COUNTER_COLUMNS,
+				consistencyLevel))
 	}
 
-	static private getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	static private getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
 		def groupKeys = groupBy //makeGroupKeyList(groupBy, "yyyy-MM-dd'T'HH")
 		def rowKey = counterRowKey(findBy, groupKeys, filter)
@@ -297,11 +302,12 @@ class CounterUtils extends KeyUtils
 				start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
 				finish ? counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
 				false,
-				MAX_COUNTER_COLUMNS))
+				MAX_COUNTER_COLUMNS,
+				consistencyLevel))
 	}
 
 
-	static private getShardedDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	static private getShardedDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
@@ -326,10 +332,11 @@ class CounterUtils extends KeyUtils
 				start ? counterColumnKey(start, UTC_DAY_FORMAT) : null,
 				finish ? counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
 				false,
-				MAX_COUNTER_COLUMNS), persistence)
+				MAX_COUNTER_COLUMNS,
+				consistencyLevel), persistence)
 	}
 
-	static private getShardedHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish)
+	static private getShardedHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
 		def cal = Calendar.getInstance(UTC)
 		cal.setTime(start)
@@ -354,15 +361,16 @@ class CounterUtils extends KeyUtils
 				start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
 				finish ? counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
 				false,
-				MAX_COUNTER_COLUMNS), persistence)
+				MAX_COUNTER_COLUMNS,
+				consistencyLevel), persistence)
 
 	}
 
-	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter)
+	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter, consistencyLevel)
 	{
 		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
 		def rowKey = counterRowKey(findBy, groupKeys, filter)
-		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1)
+		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1, consistencyLevel)
 		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
 	}
 

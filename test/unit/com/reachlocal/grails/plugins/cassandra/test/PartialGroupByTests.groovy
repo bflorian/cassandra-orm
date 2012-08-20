@@ -54,7 +54,7 @@ class PartialGroupByTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  'Male'],
 				['state'],
-				null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null)
 
 		println cols
 		assertEquals 3, cols.size()
@@ -70,7 +70,7 @@ class PartialGroupByTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  'Female', period: 'Month'],
 				['city'],
-				null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null)
 
 		println cols
 		assertEquals 3, cols.size()
@@ -86,7 +86,7 @@ class PartialGroupByTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  'Male'],
 				['birthDate'],
-				null, null, null, null, Calendar.YEAR, null, null)
+				null, null, null, null, Calendar.YEAR, null, null, null)
 
 		println cols
 		assertEquals 4, cols.size()

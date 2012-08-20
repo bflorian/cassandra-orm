@@ -134,7 +134,7 @@ class ClassMethods extends MappingUtils
 			def result = null
 			def rowKey = primaryRowKey(id)
 			cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
-				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey)
+				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
 				result = cassandra.mapping.newObject(data)
 			}
 			return result
@@ -182,10 +182,12 @@ class ClassMethods extends MappingUtils
 						options.start,
 						options.finish,
 						options.reversed,
-						options.max)
+						options.max,
+						opts.consistencyLevel
+				)
 
 				def keys = columns.collect{cassandra.persistence.name(it)}
-				def rows = cassandra.persistence.getRows(ks, columnFamily, keys)
+				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
 				def result = cassandra.mapping.makeResult(keys, rows, options)
 				return result
 			}
@@ -221,7 +223,7 @@ class ClassMethods extends MappingUtils
 			getCounters(
 					clazz, cassandraMapping.counters, params.where ?: [:], params.groupBy ?: [],
 					params.start, params.finish, params.sort, params.reversed, params.grain,
-					params.timeZone, params.fill)
+					params.timeZone, params.fill, params.consistencyLevel)
 		}
 
 		// getCounts(where: [usid:'xxx'])
@@ -230,7 +232,7 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'where' parameter must be specified")
 			}
 			else {
-				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.groupBy ?: [], params.start, params.finish)
+				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.groupBy ?: [], params.start, params.finish, params.consistencyLevel)
 			}
 		}
 
@@ -306,10 +308,10 @@ class ClassMethods extends MappingUtils
 							properties[it] = args[i]
 						}
 						if (count) {
-							result = cassandra.persistence.countRowsWithEqualityIndex(ks, columnFamily, properties)
+							result = cassandra.persistence.countRowsWithEqualityIndex(ks, columnFamily, properties, opts.consistencyLevel)
 						}
 						else {
-							def rows = cassandra.persistence.getRowsWithEqualityIndex(ks, columnFamily, properties, options.max)
+							def rows = cassandra.persistence.getRowsWithEqualityIndex(ks, columnFamily, properties, options.max, opts.consistencyLevel)
 							result = cassandra.mapping.makeResult(rows, options)
 						}
 					}
@@ -356,13 +358,13 @@ class ClassMethods extends MappingUtils
 				}
 
 				if (total) {
-					return getCountersForTotals(clazz, cassandraMapping.counters, whereMap, groupByPropList, opts.start, opts.finish)
+					return getCountersForTotals(clazz, cassandraMapping.counters, whereMap, groupByPropList, opts.start, opts.finish, opts.consistencyLevel)
 				}
 				else {
 					return getCounters(
 							clazz, cassandraMapping.counters, whereMap, groupByPropList,
 							opts.start, opts.finish, opts.sort, opts.reversed, opts.grain,
-							opts.timeZone, opts.fill)
+							opts.timeZone, opts.fill, opts.consistencyLevel)
 				}
 			}
 			else {

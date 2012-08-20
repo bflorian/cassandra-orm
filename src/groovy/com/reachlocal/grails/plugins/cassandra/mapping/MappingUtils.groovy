@@ -30,8 +30,10 @@ class MappingUtils extends CounterUtils
 			List counterDefs,
 			Map whereFilter,
 			byPropNames,
-			start, finish, sort, reversed, grain, timeZone, fill, nochunk=false)
+			start, finish, sort, reversed, grain, timeZone, fill, consistencyLevel)
 	{
+		def nochunk=false
+
 		// TODO - combine with rowFilterList
 		def multiWhereKeys = []
 		whereFilter.each {key, values ->
@@ -58,20 +60,20 @@ class MappingUtils extends CounterUtils
 				if (groupByPropNames.contains(counterDef.dateIndexProp)) {
 					groupByPropNames.remove(counterDef.dateIndexProp)
 					// TODO - should we bother doing the sort here, doesn't currently work
-					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false)
+					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false, consistencyLevel)
 					indexes << i
 				}
 				else if (nochunk) {
 					// TODO - should we bother doing the sort here, doesn't currently work
-					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false)
+					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false, consistencyLevel)
 				}
 				else {
-					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish)
+					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, consistencyLevel)
 				}
 				i = 1
 			}
 			else {
-				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed)
+				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel)
 			}
 
 			groupByPropNames.clone().each {gbpName ->
@@ -100,10 +102,10 @@ class MappingUtils extends CounterUtils
 		}
 		else {
 			if (counterDef.isDateIndex)  {
-				value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort)
+				value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort, consistencyLevel)
 			}
 			else {
-				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed)
+				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel)
 			}
 		}
 		if (grain) {
@@ -125,12 +127,12 @@ class MappingUtils extends CounterUtils
 			Class clazz,
 			List counterDefs,
 			Map whereFilter,
-			byPropNames, start, finish)
+			byPropNames, start, finish, consistencyLevel)
 	{
 		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames))
 		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
 		def columnFilter = counterColumnFilter(whereFilter, counterDef)
-		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish)
+		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish, consistencyLevel)
 		//return mapTotal(cols)
 		return cols.total()
 	}
@@ -507,7 +509,8 @@ class MappingUtils extends CounterUtils
 						options.start,
 						options.finish,
 						options.reversed,
-						options.max)
+						options.max,
+						opts.consistencyLevel)
 
 				columns << cols.collect{persistence.name(it)}
 			}
@@ -516,11 +519,11 @@ class MappingUtils extends CounterUtils
 			def result
 			def names = columnNames(options)
 			if (names) {
-				def rows = persistence.getRowsColumnSlice(ks, clazz.columnFamily, keys, names)
+				def rows = persistence.getRowsColumnSlice(ks, clazz.columnFamily, keys, names, opts.consistencyLevel)
 				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
 			}
 			else {
-				def rows = persistence.getRows(ks, clazz.columnFamily, keys)
+				def rows = persistence.getRows(ks, clazz.columnFamily, keys, opts.consistencyLevel)
 				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
 			}
 			return result
@@ -541,7 +544,8 @@ class MappingUtils extends CounterUtils
 						indexCf,
 						rowKey,
 						options.start,
-						options.finish)
+						options.finish,
+						opts.consistencyLevel)
 
 				total += count
 			}
@@ -561,16 +565,16 @@ class MappingUtils extends CounterUtils
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
-			def keys = persistence.getColumnRange(ks, indexCF, indexKey, options.start, options.finish, options.reversed, options.max)
+			def keys = persistence.getColumnRange(ks, indexCF, indexKey, options.start, options.finish, options.reversed, options.max, opts.consistencyLevel)
 					.collect{persistence.name(it)}
 
 			def names = columnNames(options)
 			if (names) {
-				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names)
+				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names, opts.consistencyLevel)
 				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
 			}
 			else {
-				def rows = persistence.getRows(ks, itemColumnFamily, keys)
+				def rows = persistence.getRows(ks, itemColumnFamily, keys, opts.consistencyLevel)
 				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
 				if (belongsToPropName) {
 					result.each {
@@ -591,7 +595,7 @@ class MappingUtils extends CounterUtils
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
-			result = persistence.countColumnRange(ks, indexCF, indexKey, options.start, options.finish)
+			result = persistence.countColumnRange(ks, indexCF, indexKey, options.start, options.finish, opts.consistencyLevel)
 		}
 		return result
 	}

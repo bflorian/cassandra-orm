@@ -54,7 +54,7 @@ public class ClassMethodsTests extends OrmTestCase
 				gender: 'Female',
 				city: 'Reston',
 				favoriteColor: Color.RED,
-				birthDate:  DAY_FORMAT.parse('1985-09-14')).save()
+				birthDate:  DAY_FORMAT.parse('1985-09-14')).save(consistencyLevel: "CL_LOCAL_QUORUM")
 
 		new User(
 				uuid: "x3xx-xxxx-xxxx-xxxx",
