@@ -35,7 +35,7 @@ class CassandraOrmGrailsPlugin
 	def authorEmail = ""
 	def title = "Plugin summary/headline"
 	def description = '''\\
-Provides GORM-like dynamic method for persisting Groovy objects into Cassandra.
+Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra.
 '''
 
 	// URL to the plugin's documentation
