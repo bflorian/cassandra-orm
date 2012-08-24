@@ -29,6 +29,7 @@ class UserGroupPost
 	static belongsTo = [userGroup: UserGroup]
 
 	static cassandraMapping = [
+			cluster: 'mockCluster',
 			unindexedPrimaryKey: 'uuid',
 			timeToLive: [formContent: 48 * 3600]
 	]

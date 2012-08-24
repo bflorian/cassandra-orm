@@ -91,7 +91,7 @@ class DataMapping extends MappingUtils
 			rows.each{result << it.columns.getColumnByName(options.column)}
 		}
 		else {
-			rows.each{result << newObject(it.columns)}
+			rows.each{result << newObject(it.columns, options.cluster)}
 		}
 		return result
 	}
@@ -112,7 +112,7 @@ class DataMapping extends MappingUtils
 			keys.each{result << persistence.byteArrayValue(persistence.getColumn(persistence.getRow(rows, it), options.rawColumn))}
 		}
 		else {
-			keys.each{result << newObject(persistence.getRow(rows, it))}
+			keys.each{result << newObject(persistence.getRow(rows, it), options.cluster)}
 		}
 		return result
 	}
@@ -135,7 +135,7 @@ class DataMapping extends MappingUtils
 		return map
 	}
 
-	def newObject(cols)
+	def newObject(cols, cluster=null)
 	{
 		def obj = null
 		if (cols) {
@@ -166,6 +166,10 @@ class DataMapping extends MappingUtils
 					expandoMap[name] = objectProperty(expandoMapType, col)
 				}
 			}
+		}
+
+		if (cluster && obj) {
+			obj.setProperty(CLUSTER_PROP, cluster)
 		}
 		return obj
 	}

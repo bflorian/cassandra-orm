@@ -67,14 +67,15 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel)
+	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, clusterName)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
 		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
+		def cluster = clusterName ?: clazz.cassandraCluster
 
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 
 			def result = new NestedHashMap()
 			filterList.each {filter ->
@@ -121,14 +122,15 @@ class CounterUtils extends KeyUtils
 		return result
 	}
 
-	static getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sortResult, consistencyLevel)
+	static getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sortResult, consistencyLevel, clusterName)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
 		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
+		def cluster = clusterName ?: clazz.cassandraCluster
 
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 
 			def result = new NestedHashMap()
 			rowFilterList.each {filter ->
@@ -143,7 +145,7 @@ class CounterUtils extends KeyUtils
 				}
 
 				if (start) {
-					def cols = getDateCounterColumns(
+					def cols = doGetDateCounterColumns(
 							persistence,
 							ks,
 							cf,
@@ -181,14 +183,15 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, consistencyLevel)
+	static getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, consistencyLevel, clusterName)
 	{
 		def cf = clazz.counterColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def groupBy = collection(counterDef.groupBy)
 		def matchIndexes = columnFilter ? CounterHelper.filterMatchIndexes(columnFilter, groupBy) : null
+		def cluster = clusterName ?: clazz.cassandraCluster
 
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def firstStart = start
 			if (!firstStart) {
 				rowFilterList.each {filter ->
@@ -210,7 +213,7 @@ class CounterUtils extends KeyUtils
 				def rowKeyValues = multiRowKeyValues(filter, multiWhereKeys)
 
 				dateRanges.each{dateRange ->
-					def cols = getDateCounterColumns(
+					def cols = doGetDateCounterColumns(
 							persistence,
 							ks,
 							cf,
@@ -243,7 +246,7 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
-	static getDateCounterColumns(persistence, ks, cf, findBy, groupBy, filter, start, finish, grain, consistencyLevel)
+	static doGetDateCounterColumns(persistence, ks, cf, findBy, groupBy, filter, start, finish, grain, consistencyLevel)
 	{
 		def cols
 		if (grain == Calendar.MONTH) {

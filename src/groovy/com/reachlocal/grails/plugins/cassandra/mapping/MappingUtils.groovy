@@ -30,9 +30,10 @@ class MappingUtils extends CounterUtils
 			List counterDefs,
 			Map whereFilter,
 			byPropNames,
-			start, finish, sort, reversed, grain, timeZone, fill, consistencyLevel)
+			start, finish, sort, reversed, grain, timeZone, fill, consistencyLevel, clusterName)
 	{
 		def nochunk=false
+		def cluster = clusterName ?: clazz.cassandraCluster
 
 		// TODO - combine with rowFilterList
 		def multiWhereKeys = []
@@ -60,20 +61,20 @@ class MappingUtils extends CounterUtils
 				if (groupByPropNames.contains(counterDef.dateIndexProp)) {
 					groupByPropNames.remove(counterDef.dateIndexProp)
 					// TODO - should we bother doing the sort here, doesn't currently work
-					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false, consistencyLevel)
+					value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false, consistencyLevel, cluster)
 					indexes << i
 				}
 				else if (nochunk) {
 					// TODO - should we bother doing the sort here, doesn't currently work
-					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false, consistencyLevel)
+					value = getDateCounterColumns (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, false, consistencyLevel, cluster)
 				}
 				else {
-					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, consistencyLevel)
+					value = getDateCounterColumnsForTotals (clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, consistencyLevel, cluster)
 				}
 				i = 1
 			}
 			else {
-				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel)
+				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, cluster)
 			}
 
 			groupByPropNames.clone().each {gbpName ->
@@ -102,10 +103,10 @@ class MappingUtils extends CounterUtils
 		}
 		else {
 			if (counterDef.isDateIndex)  {
-				value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort, consistencyLevel)
+				value = getDateCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, sort, consistencyLevel, cluster)
 			}
 			else {
-				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel)
+				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, cluster)
 			}
 		}
 		if (grain) {
@@ -127,12 +128,13 @@ class MappingUtils extends CounterUtils
 			Class clazz,
 			List counterDefs,
 			Map whereFilter,
-			byPropNames, start, finish, consistencyLevel)
+			byPropNames, start, finish, consistencyLevel, clusterName)
 	{
+		def cluster = clusterName ?: clazz.cassandraCluster
 		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames))
 		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
 		def columnFilter = counterColumnFilter(whereFilter, counterDef)
-		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish, consistencyLevel)
+		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish, consistencyLevel, cluster)
 		//return mapTotal(cols)
 		return cols.total()
 	}
@@ -498,7 +500,8 @@ class MappingUtils extends CounterUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
+		def cluster = opts.cluster ?: clazz.cassandraCluster
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def columns = []
 			filterList.each {filter ->
 				def rowKey = objectIndexRowKey(index, filter)
@@ -535,7 +538,8 @@ class MappingUtils extends CounterUtils
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
-		clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks ->
+		def cluster = opts.cluster ?: clazz.cassandraCluster
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def total = 0
 			filterList.each {filter ->
 				def rowKey = objectIndexRowKey(index, filter)
@@ -556,7 +560,7 @@ class MappingUtils extends CounterUtils
 	static getByMappedObject(thisObj, propName, itemClass, opts=[:], listClass=LinkedHashSet)
 	{
 		def result = []
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = addOptionDefaults(opts, MAX_ROWS, thisObj.getProperty(CLUSTER_PROP))
 		def itemColumnFamily = itemClass.columnFamily
 		def persistence = thisObj.cassandra.persistence
 		def belongsToPropName = itemClass.belongsToPropName(thisObj.getClass())

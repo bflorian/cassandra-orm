@@ -30,6 +30,7 @@ class UserGroupMeeting
 	static belongsTo = [userGroup: UserGroup]
 
 	static cassandraMapping = [
+			cluster: 'mockCluster',
 			primaryKey: ['date','uuid'],
 			timeToLive: 24 * 3600
 	]

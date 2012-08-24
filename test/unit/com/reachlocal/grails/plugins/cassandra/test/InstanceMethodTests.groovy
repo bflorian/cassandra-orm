@@ -81,6 +81,13 @@ class InstanceMethodTests extends OrmTestCase
 				gender:  "Male",
 				username:  "johne")
 
+		// separate cluster
+		def userGroup1a = new UserGroup(
+				uuid: "group1-zzzz-2222",
+				name: "JUG",
+				color: "Blue")
+
+
 		def meeting1 = new UserGroupMeeting(date:  new Date())
 		def meeting2 = new UserGroupMeeting(date:  new Date()+1)
 		def meeting3 = new UserGroupMeeting(date:  new Date()+2)
@@ -166,6 +173,20 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.addToUsers(user3)
 		persistence.printClear()
 
+
+		println "\n--- userGroup1a.save(cluster: 'mockCluster2') ---"
+		userGroup1a.save(cluster: 'mockCluster2')
+		persistence.printClear()
+		userGroup1a.addToUsers(user)
+		userGroup1a.addToUsers(user2)
+		persistence.printClear()
+		def u = userGroup1a.users
+		assertEquals 2, u.size()
+		def g2 = UserGroup.get("group1-zzzz-2222")
+		assertNull g2
+		g2 = UserGroup.get("group1-zzzz-2222", [cluster: 'mockCluster2'])
+		assertNotNull g2
+		assertEquals 2, g2.users.size()
 
 		println "\n--- userGroup2.save() ---"
 		userGroup2.save()

@@ -133,9 +133,10 @@ class ClassMethods extends MappingUtils
 		clazz.metaClass.'static'.get = {id, opts=[:] ->
 			def result = null
 			def rowKey = primaryRowKey(id)
-			cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+			def cluster = opts.cluster ?: cassandraCluster
+			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
-				result = cassandra.mapping.newObject(data)
+				result = cassandra.mapping.newObject(data, opts.cluster)
 			}
 			return result
 		}
@@ -152,6 +153,9 @@ class ClassMethods extends MappingUtils
 					clazz.newInstance()
 					result = clazz.newInstance()
 					result.setProperty(names[0], id)
+					if (opts.cluster) {
+						result.setProperty(CLUSTER_PROP, opts.cluster)
+					}
 				}
 			}
 			return result
@@ -174,7 +178,8 @@ class ClassMethods extends MappingUtils
 		clazz.metaClass.'static'.list = {opts=[:] ->
 
 			def options = addOptionDefaults(opts, MAX_ROWS)
-			cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+			def cluster = opts.cluster ?: cassandraCluster
+			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def columns = cassandra.persistence.getColumnRange(
 						ks,
 						indexColumnFamily,
@@ -223,7 +228,7 @@ class ClassMethods extends MappingUtils
 			getCounters(
 					clazz, cassandraMapping.counters, params.where ?: [:], params.groupBy ?: [],
 					params.start, params.finish, params.sort, params.reversed, params.grain,
-					params.timeZone, params.fill, params.consistencyLevel)
+					params.timeZone, params.fill, params.consistencyLevel, params.cluster)
 		}
 
 		// getCounts(where: [usid:'xxx'])
@@ -232,7 +237,7 @@ class ClassMethods extends MappingUtils
 				throw new IllegalArgumentException("The 'where' parameter must be specified")
 			}
 			else {
-				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.groupBy ?: [], params.start, params.finish, params.consistencyLevel)
+				getCountersForTotals(clazz, cassandraMapping.counters, params.where, params.groupBy ?: [], params.start, params.finish, params.consistencyLevel, params.cluster)
 			}
 		}
 
@@ -270,6 +275,7 @@ class ClassMethods extends MappingUtils
 			def str = null
 			def result = null
 			def opts = (args && args[-1] instanceof Map) ? args[-1].clone() : [:]
+
 			if (name.startsWith("findAllBy") && name.size() > 9 && args.size() > 0) {
 				str = name - "findAllBy"
 			}
@@ -302,7 +308,8 @@ class ClassMethods extends MappingUtils
 				else {
 					// find by query expression
 					def options = addOptionDefaults(opts, MAX_ROWS)
-					cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					def cluster = opts.cluster ?: cassandraCluster
+					cassandra.withKeyspace(keySpace, cluster) {ks ->
 						def properties = [:]
 						propertyList.eachWithIndex {it, i ->
 							properties[it] = args[i]
@@ -358,13 +365,13 @@ class ClassMethods extends MappingUtils
 				}
 
 				if (total) {
-					return getCountersForTotals(clazz, cassandraMapping.counters, whereMap, groupByPropList, opts.start, opts.finish, opts.consistencyLevel)
+					return getCountersForTotals(clazz, cassandraMapping.counters, whereMap, groupByPropList, opts.start, opts.finish, opts.consistencyLevel, opts.cluster)
 				}
 				else {
 					return getCounters(
 							clazz, cassandraMapping.counters, whereMap, groupByPropList,
 							opts.start, opts.finish, opts.sort, opts.reversed, opts.grain,
-							opts.timeZone, opts.fill, opts.consistencyLevel)
+							opts.timeZone, opts.fill, opts.consistencyLevel, opts.cluster)
 				}
 			}
 			else {

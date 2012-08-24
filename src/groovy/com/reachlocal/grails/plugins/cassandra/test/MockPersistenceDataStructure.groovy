@@ -21,7 +21,18 @@ package com.reachlocal.grails.plugins.cassandra.test
  */
 class MockPersistenceDataStructure
 {
-	def data = [:]
+	def allData = [:]
+	def currentCluster = ""
+
+	def getData()
+	{
+		def r = allData[currentCluster]
+		if (r == null) {
+			r = [:]
+			allData[currentCluster] = r
+		}
+		return r
+	}
 
 	def getRowColumns(columnFamily, rowKey)
 	{
@@ -165,10 +176,13 @@ class MockPersistenceDataStructure
 
 	void print(out)
 	{
-		data.each {cfk, cfv ->
-			println "${cfk} =>"
-			cfv.each {rowk, rowv ->
-				println "    ${rowk} => ${rowv}"
+		allData.each {cluster, data ->
+			println "${cluster} =>"
+			data.each {cfk, cfv ->
+				println "    ${cfk} =>"
+				cfv.each {rowk, rowv ->
+					println "        ${rowk} => ${rowv}"
+				}
 			}
 		}
 	}

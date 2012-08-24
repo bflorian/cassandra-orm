@@ -25,6 +25,11 @@ class MockPersistenceMethods
 {
 	MockPersistenceDataStructure data = new MockPersistenceDataStructure()
 
+	void setCluster(cluster)
+	{
+		data.currentCluster = cluster
+	}
+
 	def columnFamily(String name)
 	{
 		logOp "columnFamily", name

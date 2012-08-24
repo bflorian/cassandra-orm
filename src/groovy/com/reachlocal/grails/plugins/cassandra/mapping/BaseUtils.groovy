@@ -12,11 +12,12 @@ class BaseUtils
 	static protected final int MAX_ROWS = 2000
 	static protected final INDEX_OPTIONS = ["start","finish","keys"]
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
-	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS
+	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS  + ["cluster"]
 	static protected final CLASS_NAME_KEY = '_class_name_'
-	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","counterColumnFamily","metaClass","keySpace","cassandraCluster"] as Set
 	static protected final KEY_SUFFIX = "_key"
 	static protected final DIRTY_SUFFIX = "_dirty"
+	static protected final CLUSTER_PROP = "_cassandra_cluster_"
+	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","counterColumnFamily","metaClass","keySpace","cassandraCluster",DIRTY_SUFFIX,CLUSTER_PROP] as Set
 
 	static String stringValue(String s)
 	{
@@ -102,11 +103,12 @@ class BaseUtils
 		}
 	}
 
-	static Map addOptionDefaults(options, defaultCount)
+	static Map addOptionDefaults(options, defaultCount, cluster=null)
 	{
 		Map result = [
 				reversed : options.reversed ? true : false,
 				max : options.max ?: defaultCount,
+				cluster: cluster
 		]
 		ALL_OPTIONS.each {
 			if (options[it]) {

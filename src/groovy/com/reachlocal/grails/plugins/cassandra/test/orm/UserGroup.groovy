@@ -32,6 +32,7 @@ class UserGroup
 	static hasMany = [users: User, meetings: UserGroupMeeting, posts: UserGroupPost]
 
 	static cassandraMapping = [
+			cluster: 'mockCluster',
 			primaryKey: 'uuid',
 			expandoMap: 'data'
 	]

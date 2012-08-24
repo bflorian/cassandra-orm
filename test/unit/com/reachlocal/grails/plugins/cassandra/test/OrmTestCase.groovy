@@ -34,6 +34,7 @@ class OrmTestCase
 	def persistence
 	def client
 	def ctx
+	def clusters = [:]
 
 	void initialize()
 	{
@@ -41,7 +42,10 @@ class OrmTestCase
 		persistence = new MockPersistenceMethods()
 		client = new CassandraOrmService(
 				client: new Expando(
-						withKeyspace: {keyspace, cluster, block -> block("context")},
+						withKeyspace: {keyspace, cluster, block ->
+							persistence.cluster = cluster
+							block("context")
+						},
 				),
 				persistence: persistence,
 				mapping: new DataMapping(persistence: persistence)

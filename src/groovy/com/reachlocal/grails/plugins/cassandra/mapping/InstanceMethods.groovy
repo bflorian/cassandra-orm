@@ -33,7 +33,7 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.getCassandraClient = { clazz.cassandraClient }
 
 		// cassandraCluster
-		clazz.metaClass.getCassandraCluster = { clazz.cassandraCluster }
+		clazz.metaClass.getCassandraCluster = { delegate.getProperty(CLUSTER_PROP) ?: clazz.cassandraCluster }
 
 		// keySpace
 		clazz.metaClass.getKeySpace = { clazz.keySpace }
@@ -46,6 +46,9 @@ class InstanceMethods extends MappingUtils
 
 		// counterColumnFamily()
 		clazz.metaClass.getCounterColumnFamily = { clazz.counterColumnFamily }
+
+		// cluster property
+		clazz.metaClass."${CLUSTER_PROP}" = null
 
 		// cassandraKey
 		clazz.metaClass.getId = {
@@ -64,12 +67,16 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.save = {args ->
 			def thisObj = delegate
 			def ttl = args?.ttl ?: cassandraMapping.timeToLive
-			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
+			if (args?.cluster) {
+				thisObj.setProperty(CLUSTER_PROP, args.cluster)
+			}
+			def cluster = thisObj.cassandraCluster
+			cassandra.withKeyspace(thisObj.keySpace, cluster) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 
 				// see if it exists
 				def id = thisObj.id
-				def oldObj = args?.nocheck ? null : clazz.get(id)
+				def oldObj = args?.nocheck ? null : clazz.get(id, [cluster:cluster])
 
 				// one-to-one relationships
 				def keyDeleted = false
@@ -94,7 +101,7 @@ class InstanceMethods extends MappingUtils
 						}
 						else {
 							if (args?.cascade) {
-								pValue.save()
+								pValue.save(cluster: thisObj.getProperty(CLUSTER_PROP))
 							}
 						}
 					}
@@ -321,6 +328,10 @@ class InstanceMethods extends MappingUtils
 				// addTo...
 				clazz.metaClass."${addToName}" = { item, consistencyLevel=null ->
 					def thisObj = delegate
+					if (thisObj.getProperty(CLUSTER_PROP)) {
+						item.setProperty(CLUSTER_PROP, thisObj.getProperty(CLUSTER_PROP))
+					}
+
 					safeSetProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
@@ -424,7 +435,7 @@ class InstanceMethods extends MappingUtils
 							if (col) {
 								def pid = persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
-							    value = cassandra.mapping.newObject(data)
+							    value = cassandra.mapping.newObject(data, delegate.getProperty(CLUSTER_PROP))
 							}
 						}
 					}
