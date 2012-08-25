@@ -1,0 +1,4 @@
+The Cassandra ORM Plugin provides GORM-like dynamic methods for persisting Groovy objects into Cassandra.  The plugin
+does not implement the GORM API but does generally follow the same syntax.  In addition to the GORM extensions, the
+plugins extends java.util.UUID with methods to generate and use TimeUUIDs, which often server as primary keys in
+Cassandra.
