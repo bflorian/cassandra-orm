@@ -55,10 +55,8 @@ class DataMapping extends MappingUtils
 					{
 						def prop = data.getProperty(it.name)
 						if (prop != null) {
-							if (MappingUtils.isMappedObject(prop)) {
-								map["${it.name}${KEY_SUFFIX}"] = prop.id
-							}
-							else {
+							// Don't need to write mapped object IDs because getXxxId method handles them
+							if (!MappingUtils.isMappedObject(prop)) {
 								def value = dataProperty(prop)
 								if (value != null) {
 									map[it.name] = value
@@ -162,7 +160,7 @@ class DataMapping extends MappingUtils
 						metaProperty.setProperty(obj, objectProperty(metaProperty.type, col))
 					}
 				}
-				else if (expandoMap != null && name != CLASS_NAME_KEY && !name.endsWith(KEY_SUFFIX)) {
+				else if (expandoMap != null && name != CLASS_NAME_KEY && !(name.endsWith(KEY_SUFFIX) && isMappedProperty(asClass, name[0..(-KEY_SUFFIX.size()-1)]))) {
 					expandoMap[name] = objectProperty(expandoMapType, col)
 				}
 			}

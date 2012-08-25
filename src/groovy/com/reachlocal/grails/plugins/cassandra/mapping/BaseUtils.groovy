@@ -14,7 +14,7 @@ class BaseUtils
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
 	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS  + ["cluster"]
 	static protected final CLASS_NAME_KEY = '_class_name_'
-	static protected final KEY_SUFFIX = "_key"
+	static protected final KEY_SUFFIX = "Id"
 	static protected final DIRTY_SUFFIX = "_dirty"
 	static protected final CLUSTER_PROP = "_cassandra_cluster_"
 	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","counterColumnFamily","metaClass","keySpace","cassandraCluster",DIRTY_SUFFIX,CLUSTER_PROP] as Set
@@ -71,6 +71,16 @@ class BaseUtils
 
 	static boolean isMappedObject(object) {
 		return object ? object.getClass().metaClass.hasMetaProperty("cassandraMapping") : false
+	}
+
+	static boolean isMappedProperty(Class clazz, String name) {
+		try {
+			def propClass = clazz.getDeclaredField(name)?.type // TODO - support superclasses?
+			return propClass ? isMappedClass(propClass) : false
+		}
+		catch (NoSuchFieldException e) {
+			return false
+		}
 	}
 
 	static safeGetStaticProperty(clazz, name)
