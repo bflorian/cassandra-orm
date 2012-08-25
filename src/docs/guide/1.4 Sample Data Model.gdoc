@@ -1,4 +1,64 @@
 
 
-h3
+h3 User
+
+{code}
+class User
+{
+	String username
+	String emailAddress
+	String firstName
+	String lastName
+	String address
+	String city
+	String state
+	String zip
+	String country
+	String phone
+	Gender gender
+	Date birthDate
+
+	List posts
+	static hasMany = [posts: Post]
+
+	static cassandraMapping = [
+	        primaryKey: 'username',
+			explicitIndexes: ["emailAddress", "phone", 'birthDate', ["country","state","city"]],
+			secondaryIndexes: ["gender","country", "state"],
+			counters: [
+					[groupBy: ['birthDate']],
+					[groupBy: ['gender']],
+					[groupBy: ['country','state','city','gender']],
+					[findBy:  ['country','state'], groupBy:['city','gender']]
+			]
+	]
+}
+{code}
+
+h3 Post
+
+{code}
+class Post
+{
+	UUID uuid
+	String title
+	String text
+	Date occurTime
+
+	User user
+	static belongsTo = [user: User]
+
+	List comments
+	static hasMany = [comments: Comment]
+
+	static cassandraMapping = [
+			primaryKey: 'uuid',
+			counters: [
+					[groupBy: ['occurTime']],
+					[findBy:  ['user'], groupBy:['occurTime']]
+			]
+	]
+}
+{code}
+
 
