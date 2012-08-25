@@ -75,14 +75,20 @@ class InstanceMethods extends MappingUtils
 				def m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 
 				// get the primary row key
-				def id = thisObj.id
-				if (id == null) {
+				def id
+				try {
+					id = thisObj.id
+				}
+				catch (CassandraMappingNullIndexException e) {
 					// if primary key is a UUID and its null, set it
-					def keyName = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)[0]
-					def keyClass = clazz.getField(keyName).type
+					def keyNames = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
+					def keyClass = keyNames.size() == 1 ? clazz.getDeclaredField(keyNames[0]).type : null
 					if (keyClass == UUID) {
-						id = UUID.timeUUID()
-						thisObj.setProperty(keyName, id)
+						thisObj.setProperty(keyNames[0], UUID.timeUUID())
+						id = thisObj.id
+					}
+					else {
+						throw e
 					}
 				}
 
@@ -351,17 +357,22 @@ class InstanceMethods extends MappingUtils
 						item.setProperty(CLUSTER_PROP, thisObj.getProperty(CLUSTER_PROP))
 					}
 
+					// set belongsTo value
+					safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
+						if (clazz1 == clazz) {
+							item.setProperty(name1, thisObj)
+						}
+					}
+
+					// save the item
+					item.save()
+
+					// null this property so that it is lazy-evaluated the next time
 					safeSetProperty(thisObj, propName, null)
 
+					// add the indexes
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
 						def m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
-
-						// set belongsTo value
-						safeGetStaticProperty(item.class, "belongsTo")?.each {name1, clazz1 ->
-							if (clazz1 == clazz) {
-								item.setProperty(name1, thisObj)
-							}
-						}
 
 						// save join row from this object to the item
 						saveJoinRow(cassandra.persistence, m, clazz, thisObj, item.class, item, propName)
@@ -375,7 +386,7 @@ class InstanceMethods extends MappingUtils
 
 						cassandra.persistence.execute(m)
 					}
-					item.save()
+
 					return thisObj
 				}
 
