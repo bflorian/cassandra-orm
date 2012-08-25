@@ -193,7 +193,7 @@ class ClassMethods extends MappingUtils
 
 				def keys = columns.collect{cassandra.persistence.name(it)}
 				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
-				def result = cassandra.mapping.makeResult(keys, rows, options)
+				def result = cassandra.mapping.makeResult(keys, rows, options, LinkedList)
 				return result
 			}
 		}
