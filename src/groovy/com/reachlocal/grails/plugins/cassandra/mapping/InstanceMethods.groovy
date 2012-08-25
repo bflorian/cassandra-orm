@@ -124,10 +124,6 @@ class InstanceMethods extends MappingUtils
 					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				}
 
-				// insert this object
-				def dataProperties = cassandra.mapping.dataProperties(thisObj)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
-
 				// manage index rows
 				def indexRows = [:]
 				def oldIndexRows = [:]
@@ -159,6 +155,18 @@ class InstanceMethods extends MappingUtils
 						cassandra.persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
 					}
 				}
+
+				// delete old index row keys
+				if (oldIndexRows) {
+					cassandra.persistence.execute(m)
+					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				}
+
+				// insert this object
+				def dataProperties = cassandra.mapping.dataProperties(thisObj)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
+
+				// insert new index row keys
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
 						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
