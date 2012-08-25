@@ -194,7 +194,13 @@ class KeyUtils extends BaseUtils
 			return obj.id
 		}
 		else {
-			return dataProperty(obj)
+			try {
+				return dataProperty(obj)
+			}
+			catch (IllegalArgumentException e) {
+				// TODO - why do we get this for enums in counters and not in simple properties?
+				obj.toString()
+			}
 		}
 	}
 	static dataProperty(Date value)
