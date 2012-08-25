@@ -74,8 +74,19 @@ class InstanceMethods extends MappingUtils
 			cassandra.withKeyspace(thisObj.keySpace, cluster) {ks ->
 				def m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 
-				// see if it exists
+				// get the primary row key
 				def id = thisObj.id
+				if (id == null) {
+					// if primary key is a UUID and its null, set it
+					def keyName = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)[0]
+					def keyClass = clazz.getField(keyName).type
+					if (keyClass == UUID) {
+						id = UUID.timeUUID()
+						thisObj.setProperty(keyName, id)
+					}
+				}
+
+				// see if it exists
 				def oldObj = args?.nocheck ? null : clazz.get(id, [cluster:cluster])
 
 				// one-to-one relationships
