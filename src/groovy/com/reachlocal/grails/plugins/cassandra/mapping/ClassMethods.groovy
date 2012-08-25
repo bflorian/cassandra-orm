@@ -312,7 +312,7 @@ class ClassMethods extends MappingUtils
 					cassandra.withKeyspace(keySpace, cluster) {ks ->
 						def properties = [:]
 						propertyList.eachWithIndex {it, i ->
-							properties[it] = args[i]
+							properties[it] = primaryRowKey(args[i])
 						}
 						if (count) {
 							result = cassandra.persistence.countRowsWithEqualityIndex(ks, columnFamily, properties, opts.consistencyLevel)
