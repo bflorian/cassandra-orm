@@ -60,20 +60,20 @@ class KeyUtils extends BaseUtils
 		}
 	}
 
-	static objectIndexRowKey(String propName, Object bean)
+	static objectIndexRowKey(List propNames, Map map)
 	{
 		try {
-			return indexRowKey(propName, bean.getProperty(propName))
+			return indexRowKey(propNames.collect{[it, map[it]]})
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null
 		}
 	}
 
-	static objectIndexRowKey(List propNames, Map map)
+	static objectIndexRowKey(String propName, Object bean)
 	{
 		try {
-			return indexRowKey(propNames.collect{[it, map[it]]})
+			return indexRowKey(propName, bean.getProperty(propName))
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null
@@ -89,6 +89,50 @@ class KeyUtils extends BaseUtils
 			return null
 		}
 	}
+
+
+	static Collection objectIndexRowKeys(String propName, Object bean)
+	{
+		try {
+			def value = bean.getProperty(propName)
+			if (value instanceof Collection) {
+				def result = []
+				value.each {
+					result << indexRowKey(propName, it)
+				}
+				return result
+			}
+			else {
+				return [indexRowKey(propName, value)]
+			}
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
+	}
+
+	static Collection objectIndexRowKeys(List propNames, Object bean)
+	{
+		try {
+			def values = propNames.collect{bean.getProperty(it)}
+			def result = []
+			def v2 = expandNestedArray(values)
+			v2.each {value ->
+				def pairs = []
+				propNames.each {name ->
+					pairs << [name, value]
+				}
+				result << indexRowKey(pairs)
+			}
+			return result
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return null
+		}
+	}
+
+
+
 
 	static indexRowKey(String name, value)
 	{

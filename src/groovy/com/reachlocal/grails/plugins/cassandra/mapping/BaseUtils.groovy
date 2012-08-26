@@ -137,5 +137,36 @@ class BaseUtils
 		return sorted;
 	}
 
+	static expandNestedArray(params)
+	{
+		def result = []
+		def len = 1
+		def lengths = []
+		params.each {value ->
+			if (value instanceof Collection || value.getClass().isArray()) {
+				len = len * value.size()
+			}
+			lengths << len
+		}
+		for (i in 1..len) {
+			result << []
+		}
+
+		params.eachWithIndex {value, pindex ->
+			if (value instanceof Collection || value.getClass().isArray()) {
+				result.eachWithIndex {item, index ->
+					def i = (index * lengths[pindex] / len).toInteger() % value.size()
+					item << value[i]
+				}
+			}
+			else {
+				result.each {item ->
+					item << value
+				}
+			}
+		}
+		return result
+	}
+
 	static mapper = new ObjectMapper()
 }

@@ -67,6 +67,23 @@ class CounterUtils extends KeyUtils
 		}
 	}
 
+	static List counterColumnNames(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
+	{
+		try {
+			def result = []
+			def keys = groupKeys.collect{
+				counterColumnKey(bean.getProperty(it), dateFormat)
+			}
+			expandNestedArray(keys).each {
+				result << makeComposite(it)
+			}
+			return result
+		}
+		catch (CassandraMappingNullIndexException e) {
+			return []
+		}
+	}
+
 	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, clusterName)
 	{
 		def cf = clazz.counterColumnFamily

@@ -217,7 +217,9 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals "this?name=Joe", MappingUtils.objectIndexRowKey("name", [name:"Joe", color:"blue", zip:"20832", gender:"F"])
 		assertEquals "this?name=Joe&color=blue", MappingUtils.objectIndexRowKey(["name","color"], [name:"Joe", color:"blue", zip:"20832", gender:"F"])
 	}
-/*
+
+
+/*  HashCounter no longer defined in this plugin
 	void testExpandFilters()
 	{
 		def filters = MappingUtils.expandFilters([eventType:'Radar', subType: 'Review'])
@@ -254,6 +256,21 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 2, sourceCnt.TripAdvisor
 	}
 */
+	@Test
+	void testExpandCounterKeys()
+	{
+		def key1 = MappingUtils.expandNestedArray(["one","two","three"])
+		println key1
+		assertEquals 1, key1.size()
+
+		def key2 = MappingUtils.expandNestedArray(["one",["twoA","twoB"],"three"])
+		println key2
+		assertEquals 2, key2.size()
+
+		def key3 = MappingUtils.expandNestedArray(["one",["twoA","twoB"],["threeX","threeY"]])
+		assertEquals 4, key3.size()
+	}
+
 	@Test
 	void testFindIndex()
 	{
