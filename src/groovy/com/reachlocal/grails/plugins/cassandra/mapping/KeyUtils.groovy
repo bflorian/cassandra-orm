@@ -102,8 +102,11 @@ class KeyUtils extends BaseUtils
 				}
 				return result
 			}
-			else {
+			else if (value != null) {
 				return [indexRowKey(propName, value)]
+			}
+			else {
+				return []
 			}
 		}
 		catch (CassandraMappingNullIndexException e) {
@@ -114,15 +117,18 @@ class KeyUtils extends BaseUtils
 	static Collection objectIndexRowKeys(List propNames, Object bean)
 	{
 		try {
-			def values = propNames.collect{bean.getProperty(it)}
+			def valueList = propNames.collect{bean.getProperty(it)}
 			def result = []
-			def v2 = expandNestedArray(values)
-			v2.each {value ->
+			def v2 = expandNestedArray(valueList)
+			v2.each {values ->
 				def pairs = []
-				propNames.each {name ->
-					pairs << [name, value]
+				propNames.eachWithIndex {name, index ->
+					pairs << [name, values[index]]
 				}
-				result << indexRowKey(pairs)
+				def key = indexRowKey(pairs)
+				if (key) {
+					result << key
+				}
 			}
 			return result
 		}

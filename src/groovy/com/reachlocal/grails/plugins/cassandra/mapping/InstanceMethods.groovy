@@ -144,14 +144,14 @@ class InstanceMethods extends MappingUtils
 				cassandraMapping.explicitIndexes?.each {propName ->
 					if (oldObj) {
 
-						def oldIndexRowKey = objectIndexRowKey(propName, oldObj)
-						if (oldIndexRowKey) {
+						def oldIndexRowKeys = objectIndexRowKeys(propName, oldObj)
+						oldIndexRowKeys.each {oldIndexRowKey ->
 							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
 						}
 					}
 
-					def indexRowKey = objectIndexRowKey(propName, thisObj)
-					if (indexRowKey) {
+					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+					indexRowKeys.each {indexRowKey ->
 						indexRows[indexRowKey] = [(thisObj.id):'']
 					}
 				}
@@ -226,8 +226,8 @@ class InstanceMethods extends MappingUtils
 				cassandraMapping.explicitIndexes?.each {propName ->
 					def names = collection(propName)
 					if (!Collections.disjoint(propertyNames, names)) {
-						def oldIndexRowKey = objectIndexRowKey(propName, thisObj)
-						if (oldIndexRowKey) {
+						def oldIndexRowKeys = objectIndexRowKeys(propName, thisObj)
+						oldIndexRowKeys.each {oldIndexRowKey ->
 							oldIndexRows[oldIndexRowKey] = [(thisObj.id):'']
 						}
 					}
@@ -244,16 +244,12 @@ class InstanceMethods extends MappingUtils
 					thisObj.setProperty(name, value)
 				}
 
-				// insert this object
-				def dataProperties = cassandra.mapping.dataProperties(properties)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
-
 				// add new explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
 					def names = collection(propName)
 					if (!Collections.disjoint(propertyNames, names)) {
-						def indexRowKey = objectIndexRowKey(propName, thisObj)
-						if (indexRowKey) {
+						def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+						indexRowKeys.each {indexRowKey ->
 							indexRows[indexRowKey] = [(thisObj.id):'']
 						}
 					}
@@ -265,6 +261,16 @@ class InstanceMethods extends MappingUtils
 						cassandra.persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
 					}
 				}
+
+				// delete old index row keys
+				if (oldIndexRows) {
+					cassandra.persistence.execute(m)
+					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				}
+
+				// insert this object
+				def dataProperties = cassandra.mapping.dataProperties(properties)
+				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
 
 				// do the additions
 				if (indexRows) {
