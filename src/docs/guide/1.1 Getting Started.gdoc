@@ -1,0 +1,2 @@
+The cassandra-orm plugin must be used in conjunction with a compatible Cassandra client plugin.  At this time there is
+only one such plugin, cassandra-astyanx, which uses the Netflix Astyanax Cassandra client.

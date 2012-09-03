@@ -374,7 +374,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 
 		def result2 = MappingUtils.mergeKeys(keys, 5, true)
 		assertEquals 5, result2.size()
-		['xx1','xx2', 'xx3', 'xx5', 'yy1'].reverse().eachWithIndex {k, index ->
+		['xx5', 'yy1', 'yy2', 'zz1', 'zz3'].reverse().eachWithIndex {k, index ->
 			assertEquals k, result2[index]
 		}
 	}

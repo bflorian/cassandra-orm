@@ -510,11 +510,11 @@ class MappingUtils extends CounterUtils
 			}
 
 			def result = []
-			def iter = treeSet.iterator()
+			def iter = reverse ? treeSet.descendingIterator() : treeSet.iterator()
 			for (int i=0; i < max && iter.hasNext(); i++) {
 				result << iter.next()
 			}
-			return reverse ? result.reverse() : result
+			return result
 		}
 	}
 
