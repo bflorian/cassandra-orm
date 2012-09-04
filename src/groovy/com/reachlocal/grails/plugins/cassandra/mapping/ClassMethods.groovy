@@ -141,6 +141,26 @@ class ClassMethods extends MappingUtils
 			return result
 		}
 
+		// get(id, options?)
+		clazz.metaClass.'static'.multiGet = {ids, opts=[:] ->
+			def result = null
+			def rowKeys = ids.collect{primaryRowKey(it)}
+			def cluster = opts.cluster ?: cassandraCluster
+			cassandra.withKeyspace(keySpace, cluster) {ks ->
+				def options = addOptionDefaults(opts, MAX_ROWS)
+				def names = columnNames(options)
+				if (names) {
+					def rows = cassandra.persistence.getRowsColumnSlice(ks, clazz.columnFamily, rowKeys, names, opts.consistencyLevel)
+					result = cassandra.mapping.makeResult(rowKeys, rows, options)
+				}
+				else {
+					def rows = cassandra.persistence.getRows(ks, clazz.columnFamily, rowKeys, opts.consistencyLevel)
+					result = cassandra.mapping.makeResult(rowKeys, rows, options)
+				}
+			}
+			return result
+		}
+
 		// findOrCreate(id, options?)
 		clazz.metaClass.'static'.findOrCreate = {id, opts=[:] ->
 			def result = get(id, opts)

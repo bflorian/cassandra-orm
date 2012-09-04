@@ -157,6 +157,24 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals "mockCluster2", r.cassandraCluster
 
+		println "\n--- multiGet(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
+		r = User.multiGet(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'])
+		persistence.printClear()
+		println r
+		assertEquals 3, r.size()
+		r.each {
+			assertTrue it instanceof User
+		}
+
+		println "\n--- multiGet(['x1xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
+		r = User.multiGet(['x1xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'],[column:  'favoriteColor'])
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+		r.each {
+			assertFalse it instanceof User
+		}
+
 		println "\n -- findOrCreate(), existing ---"
 		r = User.findOrCreate("x5xx-xxxx-xxxx-xxxx")
 		persistence.printClear()
