@@ -47,13 +47,10 @@ grails.project.dependency.resolution = {
 
 		// runtime 'mysql:mysql-connector-java:5.1.13'
     }
+
+	plugins {
+		build (":svn:1.0.2") {
+			export = false
+		}
+	}
 }
-grails.project.repos.beanstalkRepository.url = "https://mural.svn.beanstalkapp.com/grails-plugins"
-grails.project.repos.beanstalkRepository.type = "svn"
-
-grails.project.repos.dreamhostRepository.url = "http://cm.florian.org/grailsplugins"
-grails.project.repos.dreamhostRepository.type = "svn"
-
-//grails.project.repos.default = "dreamhostRepository"
-grails.project.repos.default = "beanstalkRepository"
-grails.release.scm.enabled = false
