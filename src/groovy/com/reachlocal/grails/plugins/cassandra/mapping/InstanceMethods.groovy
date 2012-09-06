@@ -294,24 +294,33 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.delete = {args=[:] ->
 			def thisObj = delegate
 			def thisObjId = thisObj.id
-			def thisObjClass = thisObj.class
 			def persistence = cassandra.persistence
+			def indexColumnFamily = thisObj.indexColumnFamily
+
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
+
+				// delete the object
 				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				persistence.deleteRow(m, thisObj.columnFamily, thisObjId)
 
-				if (clazz.metaClass.hasMetaProperty('hasMany')) {
-					hasMany.each {propName, propClass ->
-						def joinColumnFamily = propClass.indexColumnFamily
-						persistence.deleteRow(m, joinColumnFamily, thisObjId)
-						if (propClass.belongsToClass(thisObjClass)) {
-							def items = thisObj.getProperty(propName)
-							items?.each {item ->
-								persistence.deleteRow(m, item.columnFamily, item.id)
-							}
-						}
+				// primary index
+				if (cassandraMapping.primaryKey) {
+					cassandra.persistence.deleteColumn(m, indexColumnFamily, primaryKeyIndexRowKey(), thisObjId)
+				}
+
+				// explicit indexes
+				cassandraMapping.explicitIndexes?.each {propName ->
+					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+					indexRowKeys.each {indexRowKey ->
+						cassandra.persistence.deleteColumn(m, indexColumnFamily, indexRowKey, thisObjId)
 					}
 				}
+
+				// decrement counters
+				cassandraMapping.counters?.each {ctr ->
+					updateCounterColumns(clazz, ctr, m, thisObj, null)
+				}
+
 				persistence.execute(m)
 			}
 		}
