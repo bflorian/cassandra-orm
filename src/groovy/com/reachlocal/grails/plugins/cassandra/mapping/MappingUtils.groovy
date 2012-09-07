@@ -291,16 +291,26 @@ class MappingUtils extends CounterUtils
 
 	static void saveJoinRow(persistence, m, objClass, object, itemClass, item, propName)
 	{
+		// the row itself
 		def columnFamily = itemClass.indexColumnFamily
 		def rowKey = joinRowKey(objClass, itemClass, propName, object)
-		persistence.putColumn(m, columnFamily,rowKey, item.id, '')
+		persistence.putColumn(m, columnFamily, rowKey, item.id, '')
+
+		// the back pointer
+		def backIndexRowKey = manyBackIndexRowKey(item.id)
+		persistence.putColumn(m, columnFamily, backIndexRowKey, rowKey, '')
 	}
 
 	static void removeJoinRow(persistence, m, objClass, object, itemClass, item, propName)
 	{
+		// the row itself
 		def columnFamily = itemClass.indexColumnFamily
 		def rowKey = joinRowKey(objClass, itemClass, propName, object)
 		persistence.deleteColumn(m, columnFamily, rowKey, item.id)
+
+		// the back pointer
+		def backIndexRowKey = manyBackIndexRowKey(item.id)
+		persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
 	}
 
 	static getFromHasMany(thisObj, propName, options=[:], clazz=LinkedHashSet)

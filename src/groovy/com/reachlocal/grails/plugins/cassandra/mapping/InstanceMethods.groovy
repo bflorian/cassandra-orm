@@ -71,8 +71,9 @@ class InstanceMethods extends MappingUtils
 				thisObj.setProperty(CLUSTER_PROP, args.cluster)
 			}
 			def cluster = thisObj.cassandraCluster
+			def persistence = cassandra.persistence
 			cassandra.withKeyspace(thisObj.keySpace, cluster) {ks ->
-				def m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 
 				// get the primary row key
 				def id
@@ -112,11 +113,24 @@ class InstanceMethods extends MappingUtils
 								// property is null but dirty bit is not null -- remove the key from cassandra
 								thisObj.setProperty(name, null)
 								def cName = "${pName}${KEY_SUFFIX}".toString()
-								cassandra.persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
+								persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
 								keyDeleted = true
+
+								// back links
+								if (!(dValue instanceof Boolean)) {
+									def backLinkRowKey = oneBackIndexRowKey(dValue.id)
+									def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+									persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+								}
 							}
 						}
 						else {
+							// back links
+							def backLinkRowKey = oneBackIndexRowKey(pValue.id)
+							def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+							persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+
+							// cascade?
 							if (args?.cascade) {
 								pValue.save(cluster: thisObj.getProperty(CLUSTER_PROP))
 							}
@@ -126,8 +140,8 @@ class InstanceMethods extends MappingUtils
 
 				// commit deletion of relationship keys
 				if (keyDeleted) {
-					cassandra.persistence.execute(m)
-					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+					persistence.execute(m)
+					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				}
 
 				// manage index rows
@@ -158,24 +172,24 @@ class InstanceMethods extends MappingUtils
 
 				oldIndexRows.each {rowKey, col ->
 					col.each {colKey, v ->
-						cassandra.persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
+						persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
 					}
 				}
 
 				// delete old index row keys
 				if (oldIndexRows) {
-					cassandra.persistence.execute(m)
-					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+					persistence.execute(m)
+					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				}
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(thisObj)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
+				persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
 
 				// insert new index row keys
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
-						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
+						persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
 					}
 				}
 
@@ -184,7 +198,7 @@ class InstanceMethods extends MappingUtils
 					updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
 				}
 
-				cassandra.persistence.execute(m)
+				persistence.execute(m)
 			}
 			thisObj
 		}
@@ -193,8 +207,9 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.insert = {properties, timeToLive=null, consistencyLevel=null ->
 			def thisObj = delegate
 			def ttl = timeToLive ?: cassandraMapping.timeToLive
+			def persistence = cassandra.persistence
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
-				def m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
+				def m = persistence.prepareMutationBatch(ks, consistencyLevel)
 
 				// check one-to-one relationship properties
 				def keyDeleted = false
@@ -203,7 +218,7 @@ class InstanceMethods extends MappingUtils
 						def prop = PropertyUtils.getProperty(thisObj, name)
 						if (prop != null && isMappedObject(prop)) {
 							def cName = "${pName}${KEY_SUFFIX}".toString()
-							cassandra.persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
+							persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
 							keyDeleted = true
 						}
 
@@ -212,8 +227,8 @@ class InstanceMethods extends MappingUtils
 
 				// commit deletion of relationship keys
 				if (keyDeleted) {
-					cassandra.persistence.execute(m)
-					m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
+					persistence.execute(m)
+					m = persistence.prepareMutationBatch(ks, consistencyLevel)
 				}
 
 				// manage index rows
@@ -258,24 +273,24 @@ class InstanceMethods extends MappingUtils
 				// do the deletions
 				oldIndexRows.each {rowKey, col ->
 					col.each {colKey, v ->
-						cassandra.persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
+						persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
 					}
 				}
 
 				// delete old index row keys
 				if (oldIndexRows) {
-					cassandra.persistence.execute(m)
-					m = cassandra.persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+					persistence.execute(m)
+					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				}
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(properties)
-				cassandra.persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
+				persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
 
 				// do the additions
 				if (indexRows) {
 					indexRows.each {rowKey, cols ->
-						cassandra.persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
+						persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
 					}
 				}
 
@@ -285,7 +300,7 @@ class InstanceMethods extends MappingUtils
 					updateCounterColumns(clazz, ctr, m, null, thisObj)
 				}
 
-				cassandra.persistence.execute(m)
+				persistence.execute(m)
 			}
 			thisObj
 		}
@@ -305,16 +320,41 @@ class InstanceMethods extends MappingUtils
 
 				// primary index
 				if (cassandraMapping.primaryKey) {
-					cassandra.persistence.deleteColumn(m, indexColumnFamily, primaryKeyIndexRowKey(), thisObjId)
+					persistence.deleteColumn(m, indexColumnFamily, primaryKeyIndexRowKey(), thisObjId)
 				}
 
 				// explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
 					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
 					indexRowKeys.each {indexRowKey ->
-						cassandra.persistence.deleteColumn(m, indexColumnFamily, indexRowKey, thisObjId)
+						persistence.deleteColumn(m, indexColumnFamily, indexRowKey, thisObjId)
 					}
 				}
+
+				// hasMany indexes
+				def hasManyKey = manyBackIndexRowKey(thisObjId)
+				def manyBackLinkRow = persistence.getRow(ks, indexColumnFamily, hasManyKey, args?.consistencyLevel)
+				manyBackLinkRow.each {col ->
+					def manyIndexRowKey = persistence.name(col)
+					persistence.deleteColumn(m, indexColumnFamily, manyIndexRowKey, thisObjId)
+				}
+
+				// hasMany back pointers
+				persistence.deleteRow(m, indexColumnFamily, hasManyKey)
+
+				// hasOne properties
+				def oneBackLinkKey = oneBackIndexRowKey(thisObjId)
+				def oneBackLinkRow = persistence.getRow(ks, indexColumnFamily, oneBackLinkKey, args?.consistencyLevel)
+				oneBackLinkRow.each {col ->
+					def oneIndexArgs = oneBackIndexColumnValues(persistence.name(col))
+					def objectRowKey = oneIndexArgs[2]
+					def objectColumnFamily = oneIndexArgs[0]
+					def objectPropName = "${oneIndexArgs[1]}Id".toString()
+					persistence.deleteColumn(m, objectColumnFamily, objectRowKey, objectPropName)
+				}
+
+				// hasOne back pointers
+				persistence.deleteRow(m, indexColumnFamily, oneBackLinkKey)
 
 				// decrement counters
 				cassandraMapping.counters?.each {ctr ->
@@ -368,6 +408,7 @@ class InstanceMethods extends MappingUtils
 				// addTo...
 				clazz.metaClass."${addToName}" = { item, consistencyLevel=null ->
 					def thisObj = delegate
+					def persistence = cassandra.persistence
 					if (thisObj.getProperty(CLUSTER_PROP)) {
 						item.setProperty(CLUSTER_PROP, thisObj.getProperty(CLUSTER_PROP))
 					}
@@ -387,7 +428,7 @@ class InstanceMethods extends MappingUtils
 
 					// add the indexes
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
-						def m = cassandra.persistence.prepareMutationBatch(ks, consistencyLevel)
+						def m = persistence.prepareMutationBatch(ks, consistencyLevel)
 
 						// save join row from this object to the item
 						saveJoinRow(cassandra.persistence, m, clazz, thisObj, item.class, item, propName)
@@ -399,7 +440,7 @@ class InstanceMethods extends MappingUtils
 							}
 						}
 
-						cassandra.persistence.execute(m)
+						persistence.execute(m)
 					}
 
 					return thisObj
@@ -457,8 +498,9 @@ class InstanceMethods extends MappingUtils
 
 				// setter
 				clazz.metaClass."${setterName}" = {
+					// TODO - does this need to default to true?
+					delegate.setProperty("${propName}${DIRTY_SUFFIX}", PropertyUtils.getProperty(delegate, propName) ?: true)
 					PropertyUtils.setProperty(delegate, propName, it)
-					delegate.setProperty("${propName}${DIRTY_SUFFIX}", true)
 				}
 
 				// getter
@@ -548,5 +590,4 @@ class InstanceMethods extends MappingUtils
 			"${delegate.getClass().getName().split('\\.')[-1]}(${delegate.id})"
 		}
 	}
-
 }

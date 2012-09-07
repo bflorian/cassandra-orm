@@ -12,7 +12,6 @@ import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
  */
 class CounterUtils extends KeyUtils
 {
-	static protected final END_CHAR = "\u00ff"
 	static protected final int MAX_COUNTER_COLUMNS = Integer.MAX_VALUE
 	static protected final UTC_YEAR_FORMAT = new SimpleDateFormat("yyyy")
 	static protected final UTC_MONTH_FORMAT = new SimpleDateFormat("yyyy-MM")

@@ -36,6 +36,11 @@ class MockPersistenceMethods
 		"${name}_CFO".toString()
 	}
 
+	def columnFamilyName(columnFamily)
+	{
+		columnFamily[0..-4]
+	}
+
 	def getRow(Object client, Object columnFamily, Object rowKey, Object consistencyLevel)
 	{
 		logOp "getRow", columnFamily, rowKey

@@ -150,6 +150,26 @@ class KeyUtils extends BaseUtils
 		}
 	}
 
+	static manyBackIndexRowKey(objectId)
+	{
+		"this#${objectId}".toString()
+	}
+
+	static oneBackIndexRowKey(objectId)
+	{
+		"this@${objectId}".toString()
+	}
+
+	static oneBackIndexColumnName(columnFamily, propertyName, objectKey)
+	{
+		"${objectKey}${END_CHAR}${propertyName}${END_CHAR}${columnFamily}".toString()
+	}
+
+	static oneBackIndexColumnValues(String name)
+	{
+		name.split(END_CHAR).reverse()
+	}
+
 	static indexRowKey(List pairs)
 	{
 		try {

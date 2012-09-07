@@ -9,6 +9,7 @@ import java.text.DecimalFormat
  */
 class BaseUtils 
 {
+	static protected final END_CHAR = "\u00ff"
 	static protected final int MAX_ROWS = 2000
 	static protected final INDEX_OPTIONS = ["start","finish","keys"]
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
