@@ -109,8 +109,8 @@ class MappingUtils extends CounterUtils
 				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, cluster)
 			}
 		}
-		if (grain) {
-			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain, timeZone)
+		if (grain || timeZone) {
+			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain ?: Calendar.HOUR_OF_DAY , timeZone)
 		}
 		if (fill) {
 			value = DateHelper.fillDates(value, grain ?: Calendar.HOUR_OF_DAY)
