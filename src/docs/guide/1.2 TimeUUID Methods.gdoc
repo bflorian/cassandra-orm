@@ -6,11 +6,19 @@ h3. java.lang.Integer
 
 Returns the integer value as an array of 4 bytes.
 
+{code}
+10000.bytes  // returns [0, 0, 39, 16]
+{code}
+
 h3. java.lang.Long
 
 *@byte[] getBytes()@*
 
 Returns the long value as an array of 4 bytes.
+
+{code}
+100000000000.bytes  // returns [0, 0, 0, 23, 72, 118, -24, 0]
+{code}
 
 h3. java.util.UUID
 
@@ -18,25 +26,49 @@ h3. java.util.UUID
 
 Generates a [time-based UUID|https://github.com/stephenc/eaio-uuid] from the current clock time.
 
+{code}
+def uuid = UUID.timeUUID()
+{code}
+
 *@static UUID timeUUID(long msec)@*
 
 Generates a time-based UUID from the specified time in milliseconds since 1 Jan 1970 UTC (i.e. System.currentTimeMillis()).
+
+{code}
+def uuid = UUID.timeUUID(System.currentTimeMillis() - 3600000)
+{code}
 
 *@static UUID fromBytes(byte[] bytes)@*
 
 Constructs a UUID from the specified array of 16 bytes.
 
+{code}
+UUID.fromBytes([-121, -54, -108, 96, -7, -37, 17, -31, -73, -1, 0, 28, 66, 0, 0, 9])
+{code}
+
 *@byte[] getBytes()@*
 
 Returns a 16 byte array representation of the UUID.
+
+{code}
+UUID.timeUUID().bytes
+{code}
 
 *@String toUrlSafeString()@*
 
 Returns a Base64 encoded string representation of the UUID.  These are useful for generating hashes.
 
+{code}
+UUID.timeUUID().toUrlSafeString()  // returns something like "h82hoPnbEeG3_wAcQgAACQ"
+{code}
+
 *@Long getTime()@*
 
 Returns the time component of a time-based UUID in milliseconds since 1 Jan 1970 UTC.
+
+{code}
+UUID.timeUUID().time
+{code}
 
 
 

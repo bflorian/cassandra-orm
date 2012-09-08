@@ -8,16 +8,16 @@ with the following class definition:
 {code}
 class Person
 {
-	String username
-	String emailAddress
-	String phone
-	String city
-	String state
+    String username
+    String emailAddress
+    String phone
+    String city
+    String state
 
-	static cassandraMapping = [
-	        primaryKey: 'username',
-			explicitIndexes: ["emailAddress", "phone", "state", ["state","city"]],
-	]
+    static cassandraMapping = [
+            primaryKey: 'username',
+            explicitIndexes: ["emailAddress", "phone", "state", ["state","city"]],
+    ]
 }
 {code}
 
@@ -37,8 +37,8 @@ Person.findAllWhere(state: "Virginia", city: "Reston")
 {code}
 
 Note that you cannot mix properties from different indexes, e.g. in this example the query @Person.findByPhoneAndState()@
-is not valid.  To be able to run that query you would need to declare a @["phone","city"]@ explicit index.
-
+is not valid.  To be able to run that query you would need to declare a @["phone","city"]@ explicit index. However the
+order of the properties is not important.  That is, you can say @findAllByCityAndState()@ or @findAllByStateAndCity()@.
 Explicit indexes support only the quality operator, i.e. you can not use method names containing phrases like @LessThan@,
 @GreaterThan@, @NotEqual@, @Null@, etc.  However you can query objects matching one of a collection of values.
 For example:

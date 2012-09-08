@@ -1,63 +1,63 @@
 
 
-h3.User
+h3. User
 
 {code}
 class User
 {
-	String username
-	String emailAddress
-	String firstName
-	String lastName
-	String address
-	String city
-	String state
-	String zip
-	String country
-	String phone
-	Gender gender
-	Date birthDate
+    String username
+    String emailAddress
+    String firstName
+    String lastName
+    String address
+    String city
+    String state
+    String zip
+    String country
+    String phone
+    Gender gender
+    Date birthDate
 
-	List posts
-	static hasMany = [posts: Post]
+    List posts
+    static hasMany = [posts: Post]
 
-	static cassandraMapping = [
-	        primaryKey: 'username',
-			explicitIndexes: ["emailAddress", "phone", 'birthDate', ["country","state","city"]],
-			secondaryIndexes: ["gender","country", "state"],
-			counters: [
-					[groupBy: ['birthDate']],
-					[groupBy: ['gender']],
-					[groupBy: ['country','state','city','gender']],
-					[findBy:  ['country','state'], groupBy:['city','gender']]
-			]
-	]
+    static cassandraMapping = [
+            primaryKey: 'username',
+            explicitIndexes: ["emailAddress", "phone", 'birthDate', ["country","state","city"]],
+            secondaryIndexes: ["gender","country", "state"],
+            counters: [
+                    [groupBy: ['birthDate']],
+                    [groupBy: ['gender']],
+                    [groupBy: ['country','state','city','gender']],
+                    [findBy:  ['country','state'], groupBy:['city','gender']]
+            ]
+    ]
 }
 {code}
 
-h3.Post
+h3. Post
 
 {code}
 class Post
 {
-	UUID uuid
-	String title
-	String text
-	Date occurTime
+    UUID uuid
+    String title
+    String text
+    Date occurTime
 
-	User user
-	static belongsTo = [user: User]
+    User user
+    static belongsTo = [user: User]
 
-	List comments
-	static hasMany = [comments: Comment]
+    List comments
+    static hasMany = [comments: Comment]
 
-	static cassandraMapping = [
-			primaryKey: 'uuid',
-			counters: [
-					[groupBy: ['occurTime']],
-					[findBy:  ['user'], groupBy:['occurTime']]
-			]
-	]
+    static cassandraMapping = [
+            primaryKey: 'uuid',
+            counters: [
+                    [groupBy: ['occurTime']],
+                    [findBy:  ['user'], groupBy:['occurTime']]
+            ]
+    ]
 }
 {code}
 

@@ -18,15 +18,15 @@ and the @cassandraMapping@ definition:
 {code}
 class Person
 {
-	String username
-	String state
-	String country
-	String gender
+    String username
+    String state
+    String country
+    String gender
 
-	static cassandraMapping = [
-	        primaryKey: 'username',
-			secondaryIndexes: ["gender","country", "state"],
-	]
+    static cassandraMapping = [
+            primaryKey: 'username',
+            secondaryIndexes: ["gender","country", "state"],
+    ]
 }
 {code}
 
