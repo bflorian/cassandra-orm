@@ -16,7 +16,6 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import com.reachlocal.grails.plugins.cassandra.orm.CassandraOrmService
 import com.reachlocal.grails.plugins.cassandra.mapping.DataMapping
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
@@ -38,10 +37,10 @@ class OrmTestCase
 
 	void initialize()
 	{
-		ConfigurationHolder.config = [cassandra: [keySpace: 'mockDefault']]
 		persistence = new MockPersistenceMethods()
 		client = new CassandraOrmService(
 				client: new Expando(
+						defaultKeyspace: 'mockDefault',
 						withKeyspace: {keyspace, cluster, block ->
 							persistence.cluster = cluster
 							block("context")

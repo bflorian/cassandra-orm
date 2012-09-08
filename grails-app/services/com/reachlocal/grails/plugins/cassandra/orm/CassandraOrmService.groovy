@@ -25,23 +25,27 @@ import org.springframework.context.ApplicationContext
 /**
  * @author: Bob Florian
  */
-class CassandraOrmService implements InitializingBean, ApplicationContextAware
+class CassandraOrmService implements InitializingBean
 {
 	boolean transactional = false
 
-	ApplicationContext applicationContext
-
-	def ormClientServiceName = ConfigurationHolder.config?.cassandra?.ormClientServiceName ?: "astyanaxService"
-
+	def grailsApplication
+	def ormClientServiceName
 	def client
 	def persistence
 	def mapping
 
 	void afterPropertiesSet ()
 	{
-		client = applicationContext.getBean(ormClientServiceName)
+		ormClientServiceName = grailsApplication.config?.cassandra?.ormClientServiceName ?: "astyanaxService"
+		client = grailsApplication.applicationContext.getBean(ormClientServiceName)
 		persistence = client.orm
 		mapping = new DataMapping(persistence: persistence)
+	}
+
+	def getDefaultKeyspace()
+	{
+		client.defaultKeyspace
 	}
 
 	def withKeyspace(keyspace, cluster, block) throws Exception

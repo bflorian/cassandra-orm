@@ -16,8 +16,6 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
 /**
  * @author: Bob Florian
  */
@@ -53,10 +51,10 @@ class ClassMethods extends MappingUtils
 			clazz.cassandraMapping.cluster = "standard"
 		}
 		if (!clazz.cassandraMapping.keySpace) {
-			clazz.cassandraMapping.keySpace = ConfigurationHolder.config.cassandra.keySpace //TODO - Update grails 2.0
+			clazz.cassandraMapping.keySpace = clazz.cassandra.defaultKeyspace
 		}
 		if (!clazz.cassandraMapping.columnFamily) {
-			clazz.cassandraMapping.columnFamily = clazz.name.split("\\.")[-1]
+			clazz.cassandraMapping.columnFamily = clazz.simpleName
 		}
 		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.persistence.columnFamily(clazz.cassandraMapping.columnFamily)
 		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.persistence.columnFamily("${clazz.cassandraMapping.columnFamily}_IDX".toString())
