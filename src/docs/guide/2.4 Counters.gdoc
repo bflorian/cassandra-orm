@@ -1,0 +1,169 @@
+Cassandra provides atomic counters that are useful for aggregating data about the numbers of objects created.
+The cassandra-orm plugin to provide a very efficient capability for generating counts based on one more more object
+properties.  Each counter declaration consists of two elements:
+
+{table}
+*Name* | *Definition*
+findBy | Zero or more property names used for filtering counts based on property values.  All names in the findBy element must be specified in the @getCounts@ query. This element can be omitted from the counter definition if no filtering is desired
+groupBy | One or more property names used for aggregating counts. At least one of these names must be provided in the @getCounts@ query.  Properties in listed in this element can also be used as filters.
+{table}
+
+For example, consider the following class used for tracking website visits:
+
+{code}
+class Visit
+{
+    UUID uuid
+    String siteName
+    String referrerType
+    String referrerName
+    Date occurTime
+
+    static cassandraMapping = [
+            primaryKey: 'uuid',
+            counters: [
+                    [groupBy: ['siteName']],
+                    [groupBy: ['occurTime']],
+                    [groupBy: ['occurTime','siteName']],
+                    [findBy: ['siteName'], groupBy: ['occurTime']],
+                    [findBy: ['siteName'], groupBy: ['occurTime','referrerType','referrerName']],
+            ]
+    ]
+}
+{code}
+
+You can query for total number of page views for each site with either of these statements:
+
+{code}
+Visit.getCounts(groupBy: 'siteName')
+Visit.getCountsGroupBySiteName()
+{code}
+
+which produces a Map of results of the form:
+
+{code}
+[www.siteone.com:18, www.sitetwo.com:26]
+{code}
+
+This query makes use of the @\[groupBy: 'siteName'\]@ index definition.  It provides a very efficient way of knowing
+the total visits for each site for all time, but it doesn't provide any time-based information.  To display the number
+of visits by hour for all sites you'd use the query:
+
+{code}
+Visit.getCountsGroupByOccurTime()
+{code}
+
+which uses the @\[groupBy: 'occurTime'\]@ counter to return:
+
+{code}
+[2011-12-25T05:9, 2012-01-01T05:6, 2012-01-05T05:3, 2012-01-12T05:3, 2012-01-13T05:1,
+2012-02-10T05:3, 2012-02-12T05:5, 2012-02-13T05:1, 2012-02-15T05:1, 2012-02-16T05:3,
+2012-02-17T05:3, 2012-02-22T05:3, 2012-02-25T05:3]
+{code}
+
+You can also aggregate the counts by day, month, or year:
+
+{code}
+Visit.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH)
+Visit.getCountsGroupByOccurTime(grain: Calendar.MONTH)
+Visit.getCountsGroupByOccurTime(grain: Calendar.YEAR)
+{code}
+
+producing:
+
+{code}
+[2011-12-25:9, 2012-01-01:6, 2012-01-05:3, 2012-01-12:3, 2012-01-13:1, 2012-02-10:3, 2012-02-12:5, 2012-02-13:1,
+2012-02-15:1, 2012-02-16:3, 2012-02-17:3, 2012-02-22:3, 2012-02-25:3]
+
+[2011-12:9, 2012-01:13, 2012-02:22]
+
+[2011:9, 2012:35]
+{code}
+
+If you wanted to generate a stacked bar graph showing the monthly visits by site, you'd use the expression:
+
+{code}
+Visit.getCountsGroupByOccurTimeAndSiteName(grain: Calendar.MONTH)
+{code}
+
+which uses the @\[groupBy: \['occurTime','siteName'\]\]@ counter to return:
+
+{code}
+[
+ 2011-12:[www.siteone.com:3, www.sitetwo.com:6],
+ 2012-01:[www.siteone.com:5, www.sitetwo.com:8],
+ 2012-02:[www.siteone.com:10, www.sitetwo.com:12]
+]
+{code}
+
+If you wanted to see the monthly visits for a single site you'd use either of these expressions:
+
+{code}
+Visit.getCounts(where: [siteName: 'www.siteone.com'], groupBy: 'occurTime', grain: Calendar.MONTH)
+Visit.getCountsBySiteNameGroupByOccurTime('www.siteone.com', [grain: Calendar.MONTH])
+{code}
+
+producing the following using the @\[findBy: 'siteName', groupBy: \['occurTime'\]\]@ counter:
+
+{code}
+[2011-12:3, 2012-01:5, 2012-02:10]
+{code}
+
+You can also get a site's monthly visits grouped by referrerType:
+
+{code}
+Visit.getCountsBySiteNameGroupByOccurTimeAndReferrerType('www.siteone.com', 'Search', [grain: Calendar.MONTH])
+{code}
+
+producing:
+
+{code}
+[2011-12:[Search:1, Social:1], 2012-01:[Search:2, Social:2], 2012-02:[Search:5, Social:3]]
+{code}
+
+and referrerName:
+
+{code}
+Visit.getCountsBySiteNameGroupByOccurTimeAndReferrerName('www.siteone.com', 'Google', [grain: Calendar.MONTH])
+{code}
+
+producing:
+
+{code}
+[2011-12:[Google:1, Facebook:1], 2012-01:[Bing:1, Twitter:2, Google:1], 2012-02:[Google:3, Facebook:2, Bing:2, Twitter:1]]
+{code}
+
+Both of these queries use the @\[findBy: 'siteName', groupBy: \['occurTime','referrerType','referrerName'\]\]@ counter.
+You don't need to specify every groupBy property in the query, but you do need so specify every findBy property.  So
+with the above counter definition you could execute the query @Visit.getCountsGroupByReferrerType()@.  To do that you
+would need a counter definition like @\[groupBy: 'referrerType'\]@ or @\[groupBy: \['occurTime','referrerType'\]\]@.
+In cases where more than one counter definition satisfies the query the system will choose the most efficient one.
+
+The time-based counter keys are all storied and queried in Universal Time (i.e. Greenwich Mean Time).  To return results
+in another time zone specify it as an option:
+
+{code}
+Visit.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH, timeZone: TimeZone.getDefault())
+Visit.getCountsGroupByOccurTime(timeZone: TimeZone.getDefault())
+{code}
+
+The default behavior of the time-based counters is to only return items where the count is non-zero.  However, when
+graphing data it is often convenient to have all time increments returned.  You can do this by saying:
+
+{code}
+Visit.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH, fill: true)
+{code}
+
+which returns:
+
+{code}
+[2011-12-25:9, 2011-12-26:0, 2011-12-27:0, 2011-12-28:0, 2011-12-29:0, 2011-12-30:0, 2011-12-31:0, 2012-01-01:6,
+2012-01-02:0, 2012-01-03:0, 2012-01-04:0, 2012-01-05:3, 2012-01-06:0, 2012-01-07:0, 2012-01-08:0, 2012-01-09:0,
+2012-01-10:0, 2012-01-11:0, 2012-01-12:3, 2012-01-13:1, 2012-01-14:0, 2012-01-15:0, 2012-01-16:0, 2012-01-17:0,
+2012-01-18:0, 2012-01-19:0, 2012-01-20:0, 2012-01-21:0, 2012-01-22:0, 2012-01-23:0, 2012-01-24:0, 2012-01-25:0,
+2012-01-26:0, 2012-01-27:0, 2012-01-28:0, 2012-01-29:0, 2012-01-30:0, 2012-01-31:0, 2012-02-01:0, 2012-02-02:0,
+2012-02-03:0, 2012-02-04:0, 2012-02-05:0, 2012-02-06:0, 2012-02-07:0, 2012-02-08:0, 2012-02-09:0, 2012-02-10:3,
+2012-02-11:0, 2012-02-12:5, 2012-02-13:1, 2012-02-14:0, 2012-02-15:1, 2012-02-16:3, 2012-02-17:3, 2012-02-18:0,
+2012-02-19:0, 2012-02-20:0, 2012-02-21:0, 2012-02-22:3, 2012-02-23:0, 2012-02-24:0, 2012-02-25:3]
+{code}
+
