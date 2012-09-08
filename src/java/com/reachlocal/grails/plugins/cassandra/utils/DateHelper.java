@@ -51,10 +51,13 @@ public class DateHelper
 		cal.setTime(date);
 
 		Date endDate = format.parse(maxKey);
+		Object firstValue = source.get(format.format(date));
+		Object defaultValue = firstValue instanceof Long ? 0L : null;
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		while (!date.after(endDate)) {
 			String key = format.format(date);
-			result.put(key, source.get(key));
+			Object value = source.get(key);
+			result.put(key, value == null ? defaultValue : value);
 			cal.add(grain, 1);
 			date = cal.getTime();
 		}
