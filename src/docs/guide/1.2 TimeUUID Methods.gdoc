@@ -2,7 +2,7 @@ The cassandra-orm plugin adds the following methods related to UUID.
 
 h3. java.lang.Integer
 
-*@byte[] getBytes()@*
+*@byte\[\] getBytes()@*
 
 Returns the integer value as an array of 4 bytes.
 
@@ -12,7 +12,7 @@ Returns the integer value as an array of 4 bytes.
 
 h3. java.lang.Long
 
-*@byte[] getBytes()@*
+*@byte\[\] getBytes()@*
 
 Returns the long value as an array of 4 bytes.
 
@@ -38,7 +38,7 @@ Generates a time-based UUID from the specified time in milliseconds since 1 Jan 
 def uuid = UUID.timeUUID(System.currentTimeMillis() - 3600000)
 {code}
 
-*@static UUID fromBytes(byte[] bytes)@*
+*@static UUID fromBytes(byte\[\] bytes)@*
 
 Constructs a UUID from the specified array of 16 bytes.
 
@@ -46,7 +46,7 @@ Constructs a UUID from the specified array of 16 bytes.
 UUID.fromBytes([-121, -54, -108, 96, -7, -37, 17, -31, -73, -1, 0, 28, 66, 0, 0, 9])
 {code}
 
-*@byte[] getBytes()@*
+*@byte\[\] getBytes()@*
 
 Returns a 16 byte array representation of the UUID.
 
@@ -59,7 +59,7 @@ UUID.timeUUID().bytes
 Returns a Base64 encoded string representation of the UUID.  These are useful for generating hashes.
 
 {code}
-UUID.timeUUID().toUrlSafeString()  // returns something like "h82hoPnbEeG3_wAcQgAACQ"
+UUID.timeUUID().toUrlSafeString()  // something like "h82hoPnbEeG3_wAcQgAACQ"
 {code}
 
 *@Long getTime()@*
