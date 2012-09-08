@@ -25,10 +25,11 @@ import org.springframework.context.ApplicationContext
 /**
  * @author: Bob Florian
  */
-class CassandraOrmService implements InitializingBean
+class CassandraOrmService implements InitializingBean, ApplicationContextAware
 {
 	boolean transactional = false
 
+	ApplicationContext applicationContext
 	def grailsApplication
 	def ormClientServiceName
 	def client
@@ -38,7 +39,7 @@ class CassandraOrmService implements InitializingBean
 	void afterPropertiesSet ()
 	{
 		ormClientServiceName = grailsApplication.config?.cassandra?.ormClientServiceName ?: "astyanaxService"
-		client = grailsApplication.applicationContext.getBean(ormClientServiceName)
+		client = applicationContext.getBean(ormClientServiceName)
 		persistence = client.orm
 		mapping = new DataMapping(persistence: persistence)
 	}
