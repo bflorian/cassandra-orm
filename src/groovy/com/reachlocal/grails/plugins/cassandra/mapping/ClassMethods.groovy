@@ -233,10 +233,30 @@ class ClassMethods extends MappingUtils
 				return queryByExplicitIndex(clazz, filterList, index, opts)
 			}
 			else if (cassandraMapping.secondaryIndexes) {
-				// TODO - handle secondary indexes
+				return queryBySecondaryIndex(clazz, params, opts)
 			}
 			else {
 				throw new CassandraMappingException("No index found for specified arguments")
+			}
+		}
+
+		// query
+		clazz.metaClass.'static'.query = {args ->
+			if (args.where) {
+				return queryByCql(clazz, args)
+			}
+			else {
+				throw new IllegalArgumentException("The 'where' parameter must be specified")
+			}
+		}
+
+		// query
+		clazz.metaClass.'static'.count = {args ->
+			if (args.where) {
+				return countByCql(clazz, args)
+			}
+			else {
+				throw new IllegalArgumentException("The 'where' parameter must be specified")
 			}
 		}
 
@@ -273,7 +293,27 @@ class ClassMethods extends MappingUtils
 				result = queryByExplicitIndex(clazz, filterList, index, options)
 			}
 			else if (cassandraMapping.secondaryIndexes) {
-				// TODO - handle secondary indexes
+				result = queryBySecondaryIndex(clazz, params, options)
+			}
+			else {
+				throw new CassandraMappingException("No index found for specified arguments")
+			}
+			return result ? result.toList()[0] : null
+		}
+
+		// countWhere(params, opts?)
+		clazz.metaClass.'static'.countWhere = {params, opts=[:] ->
+			def options = opts.clone()
+			options.max = 1
+
+			def result = null
+			def filterList = expandFilters(params)
+			def index = findIndex(cassandraMapping.explicitIndexes, filterList)
+			if (index) {
+				result = countByExplicitIndex(clazz, filterList, index, options)
+			}
+			else if (cassandraMapping.secondaryIndexes) {
+				result = countBySecondaryIndex(clazz, params, options)
 			}
 			else {
 				throw new CassandraMappingException("No index found for specified arguments")
@@ -327,19 +367,17 @@ class ClassMethods extends MappingUtils
 				}
 				else {
 					// find by query expression
-					def options = addOptionDefaults(opts, MAX_ROWS)
 					def cluster = opts.cluster ?: cassandraCluster
 					cassandra.withKeyspace(keySpace, cluster) {ks ->
 						def properties = [:]
 						propertyList.eachWithIndex {it, i ->
-							properties[it] = primaryRowKey(args[i])
+							properties[it] = args[i]
 						}
 						if (count) {
-							result = cassandra.persistence.countRowsWithEqualityIndex(ks, columnFamily, properties, opts.consistencyLevel)
+							result = countBySecondaryIndex(clazz, properties, opts)
 						}
 						else {
-							def rows = cassandra.persistence.getRowsWithEqualityIndex(ks, columnFamily, properties, options.max, opts.consistencyLevel)
-							result = cassandra.mapping.makeResult(rows, options)
+							result = queryBySecondaryIndex(clazz, properties, opts)
 						}
 					}
 				}

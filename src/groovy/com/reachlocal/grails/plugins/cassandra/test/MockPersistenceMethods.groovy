@@ -76,7 +76,7 @@ class MockPersistenceMethods
 
 	def getRowsWithEqualityIndex(client, columnFamily, properties, max, Object consistencyLevel)
 	{
-		logOp "getRowsWithEqualityIndex", columnFamily, properties, max
+		logOp "getRowsWithEqualityIndex", columnFamily, properties, max, consistencyLevel
 		// TODO ??
 		[]
 	}
@@ -84,6 +84,27 @@ class MockPersistenceMethods
 	def countRowsWithEqualityIndex(client, columnFamily, properties, Object consistencyLevel)
 	{
 		logOp "countRowsWithEqualityIndex", columnFamily, properties, consistencyLevel
+		// TODO ??
+		0
+	}
+
+	def getRowsWithCqlWhereClause(client, columnFamily, clause, max, consistencyLevel)
+	{
+		logOp "getRowsWithCqlWhereClause", columnFamily, clause, max, consistencyLevel
+		// TODO ??
+		[]
+	}
+
+	def getRowsColumnSliceWithCqlWhereClause(client, columnFamily, clause, max, columns, consistencyLevel)
+	{
+		logOp "getRowsColumnSliceWithCqlWhereClause", columnFamily, clause, max, columns, consistencyLevel
+		// TODO ??
+		[]
+	}
+
+	def countRowsWithCqlWhereClause(client, columnFamily, clause, consistencyLevel)
+	{
+		logOp "countRowsWithCqlWhereClause", columnFamily, properties, consistencyLevel
 		// TODO ??
 		0
 	}

@@ -590,6 +590,85 @@ class MappingUtils extends CounterUtils
 		}
 	}
 
+	static queryBySecondaryIndex(clazz, propertyMap, opts)
+	{
+		def options = addOptionDefaults(opts, MAX_ROWS)
+		def cluster = opts.cluster ?: clazz.cassandraCluster
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
+			def properties = [:]
+			propertyMap.each {k, v ->
+				properties[k] = primaryRowKey(v)
+			}
+			def rows = clazz.cassandra.persistence.getRowsWithEqualityIndex(ks, clazz.columnFamily, properties, options.max, opts.consistencyLevel)
+			return clazz.cassandra.mapping.makeResult(rows, options)
+		}
+	}
+
+	static countBySecondaryIndex(clazz, propertyMap, opts)
+	{
+		def cluster = opts.cluster ?: clazz.cassandraCluster
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
+			def properties = [:]
+			propertyMap.each {k, v ->
+				properties[k] = primaryRowKey(v)
+			}
+			return clazz.cassandra.persistence.countRowsWithEqualityIndex(ks, clazz.columnFamily, properties, opts.consistencyLevel)
+		}
+	}
+
+	static queryByCql(clazz, opts) throws IllegalArgumentException
+	{
+		def options = addOptionDefaults(opts, MAX_ROWS)
+		def cluster = opts.cluster ?: clazz.cassandraCluster
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
+			if (options.columns) {
+				def rows = clazz.cassandra.persistence.getRowsColumnSliceWithCqlWhereClause(ks, clazz.columnFamily, options.where, options.max, options.columns, opts.consistencyLevel)
+				return clazz.cassandra.mapping.makeResult(rows, options)
+			}
+			else if (options.column) {
+				def rows = clazz.cassandra.persistence.getRowsColumnSliceWithCqlWhereClause(ks, clazz.columnFamily, options.where, options.max, [options.column], opts.consistencyLevel)
+				return clazz.cassandra.mapping.makeResult(rows, options)
+			}
+			else {
+				def rows = clazz.cassandra.persistence.getRowsWithCqlWhereClause(ks, clazz.columnFamily, options.where, options.max, opts.consistencyLevel)
+				return clazz.cassandra.mapping.makeResult(rows, options)
+			}
+		}
+	}
+
+	static countByCql(clazz, opts) throws IllegalArgumentException
+	{
+		def options = addOptionDefaults(opts, MAX_ROWS)
+		def cluster = opts.cluster ?: clazz.cassandraCluster
+		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
+			return clazz.cassandra.persistence.getRowsWithCqlWhereClause(ks, clazz.columnFamily, options.where, opts.consistencyLevel)
+		}
+	}
+
+	static cqlWhereExpression(String where, values) throws IllegalArgumentException
+	{
+		def result = new StringBuilder()
+		def strings = where.split('?')
+		values.each {value, i ->
+			result << strings[i]
+			result << "'"
+			result << primaryRowKey(value)
+			result << "'"
+		}
+		result << strings[-1]
+		return result.toString()
+	}
+
+	static cqlWhereExpression(Map exp, values) throws IllegalArgumentException
+	{
+		throw new IllegalArgumentException("The 'where' parameter must be a String. Use findWhere or countWhere when specifiying a map of properties.")
+	}
+
+	static cqlWhereExpression(exp, values) throws IllegalArgumentException
+	{
+		throw new IllegalArgumentException("The 'where' parameter must be a String")
+	}
+
 	static getByMappedObject(thisObj, propName, itemClass, opts=[:], listClass=LinkedHashSet)
 	{
 		def result = []
