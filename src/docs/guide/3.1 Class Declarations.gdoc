@@ -1,6 +1,6 @@
 
 
-h3 User
+h3.User
 
 {code}
 class User
@@ -35,7 +35,7 @@ class User
 }
 {code}
 
-h3 Post
+h3.Post
 
 {code}
 class Post

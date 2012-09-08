@@ -1,0 +1,42 @@
+The cassandra-orm plugin adds the following methods related to UUID.
+
+h3. java.lang.Integer
+
+*@byte[] getBytes()@*
+
+Returns the integer value as an array of 4 bytes.
+
+h3. java.lang.Long
+
+*@byte[] getBytes()@*
+
+Returns the long value as an array of 4 bytes.
+
+h3. java.util.UUID
+
+*@static UUID timeUUID()@*
+
+Generates a [time-based UUID|https://github.com/stephenc/eaio-uuid] from the current clock time.
+
+*@static UUID timeUUID(long msec)@*
+
+Generates a time-based UUID from the specified time in milliseconds since 1 Jan 1970 UTC (i.e. System.currentTimeMillis()).
+
+*@static UUID fromBytes(byte[] bytes)@*
+
+Constructs a UUID from the specified array of 16 bytes.
+
+*@byte[] getBytes()@*
+
+Returns a 16 byte array representation of the UUID.
+
+*@String toUrlSafeString()@*
+
+Returns a Base64 encoded string representation of the UUID.  These are useful for generating hashes.
+
+*@Long getTime()@*
+
+Returns the time component of a time-based UUID in milliseconds since 1 Jan 1970 UTC.
+
+
+

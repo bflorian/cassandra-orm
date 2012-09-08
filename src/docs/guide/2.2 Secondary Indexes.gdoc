@@ -1,0 +1,45 @@
+Cassandra has the concept of secondary indexes, which must be declared in the schema definition of the column families.
+If you also declare these indexes in the @cassandraMapping@ Map you can query against these indexes with a GORM-like
+syntax.  For example, with the schema defintion:
+
+{code}
+create column family Person
+    with comparator=UTF8Type
+    and default_validation_class=UTF8Type
+    and column_metadata=[
+        {column_name: gender, validation_class: UTF8Type, index_type: KEYS},
+        {column_name: country, validation_class: UTF8Type, index_type: KEYS},
+        {column_name: state, validation_class: UTF8Type, index_type: KEYS}
+    ];
+{code}
+
+and the @cassandraMapping@ definition:
+
+{code}
+class Person
+{
+	String username
+	String state
+	String country
+	String gender
+
+	static cassandraMapping = [
+	        primaryKey: 'username',
+			secondaryIndexes: ["gender","country", "state"],
+	]
+}
+{code}
+
+you can query for objects using GORM-like finders:
+
+{code}
+Person.findAllByGender("Female")
+Person.findAllByCountryAndState("USA","New York")
+Person.findAllWhere(country: "USA", state: "Maine", gender: "Male")
+{code}
+
+or by specifying a CQL where expression:
+
+{code}
+Person.executeQuery("select * from Person where country = ? and state = ? limit 3", ["USA","Maryland"])
+{code}

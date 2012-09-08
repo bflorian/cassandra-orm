@@ -1,2 +1,143 @@
 The cassandra-orm plugin must be used in conjunction with a compatible Cassandra client plugin.  At this time there is
-only one such plugin, cassandra-astyanx, which uses the Netflix Astyanax Cassandra client.
+only one such plugin, cassandra-astyanx, which uses the Netflix Astyanax Cassandra client.  Because of a conflict between
+the Astyanax client and Grails, its recommended that you do this in BuildConfig.groovy
+
+{code}
+compile (":cassandra-astyanax:0.2.2") {
+    excludes "commons-logging"
+    excludes 'slf4j-log4j12'
+}
+runtime ":cassandra-orm:0.2.2"
+{code}
+
+See the [cassandra-astyanax|http://www.florian.org/grails/cassandra-astyanax/docs/guide/single.html] plugin for
+information about configuring Grails to connect to the Cassandra cluster(s).
+
+Create a directory named @grails-app/cassandra@ and put the classes you wish to persist in Cassandra there.  The plugin
+will automatically add dynamic persistence methods to any class that has a @cassandraMapping@ static property.
+A simple pair of domain classes might be:
+
+{code}
+class Person
+{
+	String username
+	String emailAddress
+	String firstName
+	String lastName
+	String country
+
+	List posts
+	static hasMany = [posts: Post]
+
+	static cassandraMapping = [
+	        primaryKey: 'username',
+			explicitIndexes: ["emailAddress", "country"],
+			counters: [[groupBy: "country"]]
+	]
+}
+{code}
+
+{code}
+class Post
+{
+	UUID uuid
+	String title
+	String text
+    Date occurTime
+
+	Person user
+	static belongsTo = [user: Person]
+
+	static cassandraMapping = [
+			primaryKey: 'uuid',
+			counters: [
+					[groupBy: ['occurTime']],
+					[findBy:  ['user'], groupBy:['occurTime']]
+			]
+	]
+}
+{code}
+
+You will need to create column families for each of these classes (there is currently no automatic creation of
+column families but its on the road-map).  The column family names are derived from the class names:
+
+{code}
+create column family Person with comparator=UTF8Type and default_validation_class=UTF8Type;
+create column family Person_IDX with comparator=UTF8Type and default_validation_class=UTF8Type;
+create column family Person_CTR with comparator=UTF8Type and default_validation_class=CounterColumnType;
+
+create column family Post with comparator=UTF8Type and default_validation_class=UTF8Type;
+create column family Post_IDX with comparator=UTF8Type and default_validation_class=UTF8Type;
+create column family Post_CTR with comparator=UTF8Type and default_validation_class=CounterColumnType;
+{code}
+
+To create a new user:
+
+{code}
+new Person(username: "jdoe", emailAddress: "jdoe@anywhere.com", firstName: "John", lastName: "Doe", country: "USA").save()
+{code}
+
+There are a number of ways to read back your user record(s):
+
+{code}
+def user1 = Person.get("jdoe")
+def user2 = Person.findByEmailAddress("jdoe@anywhere.com")
+def users = Person.findAllByCountry("USA")
+{code}
+
+To add some posts to that user:
+
+{code}
+user.addToPosts(new Post(title: "Post 1", text: "My first post", occurTime: new Date()-45))
+user.addToPosts(new Post(title: "Post 2", text: "My second post", occurTime: new Date()-32))
+user.addToPosts(new Post(title: "Post 3", text: "My third post", occurTime: new Date()-15))
+user.addToPosts(new Post(title: "Post 4", text: "My fourth post", occurTime: new Date()-10))
+user.addToPosts(new Post(title: "Post 5", text: "My fifth post", occurTime: new Date()))
+{code}
+
+To access the posts for a user:
+
+{code}
+user.posts.each {println it.title}
+{code}
+
+To access the last 3 posts in reverse order (UUID keys default to time-based):
+
+{code}
+user.posts(reversed: true, max: 3).each {println it.title}
+{code}
+
+To only read the titles from Cassandra (rather than whole objects):
+
+{code}
+user.posts(column: "title").each {println it}
+{code}
+
+To get the number of posts a user has:
+{code}
+user.postsCount()
+{code}
+
+To display the number of users per country:
+
+{code}
+Person.getCountsGroupByCountry()
+{code}
+
+To display the number of posts per time period (hour, day, month):
+
+{code}
+Post.getCountsGroupByOccurTime()
+Post.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH)
+Post.getCountsGroupByOccurTime(grain: Calendar.MONTH)
+{code}
+
+To display the user for each post:
+
+{code}
+Post.list().each {
+     println "${it.title} -- ${it.user.firstName} ${it.user.lastName}"
+}
+{code}
+
+

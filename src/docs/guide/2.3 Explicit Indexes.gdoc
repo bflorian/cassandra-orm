@@ -1,0 +1,58 @@
+Cassandra indexes can have undesireable performance characteristics in some cases, such as high cardinality indexes.
+For example, creating an index on the phone number, where there might be many millions of different numbers. For this
+reason the cassandra-orm plugin provides the ability to declare explicit indexes, which are implemented as rows in a
+companion column family.  Explicit indexes can be queried using the same GORM-like syntax as secondary indexes, but they
+do not support query expressions.  Each explicit index references one or more properties of the object. For example,
+with the following class definition:
+
+{code}
+class Person
+{
+	String username
+	String emailAddress
+	String phone
+	String city
+	String state
+
+	static cassandraMapping = [
+	        primaryKey: 'username',
+			explicitIndexes: ["emailAddress", "phone", "state", ["state","city"]],
+	]
+}
+{code}
+
+you can query for objects using findBy syntax:
+
+{code}
+Person.findByPhone("+13015551212")
+Person.findAllByState("Maryland")
+Person.findAllByCityAndState("Baltimore", "Maryland")
+{code}
+
+or findWhere syntax:
+
+{code}
+Person.findWhere(emailAddress: "jdoe@anywhere.com")
+Person.findAllWhere(state: "Virginia", city: "Reston")
+{code}
+
+Note that you cannot mix properties from different indexes, e.g. in this example the query @Person.findByPhoneAndState()@
+is not valid.  To be able to run that query you would need to declare a @["phone","city"]@ explicit index.
+
+Explicit indexes support only the quality operator, i.e. you can not use method names containing phrases like @LessThan@,
+@GreaterThan@, @NotEqual@, @Null@, etc.  However you can query objects matching one of a collection of values.
+For example:
+
+{code}
+Person.findAllByStateAndCity("Maryland",["Baltimore","Annapolis","Frederick"])
+{code}
+
+You can also count using explicit indexes:
+
+{code}
+Person.countByState("California")
+Person.countByCityAndState("San Francisco","California")
+{code}
+
+Counts done in this way perform better than querying for an returning entire objects, but they are not constant time
+operations, i.e. performance will depend on the number of rows.

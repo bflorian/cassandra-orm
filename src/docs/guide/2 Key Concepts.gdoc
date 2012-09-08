@@ -1,0 +1,2 @@
+Classes are configured for persistence in Cassandra by adding a static Map property named @cassandraMapping@ that
+specifies where and how the data is stored and retrieved.

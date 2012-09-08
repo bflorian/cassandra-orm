@@ -1,0 +1,56 @@
+Unlike GORM, the cassamdra-orm implementation does not automatically generate an @id@ property for each object.  Instead,
+it requires that you specify one or more properties of the object to be used in generating the id, which is used as the
+Cassandra row key for the object.  In the typical (and simplest) case, the value is the name of one property, for
+example:
+
+{code}
+class Person {
+    String emailAddress
+    ...
+    static cassandraMapping = [primaryKey: 'emailAddress']
+}
+{code}
+
+The primary key can also be a composite of multiple properties:
+
+{code}
+class Person {
+    String emailAddress
+    String firstName
+    ...
+    static cassandraMapping = [primaryKey: ['emailAddress','firstName']]
+}
+{code}
+
+In cases where no suitable natural keys are available, UUIDs are typically used for the primary key:
+
+{code}
+class BlogPost {
+    UUID uuid
+    ...
+    static cassandraMapping = [primaryKey: 'uuid']
+}
+{code}
+
+Note that, in this special case of a UUID as primary key, you don't need to specify the value when constructing the
+object.  If you leave it out, the system will automatically generate a time-based UUID the first time the object
+is saved.  In all other cases you must specify a non-null value for all primary key properties before saving the
+object.
+
+The natural order of the primary key determines the order of results returned by @list()@ and @findBy...@ methods
+(which is why time-based UUID keys are often so handy).
+
+In applications where you will be storing a very large number of objects (i.e. hundreds of millions or more) you may
+want to specify an un-indexed primary key:
+
+{code}
+class PaveView {
+    UUID uuid
+    ...
+    static cassandraMapping = [unindexedPrimaryKey: 'uuid']
+}
+{code}
+
+This options avoids the scaling problems of a very large primary key row in the index table (see Data Structures), but
+means that the @list()@ method is not available.  However, you can create other indexes on the object to use in
+queries.
