@@ -26,7 +26,7 @@ you can query for objects using findBy syntax:
 {code}
 Person.findByPhone("+13015551212")
 Person.findAllByState("Maryland")
-Person.findAllByCityAndState("Baltimore", "Maryland")
+Person.findAllByCityAndState("Baltimore","Maryland")
 {code}
 
 or findWhere syntax:
