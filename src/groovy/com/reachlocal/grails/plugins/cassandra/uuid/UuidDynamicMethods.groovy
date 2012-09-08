@@ -18,6 +18,7 @@ package com.reachlocal.grails.plugins.cassandra.uuid
 
 import org.apache.commons.codec.binary.Base64
 import com.eaio.uuid.UUIDGen
+import com.reachlocal.grails.plugins.cassandra.utils.UuidHelper
 
 /**
  * @author: Bob Florian
@@ -27,19 +28,11 @@ class UuidDynamicMethods
 	static void addAll()
 	{
 		Integer.metaClass.getBytes() {
-			byte[] buffer = new byte[4];
-			for (int i = 0; i < 4; i++) {
-				buffer[i] = (byte) (delegate >>> 8 * (7 - i));
-			}
-			return buffer
+			return UuidHelper.getBytes(delegate)
 		}
 
 		Long.metaClass.getBytes() {
-			byte[] buffer = new byte[8];
-			for (int i = 0; i < 8; i++) {
-				buffer[i] = (byte) (delegate >>> 8 * (7 - i));
-			}
-			return buffer
+			return UuidHelper.getBytes(delegate)
 		}
 
 		UUID.metaClass.'static'.timeUUID = {
@@ -47,42 +40,21 @@ class UuidDynamicMethods
 		}
 
 		UUID.metaClass.'static'.reverseTimeUUID = {
-			long t = createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
+			long t = UuidHelper.createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
 			return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
 		}
 
 		UUID.metaClass.'static'.timeUUID = {msec ->
-			long t = createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
+			long t = UuidHelper.createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
 			return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
 		}
 
 		UUID.metaClass.'static'.fromBytes = {uuid ->
-			long msb = 0;
-			long lsb = 0;
-			assert uuid.length == 16;
-			for (int i=0; i<8; i++)
-				msb = (msb << 8) | (uuid[i] & 0xff);
-			for (int i=8; i<16; i++)
-				lsb = (lsb << 8) | (uuid[i] & 0xff);
-
-			com.eaio.uuid.UUID u = new com.eaio.uuid.UUID(msb,lsb);
-			return java.util.UUID.fromString(u.toString());
+			return UuidHelper.fromBytes(uuid as byte[])
 		}
 
 		UUID.metaClass.getBytes = {
-			def uuid = delegate
-			long msb = uuid.getMostSignificantBits();
-			long lsb = uuid.getLeastSignificantBits();
-			byte[] buffer = new byte[16];
-
-			for (int i = 0; i < 8; i++) {
-				buffer[i] = (byte) (msb >>> 8 * (7 - i));
-			}
-			for (int i = 8; i < 16; i++) {
-				buffer[i] = (byte) (lsb >>> 8 * (7 - i));
-			}
-
-			return buffer;
+			return UuidHelper.getBytes(delegate)
 		}
 
 		UUID.metaClass.toUrlSafeString = {
@@ -90,27 +62,9 @@ class UuidDynamicMethods
 		}
 
 		UUID.metaClass.getTime = {
-			return (delegate.timestamp() - NUM_100NS_INTERVALS_SINCE_UUID_EPOCH) / 10000 as Long
+			return (delegate.timestamp() - UuidHelper.NUM_100NS_INTERVALS_SINCE_UUID_EPOCH) / 10000 as Long
 		}
 	}
 
-	private static long createTimeFromMicros(long currentTime) {
-		long time;
-
-		// UTC time
-		long timeToUse = (currentTime * 10) + NUM_100NS_INTERVALS_SINCE_UUID_EPOCH;
-
-		// time low
-		time = timeToUse << 32;
-
-		// time mid
-		time |= (timeToUse & 0xFFFF00000000L) >> 16;
-
-		// time hi and version
-		time |= 0x1000 | ((timeToUse >> 48) & 0x0FFF); // version 1
-		return time;
-	}
-
-	static final long NUM_100NS_INTERVALS_SINCE_UUID_EPOCH = 0x01b21dd213814000L;
 	static rand = new Random()
 }

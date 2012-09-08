@@ -1,0 +1,76 @@
+package com.reachlocal.grails.plugins.cassandra.utils;
+
+import java.util.UUID;
+
+/**
+ * @author: Bob Florian
+ */
+public class UuidHelper
+{
+
+	public static byte[] getBytes(int value)
+	{
+		byte[] buffer = new byte[4];
+		for (int i = 0; i < 4; i++) {
+			buffer[i] = (byte) (value >>> 8 * (7 - i));
+		}
+		return buffer;
+	}
+
+	public static byte[] getBytes(long value)  {
+		byte[] buffer = new byte[8];
+		for (int i = 0; i < 8; i++) {
+			buffer[i] = (byte) (value >>> 8 * (7 - i));
+		}
+		return buffer;
+	}
+
+	public static UUID fromBytes(byte[] uuid)
+	{
+		long msb = 0;
+		long lsb = 0;
+		assert uuid.length == 16;
+		for (int i=0; i<8; i++)
+			msb = (msb << 8) | (uuid[i] & 0xff);
+		for (int i=8; i<16; i++)
+			lsb = (lsb << 8) | (uuid[i] & 0xff);
+
+		com.eaio.uuid.UUID u = new com.eaio.uuid.UUID(msb,lsb);
+		return java.util.UUID.fromString(u.toString());
+	}
+
+	public static byte[] getBytes(UUID uuid)
+	{
+		long msb = uuid.getMostSignificantBits();
+		long lsb = uuid.getLeastSignificantBits();
+		byte[] buffer = new byte[16];
+
+		for (int i = 0; i < 8; i++) {
+			buffer[i] = (byte) (msb >>> 8 * (7 - i));
+		}
+		for (int i = 8; i < 16; i++) {
+			buffer[i] = (byte) (lsb >>> 8 * (7 - i));
+		}
+
+		return buffer;
+	}
+
+	public static long createTimeFromMicros(long currentTime) {
+		long time;
+
+		// UTC time
+		long timeToUse = (currentTime * 10) + NUM_100NS_INTERVALS_SINCE_UUID_EPOCH;
+
+		// time low
+		time = timeToUse << 32;
+
+		// time mid
+		time |= (timeToUse & 0xFFFF00000000L) >> 16;
+
+		// time hi and version
+		time |= 0x1000 | ((timeToUse >> 48) & 0x0FFF); // version 1
+		return time;
+	}
+
+	static final long NUM_100NS_INTERVALS_SINCE_UUID_EPOCH = 0x01b21dd213814000L;
+}
