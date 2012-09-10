@@ -40,7 +40,7 @@ class OrmTestCase
 		persistence = new MockPersistenceMethods()
 		client = new CassandraOrmService(
 				client: new Expando(
-						defaultKeyspace: 'mockDefault',
+						defaultKeyspaceName: {cluster-> 'mockDefault'},
 						withKeyspace: {keyspace, cluster, block ->
 							persistence.cluster = cluster
 							block("context")

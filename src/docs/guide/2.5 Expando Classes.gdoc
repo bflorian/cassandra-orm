@@ -1,0 +1,40 @@
+Casandra's flexible data model can be a good match with Groovy's dynamic aspects.  After all, why limit the properties
+of an object to a predefined set when Cassandra itself supports millions of columns per row that can differ from one
+row to the next. The cassandra-orm plugin supports this flexibility by allowing you do designate a class as being
+an "expando".  For example, given the class declaration:
+
+{code}
+class Event 
+{
+    UUID uuid
+    String eventType
+    String accountId
+    Map payload
+
+    static cassandraMapping = [
+            primaryKey: "uuid",
+            exlicitIndexes: ["accountId",["accountId","eventType"],["accountId","eventType","source"]],
+            expandoMap: "payload"
+    ]
+}
+{code}
+
+You can construct an object with any set of properties you want:
+
+{code}
+new Event(accountId: "A001", eventType: "PhoneCall", source: "+13015551212", destination: "+14155551212").save()
+{code}
+
+and access those properties with the same syntax as the declared properties:
+
+{code}
+Event.list().each { println it.destination }
+{code}
+
+You can even query based on expando properties, provided they are declared as an index:
+
+{code}
+Event.findAllByAccountIdAndEventTypeAndSource("A001","PhoneCall", "+13015551212")
+{code}
+
+Note that as of now, all expando properties are Strings.  This limitation may be relaxed in subsequent releases.

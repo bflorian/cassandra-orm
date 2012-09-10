@@ -1,0 +1,50 @@
+By default, the _cassandra-orm_ plugin expects a column family to exist with the same name as each class with a
+_cassandraMapping_ declaration.  It also expects a column family with that class name and a @_IDX@ suffix to exist to
+hold the indexes for the class, and if there are counters declared in the mapping, a column family with a @_CTR@
+suffix.  In other words, given a class names:
+
+* SomeClass
+
+there should be three column families named:
+
+* SomeClass (to store the objects themselves)
+* SomeClass_IDX (to store the indexes to the objects)
+* SomeClass_CTR (to store the object counters, if counters have been declared)
+
+You can override this default behavior by adding a _columnFamily_ property to the _cassandraMapping_ Map:
+
+{code}
+static cassandraMapping = [
+    columnFamily = "SomeOtherName"
+]
+{code}
+
+The default key space and cluster used depends on the cassandra client configuration. At this time the only available
+client is the [cassandra-astyanax plugin | http://www.florian.org/grails/cassandra-astyanax/docs/guide/1%20Cassandra%20Astyanax%20Plugin.html#1.2%20Configuration%20Options]
+which is able to configure multiple clusters and key spaces in this way:
+
+{code}
+astyanax {
+	clusters {
+		standard {
+			seeds = ["localhost:9160"]
+			defaultKeyspace = "MyAppDb"
+		}
+		tracking {
+			seeds = ["localhost:9160"]
+			defaultKeyspace = "MainTracking"
+		}
+	}
+	defaultCluster = 'standard'
+}
+{code}
+
+Given that configuration, the system will default to using the _standard_ cluster and _MyAppDb_ key space. You can
+override the default cluster and key space with the following _cassandraMapping_ properties:
+
+{code}
+static cassandraMapping = [
+    cluster = "tracking"
+    keySpace = "SecondaryTracking"
+]
+{code}

@@ -51,7 +51,7 @@ class ClassMethods extends MappingUtils
 			clazz.cassandraMapping.cluster = "standard"
 		}
 		if (!clazz.cassandraMapping.keySpace) {
-			clazz.cassandraMapping.keySpace = clazz.cassandra.defaultKeyspace
+			clazz.cassandraMapping.keySpace = clazz.cassandra.defaultKeyspaceName(clazz.cassandraMapping.cluster)
 		}
 		if (!clazz.cassandraMapping.columnFamily) {
 			clazz.cassandraMapping.columnFamily = clazz.simpleName

@@ -1,0 +1,42 @@
+Cassandra supports the specification of a _Time-to-Live (TTL)_ property that results in a column being automatically
+deleted after the specified time has elapsed.  The _cassandra-orm_ plugin allow a time to live to be declared for
+an entire object (and its indexes) or only certain fields of an object.  Note that Cassandra counters do not support
+TTL, so you should not reference fields with a TTL declared in either the _findBy_ or _groupBy_ elements of a
+counter declaration.  Here's an example of declaring a time-to-live for an entire object:
+
+{code}
+class LogEntry 
+{
+    UUID uuid
+    Date occurTime
+    String messageText
+
+    def cassandraMapping = [
+            primaryKey: "uuid",
+            timeToLive: 90*24*3600
+    ]
+}
+{code}
+
+Here's an example of specify a time-to-live for only certain columns of an object:
+
+{code}
+class Event 
+{
+    UUID uuid
+    String accountId
+    String eventType
+    String ipAddress
+    Map payload
+
+    static cassandraMapping = [
+            primaryKey: "uuid",
+            explicitIndexes: ["accountId",["accountId","eventType"],["accountId","eventType","source"]],
+            expandoMap: "payload",
+            timeToLive: [ipAddress: 90*24*3600,transcript: 30*24*3600]
+    ]
+}
+{code}
+
+
+
