@@ -531,6 +531,8 @@ class MappingUtils extends CounterUtils
 	static queryByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = addOptionDefaults(opts, MAX_ROWS)
+		def start = options.startAfter ?: options.start
+		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
@@ -542,15 +544,15 @@ class MappingUtils extends CounterUtils
 						ks,
 						indexCf,
 						rowKey,
-						options.start,
+						start,
 						options.finish,
 						options.reversed,
-						options.max,
+						max,
 						opts.consistencyLevel)
 
 				columns << cols.collect{persistence.name(it)}
 			}
-			def keys = mergeKeys(columns, options.max, options.reversed)
+			def keys = mergeKeys(columns, max, options.reversed)
 
 			def result
 			def names = columnNames(options)
@@ -562,13 +564,14 @@ class MappingUtils extends CounterUtils
 				def rows = persistence.getRows(ks, clazz.columnFamily, keys, opts.consistencyLevel)
 				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
 			}
-			return result
+			return options.startAfter && result ? result[1..-1] : result
 		}
 	}
 
 	static countByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = addOptionDefaults(opts, MAX_ROWS)
+		def start = options.startAfter ?: options.start
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
@@ -580,13 +583,13 @@ class MappingUtils extends CounterUtils
 						ks,
 						indexCf,
 						rowKey,
-						options.start,
+						start,
 						options.finish,
 						opts.consistencyLevel)
 
 				total += count
 			}
-			return total
+			return options.startAfter && total ? total - 1 : total
 		}
 	}
 
@@ -673,6 +676,8 @@ class MappingUtils extends CounterUtils
 	{
 		def result = []
 		def options = addOptionDefaults(opts, MAX_ROWS, thisObj.getProperty(CLUSTER_PROP))
+		def start = options.startAfter ?: options.start
+		def max = options.startAfter ? options.max + 1 : options.max
 		def itemColumnFamily = itemClass.columnFamily
 		def persistence = thisObj.cassandra.persistence
 		def belongsToPropName = itemClass.belongsToPropName(thisObj.getClass())
@@ -681,7 +686,7 @@ class MappingUtils extends CounterUtils
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
-			def keys = persistence.getColumnRange(ks, indexCF, indexKey, options.start, options.finish, options.reversed, options.max, opts.consistencyLevel)
+			def keys = persistence.getColumnRange(ks, indexCF, indexKey, start, options.finish, options.reversed, max, opts.consistencyLevel)
 					.collect{persistence.name(it)}
 
 			def names = columnNames(options)
@@ -699,7 +704,7 @@ class MappingUtils extends CounterUtils
 				}
 			}
 		}
-		return result
+		return options.startAfter && result ? result[1..-1] : result
 	}
 
 	static countByMappedObject(thisObj, propName, itemClass, opts=[:])

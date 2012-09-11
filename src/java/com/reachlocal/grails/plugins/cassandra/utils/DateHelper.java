@@ -14,6 +14,11 @@ public class DateHelper
 	public static Map<String, Object> fillDates(Map<String, Object> source, int grain)
 			throws ParseException
 	{
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		if (source.size() == 0) {
+			return result;
+		}
+
 		DateFormat format;
 		switch (grain) {
 			case Calendar.DAY_OF_MONTH:
@@ -53,7 +58,6 @@ public class DateHelper
 		Date endDate = format.parse(maxKey);
 		Object firstValue = source.get(format.format(date));
 		Object defaultValue = firstValue instanceof Long ? 0L : null;
-		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		while (!date.after(endDate)) {
 			String key = format.format(date);
 			Object value = source.get(key);

@@ -197,22 +197,24 @@ class ClassMethods extends MappingUtils
 
 			def options = addOptionDefaults(opts, MAX_ROWS)
 			def cluster = opts.cluster ?: cassandraCluster
+			def start = options.startAfter ?: options.start
+			def max = options.startAfter ? options.max + 1 : options.max
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def columns = cassandra.persistence.getColumnRange(
 						ks,
 						indexColumnFamily,
 						primaryKeyIndexRowKey(),
-						options.start,
+						start,
 						options.finish,
 						options.reversed,
-						options.max,
+						max,
 						opts.consistencyLevel
 				)
 
 				def keys = columns.collect{cassandra.persistence.name(it)}
 				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
 				def result = cassandra.mapping.makeResult(keys, rows, options, LinkedList)
-				return result
+				return options.startAfter && result ? result[1..-1] : result
 			}
 		}
 

@@ -11,7 +11,7 @@ class BaseUtils
 {
 	static protected final END_CHAR = "\u00ff"
 	static protected final int MAX_ROWS = 2000
-	static protected final INDEX_OPTIONS = ["start","finish","keys"]
+	static protected final INDEX_OPTIONS = ["start","startAfter","finish","keys"]
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
 	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS  + ["cluster"]
 	static protected final CLASS_NAME_KEY = '_class_name_'

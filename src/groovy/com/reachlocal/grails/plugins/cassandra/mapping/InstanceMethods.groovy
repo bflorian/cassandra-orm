@@ -63,6 +63,11 @@ class InstanceMethods extends MappingUtils
 			return result
 		}
 
+		// traverseRelationships
+		clazz.metaClass.getTraverseRelationships = {
+			return new Traverser(delegate, null)
+		}
+
 		// save()
 		clazz.metaClass.save = {args ->
 			def thisObj = delegate
@@ -397,7 +402,9 @@ class InstanceMethods extends MappingUtils
 
 				// getter function
 				clazz.metaClass."${propName}" = { options ->
-					return getFromHasMany(delegate, propName, options)
+					def iClass = PropertyUtils.getPropertyType(delegate, propName)
+					def oClass = iClass && List.isAssignableFrom(iClass) ? LinkedList : LinkedHashSet
+					return getFromHasMany(delegate, propName, options, oClass)
 				}
 
 				// counter function

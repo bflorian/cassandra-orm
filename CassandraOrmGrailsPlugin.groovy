@@ -53,9 +53,14 @@ Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra 
 		UuidDynamicMethods.addAll()
 
 		application.allClasses.each {clazz ->
-			if (OrmUtility.isMappedClass(clazz)) {
-				log.debug "Mapping ${clazz.name} for Casssandra ORM"
-				OrmUtility.addDynamicMethods(clazz, ctx)
+			try {
+				if (OrmUtility.isMappedClass(clazz)) {
+					log.debug "Mapping ${clazz.name} for Casssandra ORM"
+					OrmUtility.addDynamicMethods(clazz, ctx)
+				}
+			}
+			catch (Exception e) {
+				log.error "Exception adding ORM methods to ${clazz.name}"
 			}
 		}
 	}

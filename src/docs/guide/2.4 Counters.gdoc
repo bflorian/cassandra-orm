@@ -167,3 +167,18 @@ which returns:
 2012-02-19:0, 2012-02-20:0, 2012-02-21:0, 2012-02-22:3, 2012-02-23:0, 2012-02-24:0, 2012-02-25:3]
 {code}
 
+By default time-based counters include all counts, but you can limit the results to a certain time range by specifying
+and start time and/or an finish time.  To display all results from a particular time forward:
+
+{code}
+Visit.getCountsGroupByOccurTime(fill: true, grain: Calendar.DAY_OF_MONTH, start: Date.parse('yyyy-MM-dd','2012-02-01'))
+{code}
+
+or to display results only within a specific range of times:
+
+{code}
+Visit.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH, fill: true,
+        start: Date.parse('yyyy-MM-dd','2012-02-01'),
+        finish: Date.parse('yyyy-MM-dd','2012-02-15'))
+{code}
+
