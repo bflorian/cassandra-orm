@@ -1,5 +1,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
+import org.apache.commons.beanutils.PropertyUtils
+
 /**
  * @author: Bob Florian
  */
@@ -79,7 +81,7 @@ class TraverserNode
 		if (opts.reversed) {
 			keys = keys.reverse()
 		}
-		if (opts.max) {
+		if (opts.max && opts.max < keys.size()-1) {
 			keys = keys[0..opts.max-1]
 		}
 
@@ -88,16 +90,18 @@ class TraverserNode
 		def cassandra = traverser.object.cassandra
 		def persistence = cassandra.persistence
 		def names = MappingUtils.columnNames(options)
-		def itemColumnFamily = segments[-1].itemClass.columnFamily
-		def listClass = LinkedList // TODO - calculate?
+		def iClass = segments[-1].itemClass
+		def itemColumnFamily = iClass.columnFamily
+		def oClass = iClass && List.isAssignableFrom(iClass) ? LinkedList : LinkedHashSet
+
 		cassandra.withKeyspace(traverser.object.keySpace, traverser.object.cassandraCluster) {ks ->
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names, options.consistencyLevel)
-				result = cassandra.mapping.makeResult(keys, rows, options, listClass)
+				result = cassandra.mapping.makeResult(keys, rows, options, oClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys, options.consistencyLevel)
-				result = cassandra.mapping.makeResult(keys, rows, options, listClass)
+				result = cassandra.mapping.makeResult(keys, rows, options, oClass)
 			}
 		}
 		return result

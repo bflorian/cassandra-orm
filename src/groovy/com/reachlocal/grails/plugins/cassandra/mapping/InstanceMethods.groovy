@@ -440,17 +440,9 @@ class InstanceMethods extends MappingUtils
 						// save join row from this object to the item
 						saveJoinRow(cassandra.persistence, m, clazz, thisObj, item.class, item, propName)
 
-						// save the join row from the item to this object, if there is one
-						safeGetStaticProperty(item.class, "hasMany")?.each {name1, clazz1 ->
-							if (clazz1 == clazz) {
-								saveJoinRow(cassandra.persistence, m, item.class, item, clazz, thisObj, name1)
-							}
-						}
-
 						persistence.execute(m)
 					}
-
-					return thisObj
+					return item
 				}
 
 				// removeFrom...
@@ -487,7 +479,7 @@ class InstanceMethods extends MappingUtils
 						}
 						persistence.execute(m)
 					}
-					return thisObj
+					return item
 				}
 			}
 		}
