@@ -98,11 +98,6 @@ class TraverserNode
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys, options.consistencyLevel)
 				result = cassandra.mapping.makeResult(keys, rows, options, listClass)
-				//if (belongsToPropName) {
-				//	result.each {
-				//		it.setProperty(belongsToPropName, thisObj)
-				//	}
-				//}
 			}
 		}
 		return result
