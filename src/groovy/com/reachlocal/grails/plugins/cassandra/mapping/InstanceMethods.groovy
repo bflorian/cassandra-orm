@@ -65,7 +65,7 @@ class InstanceMethods extends MappingUtils
 
 		// traverseRelationships
 		clazz.metaClass.getTraverseRelationships = {
-			return new Traverser(delegate, null)
+			return new Traverser(object: delegate, args: null)
 		}
 
 		// save()

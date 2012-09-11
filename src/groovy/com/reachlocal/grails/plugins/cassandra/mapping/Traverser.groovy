@@ -5,11 +5,8 @@ package com.reachlocal.grails.plugins.cassandra.mapping
  */
 class Traverser 
 {
-	public Traverser(object, args=null)
-	{
-		this.object = object
-		this.args = args
-	}
+	def object
+	def args
 
 	def propertyMissing(String name)
 	{
@@ -21,7 +18,5 @@ class Traverser
 		this.node = new TraverserNode(traverser: this, name: name, args: args)
 	}
 
-	TraverserNode node
-	def object
-	def args
+	private TraverserNode node
 }

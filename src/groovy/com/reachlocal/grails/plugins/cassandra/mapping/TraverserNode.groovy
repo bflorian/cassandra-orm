@@ -9,7 +9,8 @@ class TraverserNode
 	TraverserNode parent
 	String name
 	def args
-	def result
+	def clazz
+	def itemClass
 
 	def propertyMissing(String name)
 	{
@@ -29,7 +30,7 @@ class TraverserNode
 	def evaluate(objects)
 	{
 		//println "EVALUATE: ${objects}"
-		result = []
+		def result = []
 		if (args) {
 			objects.each {obj ->
 				//println "METHOD $name ($args)"
@@ -45,7 +46,69 @@ class TraverserNode
 		return result
 	}
 
-	def execute(args=[:])
+	def evaluateKeys(keys, thisClass, propName, itemClass, opts)
+	{
+		def result = []
+		keys.each {key ->
+			result += MappingUtils.getKeysForMappedObject(thisClass, key, propName, itemClass, opts)
+		}
+		return result
+	}
+
+	def execute(opts=[:])
+	{
+		def segments = path()
+		def lastClass = traverser.object.getClass()
+		segments.collect {node ->
+			node.clazz = lastClass
+			lastClass = BaseUtils.safeGetStaticProperty(lastClass, 'hasMany')?.get(node.name)
+			node.itemClass = lastClass
+			if (!lastClass) {
+				throw new InvalidObjectException("Could not find hasMany property ${node.name} in class ${lastClass.name}")
+			}
+		}
+
+		def keys = [traverser.object.id]
+		segments.each {n ->
+			keys = evaluateKeys(keys, n.clazz, n.name, n.itemClass, n.args ? n.args[0] : [:])
+		}
+
+		if (opts.sort == null || opts.sort) {
+			keys = keys.sort{it}
+		}
+		if (opts.reversed) {
+			keys = keys.reverse()
+		}
+		if (opts.max) {
+			keys = keys[0..opts.max-1]
+		}
+
+		def result = []
+		def options = BaseUtils.addOptionDefaults(opts, BaseUtils.MAX_ROWS)
+		def cassandra = traverser.object.cassandra
+		def persistence = cassandra.persistence
+		def names = MappingUtils.columnNames(options)
+		def itemColumnFamily = segments[-1].itemClass.columnFamily
+		def listClass = LinkedList // TODO - calculate?
+		cassandra.withKeyspace(traverser.object.keySpace, traverser.object.cassandraCluster) {ks ->
+			if (names) {
+				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names, options.consistencyLevel)
+				result = cassandra.mapping.makeResult(keys, rows, options, listClass)
+			}
+			else {
+				def rows = persistence.getRows(ks, itemColumnFamily, keys, options.consistencyLevel)
+				result = cassandra.mapping.makeResult(keys, rows, options, listClass)
+				//if (belongsToPropName) {
+				//	result.each {
+				//		it.setProperty(belongsToPropName, thisObj)
+				//	}
+				//}
+			}
+		}
+		return result
+	}
+
+	def executeOld(args=[:])
 	{
 		def segments = path()
 		def items = [traverser.object]

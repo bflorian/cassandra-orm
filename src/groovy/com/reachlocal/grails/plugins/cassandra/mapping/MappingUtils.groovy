@@ -707,6 +707,24 @@ class MappingUtils extends CounterUtils
 		return options.startAfter && result ? result[1..-1] : result
 	}
 
+	static getKeysForMappedObject(thisClass, thisId, propName, itemClass, opts=[:])
+	{
+		def result = []
+		def options = addOptionDefaults(opts, MAX_ROWS, thisClass.cassandraCluster)
+		def start = options.startAfter ?: options.start
+		def max = options.startAfter ? options.max + 1 : options.max
+		def persistence = thisClass.cassandra.persistence
+
+		thisClass.cassandra.withKeyspace(thisClass.keySpace, thisClass.cassandraCluster) {ks ->
+			def indexCF = itemClass.indexColumnFamily
+			def indexKey = joinRowKeyFromId(thisClass, itemClass, propName, thisId)
+
+			result = persistence.getColumnRange(ks, indexCF, indexKey, start, options.finish, options.reversed, max, opts.consistencyLevel)
+					.collect{persistence.name(it)}
+		}
+		return options.startAfter && result ? result[1..-1] : result
+	}
+
 	static countByMappedObject(thisObj, propName, itemClass, opts=[:])
 	{
 		def result = []

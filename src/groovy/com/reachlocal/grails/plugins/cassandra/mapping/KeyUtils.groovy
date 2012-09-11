@@ -22,8 +22,15 @@ class KeyUtils extends BaseUtils
 
 	static joinRowKey(fromClass, toClass, propName, object)
 	{
+		//def fromClassName = fromClass.name.split("\\.")[-1]
+		//"${fromClassName}?${propName}=${URLEncoder.encode(object.id)}".toString()
+		joinRowKeyFromId(fromClass, toClass, propName, object.id)
+	}
+
+	static joinRowKeyFromId(fromClass, toClass, propName, objectId)
+	{
 		def fromClassName = fromClass.name.split("\\.")[-1]
-		"${fromClassName}?${propName}=${URLEncoder.encode(object.id)}".toString()
+		"${fromClassName}?${propName}=${URLEncoder.encode(objectId)}".toString()
 	}
 
 	static primaryKeyIndexRowKey()
