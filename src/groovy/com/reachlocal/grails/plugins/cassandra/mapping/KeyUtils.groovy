@@ -230,6 +230,11 @@ class KeyUtils extends BaseUtils
 		primaryRowKey(obj)
 	}
 
+	static nullablePrimaryRowKey(obj)
+	{
+		return obj == null ? null : primaryRowKey(obj)
+	}
+
 	static primaryRowKey(List objs)
 	{
 		makeComposite(objs.collect{primaryRowKey(it)})

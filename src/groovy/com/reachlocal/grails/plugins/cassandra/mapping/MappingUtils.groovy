@@ -676,7 +676,8 @@ class MappingUtils extends CounterUtils
 	{
 		def result = []
 		def options = addOptionDefaults(opts, MAX_ROWS, thisObj.getProperty(CLUSTER_PROP))
-		def start = options.startAfter ?: options.start
+		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def finish = nullablePrimaryRowKey(options.finish)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def itemColumnFamily = itemClass.columnFamily
 		def persistence = thisObj.cassandra.persistence
@@ -686,7 +687,7 @@ class MappingUtils extends CounterUtils
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
-			def keys = persistence.getColumnRange(ks, indexCF, indexKey, start, options.finish, options.reversed, max, opts.consistencyLevel)
+			def keys = persistence.getColumnRange(ks, indexCF, indexKey, start, finish, options.reversed, max, opts.consistencyLevel)
 					.collect{persistence.name(it)}
 
 			def names = columnNames(options)
@@ -711,7 +712,8 @@ class MappingUtils extends CounterUtils
 	{
 		def result = []
 		def options = addOptionDefaults(opts, MAX_ROWS, thisClass.cassandraCluster)
-		def start = options.startAfter ?: options.start
+		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def finish = nullablePrimaryRowKey(options.finish)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def persistence = thisClass.cassandra.persistence
 
@@ -719,7 +721,7 @@ class MappingUtils extends CounterUtils
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKeyFromId(thisClass, itemClass, propName, thisId)
 
-			result = persistence.getColumnRange(ks, indexCF, indexKey, start, options.finish, options.reversed, max, opts.consistencyLevel)
+			result = persistence.getColumnRange(ks, indexCF, indexKey, start, finish, options.reversed, max, opts.consistencyLevel)
 					.collect{persistence.name(it)}
 		}
 		return options.startAfter && result ? result[1..-1] : result
@@ -730,13 +732,15 @@ class MappingUtils extends CounterUtils
 		def result = []
 		def options = addOptionDefaults(opts, MAX_ROWS)
 		def persistence = thisObj.cassandra.persistence
+		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def finish = nullablePrimaryRowKey(options.finish)
 		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 			def indexCF = itemClass.indexColumnFamily
 			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
-			result = persistence.countColumnRange(ks, indexCF, indexKey, options.start, options.finish, opts.consistencyLevel)
+			result = persistence.countColumnRange(ks, indexCF, indexKey, start, finish, opts.consistencyLevel)
 		}
-		return result
+		return options.startAfter && result ? result - 1 : result
 	}
 
 	static columnNames(Map options)
