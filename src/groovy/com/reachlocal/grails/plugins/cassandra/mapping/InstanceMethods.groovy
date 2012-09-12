@@ -393,7 +393,7 @@ class InstanceMethods extends MappingUtils
 					if (items == null) {
 						def oClass = iClass && List.isAssignableFrom(iClass) ? LinkedList : LinkedHashSet
 						items = getFromHasMany(delegate, propName, [:], oClass)
-						if (iClass) {
+						if (iClass && items.size() < MAX_ROWS) {  // TODO - consider throwing an exception if there might be more?
 							PropertyUtils.setProperty(delegate, propName, items)
 						}
 					}
