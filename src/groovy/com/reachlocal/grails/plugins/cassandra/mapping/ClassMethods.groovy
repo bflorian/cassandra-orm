@@ -140,7 +140,7 @@ class ClassMethods extends MappingUtils
 		}
 
 		// get(id, options?)
-		clazz.metaClass.'static'.multiGet = {ids, opts=[:] ->
+		clazz.metaClass.'static'.getAll = {ids, opts=[:] ->
 			def result = null
 			def rowKeys = ids.collect{primaryRowKey(it)}
 			def cluster = opts.cluster ?: cassandraCluster
