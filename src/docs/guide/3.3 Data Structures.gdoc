@@ -1,0 +1,167 @@
+The Cassandra data structures produced by this model are shown in the following sections.
+
+h3. Person
+
+{code}
+Person:
+    user1 =>
+        _class_name_ => 'example.Person'
+        username => 'user1'
+    user2 =>
+        _class_name_ => 'example.Person'
+        username => 'user2'
+{code}
+
+h3. Person_IDX
+
+{code}
+Person_IDX:
+    Comment?likedBy=001347471378565_5c260b50-fd00-11e1-8230-001c42000009 =>
+        user1 => ''
+        user2 => ''
+    Comment?likedBy=001347471378631_5c301d70-fd00-11e1-8230-001c42000009 =>
+        user1 => ''
+    Person?friends=user1 =>
+        user1 => ''
+        user2 => ''
+    Person?friends=user2 =>
+        user1 => ''
+        user2 => ''
+    Post?likedBy=001347471378340_5c03b640-fd00-11e1-8230-001c42000009 =>
+        user2 => ''
+    Post?likedBy=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 =>
+        user1 => ''
+    this =>
+        user1 => ''
+        user2 => ''
+    this#user1 =>
+        Comment?likedBy=001347471378565_5c260b50-fd00-11e1-8230-001c42000009 => ''
+        Comment?likedBy=001347471378631_5c301d70-fd00-11e1-8230-001c42000009 => ''
+        Person?friends=user1 => ''
+        Person?friends=user2 => ''
+        Post?likedBy=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 => ''
+    this#user2 =>
+        Comment?likedBy=001347471378565_5c260b50-fd00-11e1-8230-001c42000009 => ''
+        Person?friends=user1 => ''
+        Person?friends=user2 => ''
+        Post?likedBy=001347471378340_5c03b640-fd00-11e1-8230-001c42000009 => ''
+    this@user1 =>
+        001347471378340_5c03b640-fd00-11e1-8230-001c42000009ØpersonØPost => ''
+        001347471378631_5c301d70-fd00-11e1-8230-001c42000009ØpersonØComment => ''
+    this@user2 =>
+        001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009ØpersonØPost => ''
+        001347471378565_5c260b50-fd00-11e1-8230-001c42000009ØpersonØComment => ''
+{code}
+
+
+h3. Post
+
+{code}
+    001347471378340_5c03b640-fd00-11e1-8230-001c42000009 =>
+        _class_name_ => 'example.Post'
+        occurTime => '2012-09-12T17:36:18.308Z'
+        personId => 'user1'
+        text => 'User 1's Post 1'
+        uuid => '5c03b640-fd00-11e1-8230-001c42000009'
+    001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 =>
+        _class_name_ => 'example.Post'
+        occurTime => '2012-09-12T17:36:18.498Z'
+        personId => 'user2'
+        text => 'User 2's Post 1'
+        uuid => '5c1c6e60-fd00-11e1-8230-001c42000009'
+{code}
+
+h3. Post_IDX
+
+{code}
+    Person?posts=user1 =>
+        001347471378340_5c03b640-fd00-11e1-8230-001c42000009 => ''
+    Person?posts=user2 =>
+        001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 => ''
+    this =>
+        001347471378340_5c03b640-fd00-11e1-8230-001c42000009 => ''
+        001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 => ''
+    this#001347471378340_5c03b640-fd00-11e1-8230-001c42000009 =>
+        Person?posts=user1 => ''
+    this#001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 =>
+        Person?posts=user2 => ''
+    this@001347471378340_5c03b640-fd00-11e1-8230-001c42000009 =>
+        001347471378565_5c260b50-fd00-11e1-8230-001c42000009ØpostØComment => ''
+    this@001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 =>
+        001347471378631_5c301d70-fd00-11e1-8230-001c42000009ØpostØComment => ''
+{code}
+
+h3. Post_CTR
+
+{code}
+    this#occurTime =>
+        2012-09-12T17 => 2
+    this#occurTime[yyyy-MM-dd] =>
+        2012-09-12 => 2
+    this#occurTime[yyyy-MM] =>
+        2012-09 => 2
+{code}
+
+h3. Comment
+
+{code}
+    001347471378565_5c260b50-fd00-11e1-8230-001c42000009 =>
+        _class_name_ => 'example.Comment'
+        occurTime => '2012-09-12T17:36:18.559Z'
+        personId => 'user2'
+        postId => '001347471378340_5c03b640-fd00-11e1-8230-001c42000009'
+        text => 'Comments to post 1 from user 2'
+        uuid => '5c260b50-fd00-11e1-8230-001c42000009'
+    001347471378631_5c301d70-fd00-11e1-8230-001c42000009 =>
+        _class_name_ => 'example.Comment'
+        occurTime => '2012-09-12T17:36:18.627Z'
+        personId => 'user1'
+        postId => '001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009'
+        text => 'Comments to post 2 from user 1'
+        uuid => '5c301d70-fd00-11e1-8230-001c42000009'
+{code}
+
+h3. Comment_IDX
+
+{code}
+    Post?comments=001347471378340_5c03b640-fd00-11e1-8230-001c42000009 =>
+        001347471378565_5c260b50-fd00-11e1-8230-001c42000009 => ''
+    Post?comments=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 =>
+        001347471378631_5c301d70-fd00-11e1-8230-001c42000009 => ''
+    this =>
+        001347471378565_5c260b50-fd00-11e1-8230-001c42000009 => ''
+        001347471378631_5c301d70-fd00-11e1-8230-001c42000009 => ''
+    this#001347471378565_5c260b50-fd00-11e1-8230-001c42000009 =>
+        Post?comments=001347471378340_5c03b640-fd00-11e1-8230-001c42000009 => ''
+    this#001347471378631_5c301d70-fd00-11e1-8230-001c42000009 =>
+        Post?comments=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009 => ''
+{code}
+
+h3. Comment_CTR
+
+{code}
+    this?person=user1#occurTime =>
+        2012-09-12T17 => 1
+    this?person=user1#occurTime[yyyy-MM-dd] =>
+        2012-09-12 => 1
+    this?person=user1#occurTime[yyyy-MM] =>
+        2012-09 => 1
+    this?person=user2#occurTime =>
+        2012-09-12T17 => 1
+    this?person=user2#occurTime[yyyy-MM-dd] =>
+        2012-09-12 => 1
+    this?person=user2#occurTime[yyyy-MM] =>
+        2012-09 => 1
+    this?post=001347471378340_5c03b640-fd00-11e1-8230-001c42000009#occurTime =>
+        2012-09-12T17 => 1
+    this?post=001347471378340_5c03b640-fd00-11e1-8230-001c42000009#occurTime[yyyy-MM-dd] =>
+        2012-09-12 => 1
+    this?post=001347471378340_5c03b640-fd00-11e1-8230-001c42000009#occurTime[yyyy-MM] =>
+        2012-09 => 1
+    this?post=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009#occurTime =>
+        2012-09-12T17 => 1
+    this?post=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009#occurTime[yyyy-MM-dd] =>
+        2012-09-12 => 1
+    this?post=001347471378502_5c1c6e60-fd00-11e1-8230-001c42000009#occurTime[yyyy-MM] =>
+        2012-09 => 1
+{code}

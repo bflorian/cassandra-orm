@@ -15,12 +15,13 @@ max | The maximum number of objects to return
 reversed | Query for objects from last to first rather than first to last
 {table}
 
+For example:
 
 {code}
 def firstFive = Visit.list(max: 5)
-def nextFive = Visit.list(startAfter: firstFive[-1].id, max: 5)
+def nextFive = Visit.list(startAfter: firstFive[-1], max: 5)
 def lastFive = Visit.list(max: 5, reversed: true)
-def nextToLastFive = Visit.list(startAfter: lastFive[-1].id, max: 5, reversed: true)
+def nextToLastFive = Visit.list(startAfter: lastFive[-1], max: 5, reversed: true)
 {code}
 
 These parameters appy to the _list()_ and  _findAll..._ class methods.  They can also be used to limit the results
@@ -38,6 +39,57 @@ class Person
 you can perform the following queries:
 
 {code}
+def allPosts = person.posts
+def numberOfPosts = person.postsCount()
+def firstTenPosts = person.posts(max:10)
+def nextTenPosts = person.posts(max:10, startAfter: allPosts[-1])
+def lastTenPosts = person.posts(max:10, reversed: true)
+def nextToLastTenPosts = person.posts(max:10, reversed: true, start: lastTenPosts[-1])
+{code}
+
+h4. Retrieving individual object properties
+
+One of the reasons Cassandra is used is its support for very large rows.  This capability coupled with the expando map
+capability of the _cassandra-orm_ plugin could results in large objects that are inefficient to read in their entirety.
+For this reason there is capability to read only some of an object's values. For example, the following query returns
+a collection of email addresses:
+
+{code}
+Person.list(column: 'emailAddress')
+{code}
+
+You can also query for more than one property, the following returns a collection of maps, when each map has a firstName,
+lastName, and emailAddress entry:
+
+{code}
+Person.list(columns: ['firstName','lastName','emailAddress'])
+{code}
+
+You can specify a _column_ or _columns_ option for _list_, _find..._, and has many property methods, for example:
+
+{code}
+Person.list(column: 'username')
+Person.findByState("Maryland", [columns: ['city','phone'])
+person.posts(column: 'text')
+{code}
+
+h4. Inserting individual object properties
+
+In the same way that reading individual properties might be useful, the ability to write individual properties can
+bu useful as well.  All Cassandra write operations are "upserts", i.e. they will create the column if it doesn't exist,
+or modify it if it does exist.  To update only a single property of an object, you'd do something like:
+
+{code}
+person.insert(emailAddress: "jdoe@anywhereelse.com")
+{code}
+
+You can also update several properties at the same time:
+
+{code}
+person.insert(emailAddress: "jdoe@anywhereelse.com", firstName: "Joey")
+{code}
+
+
 
 
 
