@@ -1,0 +1,5 @@
+h3. cassandraClient
+
+This property references the client used to communicate with Cassandra.  As of this writing, the only client supported
+is Astyanax, so this property returns the @astyanaxService@.  This property is convenient for implementing additional
+cassandra-related queries within a domain class.

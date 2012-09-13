@@ -1,0 +1,3 @@
+Unlike most relational databases, Cassandra does not provide any built-in referential integrity capabilities. The
+_cassandra-orm_plugin does maintain the integrity of its explicit indexes and relationships, but using a different
+approach.
