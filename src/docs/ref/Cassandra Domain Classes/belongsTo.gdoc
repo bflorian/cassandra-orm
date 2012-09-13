@@ -1,7 +1,7 @@
 h3. belongsTo
 
-Since the _cassandra-orm_ plugin doesn't cascade saves and deletes by default, the function of the @belongsTo@ declaration is simpler than it
-is for GORM/Hibernate. It specifies the following behavior:
+The @belongsTo@ declaration controls the behavior of cascaded deleted and automatically set back references when objects
+are added to _hasMany_ relationships.  More specifically:
 
 * It results in a cascading delete when the parent object is deleted with the @cascade: true@ option specified.
 * It results in the property being set automatically when the object is added to a hasMany relationship of the owning class
@@ -10,6 +10,7 @@ For example, give the classes:
 
 {code}
 class Book {
+    String title
     Author author
     static belongsTo = [author: Author]
 }
@@ -23,5 +24,16 @@ class Author {
 }
 {code}
 
-Adding a @Book@ object to an @Author@ object will automatically set the @author@ back-pointer in the book object, and
-deleting an author object will automatically delete all of its books.
+Adding a @Book@ object to an @Author@ object will automatically set the @author@ back-pointer in the book object:
+
+{code}
+author.addToBooks(new Book("The Grapes of Wrath"))
+{code}
+
+and deleting an author object with the @cascade: true@ option set will automatically delete all of its books:
+
+{code}
+author.delete(cascade: true)
+{code}
+
+Note that, unlike with GORM, _cassandra-orm_ plugin only cascades saves and deletes when the option is specified.
