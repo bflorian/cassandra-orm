@@ -317,6 +317,44 @@ class InstanceMethods extends MappingUtils
 			def persistence = cassandra.persistence
 			def indexColumnFamily = thisObj.indexColumnFamily
 
+			def cascadedDeletes = []
+			if (args.cascade) {
+
+				// has one
+				clazz.metaClass.properties.each {property ->
+					def name = property.name
+					if (name.endsWith(DIRTY_SUFFIX)) {
+						def pName = name - DIRTY_SUFFIX
+						def pValue = PropertyUtils.getProperty(thisObj, pName)
+						if (pValue && pValue.belongsToClass(clazz)) {
+							PropertyUtils.setProperty(pValue, pValue.belongsToPropName(clazz), null)
+							cascadedDeletes << pValue
+						}
+					}
+				}
+
+				// has many
+				if (clazz.metaClass.hasMetaProperty('hasMany')) {
+					clazz.hasMany.each {propName, propClass ->
+						if (propClass.belongsToClass(clazz)) {
+							def items = thisObj.getProperty(propName)
+							if (items) {
+								if (items?.size() < MAX_ROWS) {
+									def pName = propClass.belongsToPropName(clazz)
+									items.each {
+										safeSetProperty(it, pName, null)
+									}
+									cascadedDeletes.addAll(items)
+								}
+								else {
+									throw new CassandraMappingException("Cascaded delete failed because '${propName}' property has more that ${MAX_ROWS} values")
+								}
+							}
+						}
+					}
+				}
+			}
+
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 
 				// delete the object
@@ -368,6 +406,10 @@ class InstanceMethods extends MappingUtils
 
 				persistence.execute(m)
 			}
+
+			cascadedDeletes.each {
+				it.delete(cascade: true)
+			}
 		}
 
 		// hasMany properties
@@ -393,8 +435,13 @@ class InstanceMethods extends MappingUtils
 					if (items == null) {
 						def oClass = iClass && List.isAssignableFrom(iClass) ? LinkedList : LinkedHashSet
 						items = getFromHasMany(delegate, propName, [:], oClass)
-						if (iClass && items.size() < MAX_ROWS) {  // TODO - consider throwing an exception if there might be more?
-							PropertyUtils.setProperty(delegate, propName, items)
+						if (iClass) {
+							if (items.size() < MAX_ROWS) {
+								PropertyUtils.setProperty(delegate, propName, items)
+							}
+							else {
+								throw new CassandraMappingException("Query failed because '${propName}' property has more that ${MAX_ROWS} values, Use ${propName}() function instead.")
+							}
 						}
 					}
 					return items
