@@ -157,8 +157,8 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals "mockCluster2", r.cassandraCluster
 
-		println "\n--- multiGet(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
-		r = User.multiGet(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'])
+		println "\n--- getAll(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
+		r = User.getAll(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'])
 		persistence.printClear()
 		println r
 		assertEquals 3, r.size()
@@ -166,8 +166,8 @@ public class ClassMethodsTests extends OrmTestCase
 			assertTrue it instanceof User
 		}
 
-		println "\n--- multiGet(['x1xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
-		r = User.multiGet(['x1xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'],[column:  'favoriteColor'])
+		println "\n--- getAll(['x1xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
+		r = User.getAll(['x1xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'],[column:  'favoriteColor'])
 		persistence.printClear()
 		println r
 		assertEquals 2, r.size()

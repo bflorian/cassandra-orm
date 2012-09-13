@@ -316,5 +316,14 @@ class InstanceMethodTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals "group1-zzzz-zzzz", r
+
+		println "\n"
+		r = UserGroupMeeting.list()
+		persistence.printClear()
+		assertEquals 6, r.size()
+		userGroup2.delete(cascade: true)
+		persistence.printClear()
+		r = UserGroupMeeting.list()
+		assertEquals 4, r.size()
 	}
 }
