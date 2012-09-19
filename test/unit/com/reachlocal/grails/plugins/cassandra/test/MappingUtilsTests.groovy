@@ -84,11 +84,137 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		('2012-02-05T05'): 1
 		]
 
-		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault())
+		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null)
 		println days
 		assertEquals 2, days.size()
 		assertEquals 21, days['2012-02-04']
 		assertEquals 10, days['2012-02-05']
+	}
+
+	@Test
+	void testRollUpCounterDatesHoursStringFormat()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+
+		def hours = [
+				('2012-02-04T16'): 2,
+				('2012-02-04T17'): 4,
+				('2012-02-04T18'): 2,
+				('2012-02-04T19'): 5,
+				('2012-02-04T20'): 1,
+				('2012-02-05T16'): 4,
+				('2012-02-05T17'): 1,
+				('2012-02-05T18'): 2,
+				('2012-02-06T19'): 4,
+				('2012-02-07T17'): 2,
+				('2012-02-07T18'): 1,
+				('2012-02-07T19'): 2,
+				('2012-02-07T20'): 1
+		]
+
+		def days = MappingUtils.rollUpCounterDates(hours, hf, null, TimeZone.getDefault(), "HH")
+		println days
+		assertEquals 5, days.size()
+		assertEquals 6, days['16']
+		assertEquals 7, days['17']
+		assertEquals 5, days['18']
+		assertEquals 11, days['19']
+		assertEquals 2, days['20']
+	}
+
+	@Test
+	void testRollUpCounterDatesHoursStringFormatGMT()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+
+		def hours = [
+				('2012-02-04T16'): 2,
+				('2012-02-04T17'): 4,
+				('2012-02-04T18'): 2,
+				('2012-02-04T19'): 5,
+				('2012-02-04T20'): 1,
+				('2012-02-05T16'): 4,
+				('2012-02-05T17'): 1,
+				('2012-02-05T18'): 2,
+				('2012-02-06T19'): 4,
+				('2012-02-07T17'): 2,
+				('2012-02-07T18'): 1,
+				('2012-02-07T19'): 2,
+				('2012-02-07T20'): 1
+		]
+
+		def days = MappingUtils.rollUpCounterDates(hours, hf, null, TimeZone.getTimeZone("GMT"), "HH")
+		println days
+		assertEquals 5, days.size()
+		assertEquals 6, days['21']
+		assertEquals 7, days['22']
+		assertEquals 5, days['23']
+		assertEquals 11, days['00']
+		assertEquals 2, days['01']
+	}
+
+	@Test
+	void testRollUpCounterDatesHoursObjectFormat()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+
+		def hours = [
+				('2012-02-04T16'): 2,
+				('2012-02-04T17'): 4,
+				('2012-02-04T18'): 2,
+				('2012-02-04T19'): 5,
+				('2012-02-04T20'): 1,
+				('2012-02-05T16'): 4,
+				('2012-02-05T17'): 1,
+				('2012-02-05T18'): 2,
+				('2012-02-06T19'): 4,
+				('2012-02-07T17'): 2,
+				('2012-02-07T18'): 1,
+				('2012-02-07T19'): 2,
+				('2012-02-07T20'): 1
+		]
+
+		def days = MappingUtils.rollUpCounterDates(hours, hf, null, null, new SimpleDateFormat("HH"))
+		println days
+		assertEquals 5, days.size()
+		assertEquals 6, days['16']
+		assertEquals 7, days['17']
+		assertEquals 5, days['18']
+		assertEquals 11, days['19']
+		assertEquals 2, days['20']
+	}
+
+	@Test
+	void testRollUpCounterDatesHoursObjectFormatGMT()
+	{
+		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+
+		def hours = [
+				('2012-02-04T16'): 2,
+				('2012-02-04T17'): 4,
+				('2012-02-04T18'): 2,
+				('2012-02-04T19'): 5,
+				('2012-02-04T20'): 1,
+				('2012-02-05T16'): 4,
+				('2012-02-05T17'): 1,
+				('2012-02-05T18'): 2,
+				('2012-02-06T19'): 4,
+				('2012-02-07T17'): 2,
+				('2012-02-07T18'): 1,
+				('2012-02-07T19'): 2,
+				('2012-02-07T20'): 1
+		]
+
+		def fmt = new SimpleDateFormat("HH")
+		fmt.setTimeZone(TimeZone.getTimeZone("GMT"))
+		def days = MappingUtils.rollUpCounterDates(hours, hf, null, null, fmt)
+		println days
+		assertEquals 5, days.size()
+		assertEquals 6, days['21']
+		assertEquals 7, days['22']
+		assertEquals 5, days['23']
+		assertEquals 11, days['00']
+		assertEquals 2, days['01']
 	}
 
 	@Test
@@ -111,7 +237,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 				('2012-02-05T01'): [campaign: 1,direct: 3]
 		]
 
-		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault())
+		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null)
 		println days
 		assertEquals 2, days.size()
 		assertEquals 8, days['2012-02-04'].direct
@@ -198,7 +324,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		map.putAll(hours)
 
 		def result = map.groupBy(0)
-		def days = MappingUtils.rollUpCounterDates(result, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault())
+		def days = MappingUtils.rollUpCounterDates(result, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null)
 		println days
 		assertEquals 2, days.size()
 		assertEquals 23, days['2012-02-04']
@@ -431,7 +557,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		}
 
 		def t0 = System.currentTimeMillis()
-		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault())
+		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null)
 		def elapsed = System.currentTimeMillis() - t0;
 		//println days
 		println "${hours.size()} items in $elapsed msec."

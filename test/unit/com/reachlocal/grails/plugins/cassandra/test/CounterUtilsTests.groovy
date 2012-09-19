@@ -117,7 +117,7 @@ class CounterUtilsTests extends OrmTestCase
 			User.cassandraMapping.counters,
 			[gender:  ['Male','Female']],
 			['state'],
-			null, null, null, null, null, null, null, null, null)
+			null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -129,7 +129,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
 				['state','city'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -141,7 +141,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
 				['gender','city'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -153,7 +153,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
 				['gender','state','city'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -165,7 +165,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female']],
 				['gender','city','state'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -177,7 +177,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
 				['gender','period','state','city'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -189,7 +189,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
 				['period','gender','state','city'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -201,7 +201,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
 				['birthDate','state'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 		println cols
 	}
 
@@ -212,7 +212,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
 				['birthDate','state','gender'],
-				null, null, null, null, null, null, null, null, null)
+				null, null, null, null, null, null, null, null, null, null)
 
 		println cols
 	}
@@ -224,7 +224,7 @@ class CounterUtilsTests extends OrmTestCase
 				User.cassandraMapping.counters,
 				[gender:  ['Male','Female'], period: ['Month','Year']],
 				['birthDate','state','gender'],
-				null, null, null, null, Calendar.YEAR, null, null, null, null)
+				null, null, null, null, Calendar.YEAR, null, null, null, null, null)
 
 		println cols
 	}

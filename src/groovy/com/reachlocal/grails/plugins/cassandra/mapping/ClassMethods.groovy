@@ -16,6 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
+import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+
 /**
  * @author: Bob Florian
  */
@@ -268,7 +270,7 @@ class ClassMethods extends MappingUtils
 			getCounters(
 					clazz, cassandraMapping.counters, params.where ?: [:], params.groupBy ?: [],
 					params.start, params.finish, params.sort, params.reversed, params.grain,
-					params.timeZone, params.fill, params.consistencyLevel, params.cluster)
+					params.timeZone, params.dateFormat, params.fill, params.consistencyLevel, params.cluster)
 		}
 
 		// getCounts(where: [usid:'xxx'])
@@ -429,7 +431,7 @@ class ClassMethods extends MappingUtils
 					return getCounters(
 							clazz, cassandraMapping.counters, whereMap, groupByPropList,
 							opts.start, opts.finish, opts.sort, opts.reversed, opts.grain,
-							opts.timeZone, opts.fill, opts.consistencyLevel, opts.cluster)
+							opts.timeZone, opts.dateFormat, opts.fill, opts.consistencyLevel, opts.cluster)
 				}
 			}
 			else {

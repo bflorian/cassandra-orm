@@ -30,7 +30,7 @@ class MappingUtils extends CounterUtils
 			List counterDefs,
 			Map whereFilter,
 			byPropNames,
-			start, finish, sort, reversed, grain, timeZone, fill, consistencyLevel, clusterName)
+			start, finish, sort, reversed, grain, timeZone, toFormatArg, fill, consistencyLevel, clusterName)
 	{
 		def nochunk=false
 		def cluster = clusterName ?: clazz.cassandraCluster
@@ -109,8 +109,8 @@ class MappingUtils extends CounterUtils
 				value = getCounterColumns(clazz, rowFilterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, cluster)
 			}
 		}
-		if (grain || timeZone) {
-			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain ?: Calendar.HOUR_OF_DAY , timeZone)
+		if (grain || timeZone || toFormatArg) {
+			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain ?: Calendar.HOUR_OF_DAY , timeZone, toFormatArg)
 		}
 		if (fill) {
 			value = DateHelper.fillDates(value, grain ?: Calendar.HOUR_OF_DAY)

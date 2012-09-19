@@ -28,11 +28,38 @@ class CounterUtils extends KeyUtils
 		UTC_HOUR_ONLY_FORMAT.setTimeZone(UTC)
 	}
 
+	static toDateFormat(Integer grain, TimeZone timeZone, dateFormatArg)
+	{
+		if (dateFormatArg) {
+			def result = new SimpleDateFormat(dateFormatArg)
+			if (timeZone) {
+				result.setTimeZone(timeZone);
+			}
+			return result
+		}
+		else {
+			return dateFormat(grain, timeZone)
+		}
+	}
+
+	static toDateFormat(Integer grain, TimeZone timeZone, DateFormat dateFormatArg)
+	{
+		// we ignore the grain if there is a date format
+		if (timeZone) {
+			def result = new SimpleDateFormat(dateFormatArg.toPattern())
+			result.setTimeZone(timeZone);
+			return result
+		}
+		else {
+			return dateFormatArg
+		}
+	}
+
 	static dateFormat(int grain, TimeZone timeZone)
 	{
 		def result = dateFormat(grain)
 		if (timeZone) {
-			result = new SimpleDateFormat(result.pattern)
+			result = new SimpleDateFormat(result.toPattern())
 			result.setTimeZone(timeZone);
 		}
 		return result
@@ -415,38 +442,10 @@ class CounterUtils extends KeyUtils
 		cols
 	}
 
-	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone)
+	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone, toFormatArg)
 	{
-		def toFormat = dateFormat(grain, timeZone)
+		def toFormat = toDateFormat(grain, timeZone, toFormatArg)
 		def result = DateHelper.rollUpCounterDates(map, fromFormat, toFormat)
-		/*
-		if (fill) {
-			// TODO - implement
-			if (!sort) {
-				result = sort(result)
-			}
-
-			def rollUp = [:]
-			def cal = null
-			result.each {key, value ->
-				def date = fromFormat.parse(key)
-				if (cal == null) {
-					cal = Calendar.getInstance(UTC)
-					cal.setTime(date)
-				}
-				else {
-					while (date.before(cal.time)) {
-						def key2 = fromFormat.format(cal.time)
-						rollUp[key2] = null
-						cal.add(grain, 1)
-					}
-				}
-				rollUp[key] = value
-				cal.add(grain, 1)
-			}
-			result = rollUp
-		}
-		*/
 		return result
 	}
 }
