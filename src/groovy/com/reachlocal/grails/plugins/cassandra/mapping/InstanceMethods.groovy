@@ -316,7 +316,7 @@ class InstanceMethods extends MappingUtils
 			def thisObjId = thisObj.id
 			def persistence = cassandra.persistence
 			def indexColumnFamily = thisObj.indexColumnFamily
-
+			def maxCascade = args.max ?: MAX_ROWS
 			def cascadedDeletes = []
 			if (args.cascade) {
 
@@ -337,9 +337,10 @@ class InstanceMethods extends MappingUtils
 				if (clazz.metaClass.hasMetaProperty('hasMany')) {
 					clazz.hasMany.each {propName, propClass ->
 						if (propClass.belongsToClass(clazz)) {
-							def items = thisObj.getProperty(propName)
+							//def items = thisObj.getProperty(propName) // TODO -- need to invoke method
+							def items = thisObj.invokeMethod(propName,[max: maxCascade])
 							if (items) {
-								if (items?.size() < MAX_ROWS) {
+								if (items?.size() < maxCascade) {
 									def pName = propClass.belongsToPropName(clazz)
 									items.each {
 										safeSetProperty(it, pName, null)
@@ -347,7 +348,7 @@ class InstanceMethods extends MappingUtils
 									cascadedDeletes.addAll(items)
 								}
 								else {
-									throw new CassandraMappingException("Cascaded delete failed because '${propName}' property has more that ${MAX_ROWS} values")
+									throw new CassandraMappingException("Cascaded delete failed because '${propName}' property potentially has more than ${maxCascade} values. Specify a larger max value.")
 								}
 							}
 						}
@@ -440,7 +441,7 @@ class InstanceMethods extends MappingUtils
 								PropertyUtils.setProperty(delegate, propName, items)
 							}
 							else {
-								throw new CassandraMappingException("Query failed because '${propName}' property has more that ${MAX_ROWS} values, Use ${propName}() function instead.")
+								throw new CassandraMappingException("Query failed because '${propName}' property potentialy has more than default of ${MAX_ROWS} values, Use ${propName}(max:nnnn) function instead.")
 							}
 						}
 					}

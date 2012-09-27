@@ -23,8 +23,6 @@ import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
  */
 class ClassMethods extends MappingUtils
 {
-	static final int MAX_ROWS = 1000
-
 	static void addDynamicOrmMethods(clazz, ctx) throws CassandraMappingException
 	{
 		// check completeness
@@ -214,6 +212,8 @@ class ClassMethods extends MappingUtils
 				)
 
 				def keys = columns.collect{cassandra.persistence.name(it)}
+				checkForDefaultRowsInsufficient(opts.max, keys.size())
+
 				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
 				def result = cassandra.mapping.makeResult(keys, rows, options, LinkedList)
 				return options.startAfter && result ? result[1..-1] : result
@@ -252,9 +252,13 @@ class ClassMethods extends MappingUtils
 			}
 		}
 
-		// query
+		// count
 		clazz.metaClass.'static'.count = {args ->
-			if (args.where) {
+			if (!args) {
+				// TODO - should we count these if there is an indexed primary key?
+				throw new IllegalArgumentException("The 'where' parameter must be specified")
+			}
+			else if (args.where) {
 				return countByCql(clazz, args)
 			}
 			else {

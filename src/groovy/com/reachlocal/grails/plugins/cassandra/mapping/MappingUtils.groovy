@@ -553,6 +553,7 @@ class MappingUtils extends CounterUtils
 				columns << cols.collect{persistence.name(it)}
 			}
 			def keys = mergeKeys(columns, max, options.reversed)
+			checkForDefaultRowsInsufficient(opts.max, keys.size())
 
 			def result
 			def names = columnNames(options)
@@ -603,6 +604,7 @@ class MappingUtils extends CounterUtils
 				properties[k] = primaryRowKey(v)
 			}
 			def rows = clazz.cassandra.persistence.getRowsWithEqualityIndex(ks, clazz.columnFamily, properties, options.max, opts.consistencyLevel)
+			checkForDefaultRowsInsufficient(opts.max, rows.size())
 			return clazz.cassandra.mapping.makeResult(rows, options)
 		}
 	}

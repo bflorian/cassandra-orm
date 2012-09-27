@@ -10,7 +10,7 @@ import java.text.DecimalFormat
 class BaseUtils 
 {
 	static protected final END_CHAR = "\u00ff"
-	static protected final int MAX_ROWS = 2000
+	static protected final int MAX_ROWS = 5000
 	static protected final INDEX_OPTIONS = ["start","startAfter","finish","keys"]
 	static protected final OBJECT_OPTIONS = ["column","columns", "rawColumn", "rawColumns"]
 	static protected final ALL_OPTIONS = INDEX_OPTIONS + OBJECT_OPTIONS  + ["cluster"]
@@ -167,6 +167,13 @@ class BaseUtils
 			}
 		}
 		return result
+	}
+
+	static checkForDefaultRowsInsufficient(max, count)
+	{
+		if (max == null && count == MAX_ROWS) {
+			throw new CassandraMappingException("Query failed because default row limit of ${MAX_ROWS} is potentially insuficient. Specify an explicit max option.")
+		}
 	}
 
 	static mapper = new ObjectMapper()
