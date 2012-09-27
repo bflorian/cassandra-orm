@@ -35,6 +35,10 @@ class UuidDynamicMethods
 			return UuidHelper.getBytes(delegate)
 		}
 
+		String.metaClass.toUUID() {
+			return UUID.fromString(delegate)
+		}
+
 		UUID.metaClass.'static'.timeUUID = {
 			return new java.util.UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode())
 		}
