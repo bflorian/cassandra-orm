@@ -1,4 +1,4 @@
-h3. belongsTo
+h1. belongsTo
 
 The @belongsTo@ declaration controls the behavior of cascaded deleted and automatically set back references when objects
 are added to _hasMany_ relationships.  More specifically:

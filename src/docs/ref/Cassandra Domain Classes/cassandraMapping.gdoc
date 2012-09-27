@@ -1,0 +1,32 @@
+h1. cassandraMapping
+
+The @cassandraMapping@ static property defines the characteristics for how objects of the class as well as their indexes
+and counters are stored in Cassandra column families.  At a minimum it must contain an entry specifying which property
+(or properties) is to be used for generating row keys for the object.  This entry is typically named @primaryKey@, for
+example:
+
+{code}
+static cassandraMapping = [
+         primaryKey: "uuid"
+]
+{code}
+
+Alternatively, you can specify @unindexedPrimaryKey@ rather than @indexedPrimaryKey@.  This will prevent you from being
+able to retrieve all objects using the @list()@ function, but may be desireable when you are storing a very large number
+of objects since all of the index values are stored in a single row.
+
+The possible cassandra mapping properties are listed in the following table.
+
+{table}
+*Name* | *Description*
+cluster | Name of the cluster in which these objects are to be stored. The default value is determined by the Cassandra client configuration.
+counters | A list of counter definitions
+columnFamily | The name of the primary column family in which to store these objects.  Defaults to the simple class name
+expandoMap | The name of a map property to be used for storing expando properties in this object
+explicitIndexes | A list of index definitions
+keySpace | The key space to be used for storing these objects. The default value is determined by the Cassandra client configuration.
+primaryKey | The name of the property to use for the row key, or an array of property names if a composite key is desired
+secondaryIndexes | A list of secondary index definitions.  These must set up declared in the Cassandra schema as well.
+timeToLive | Either an integer value, which specifies the _time-to-live_ (in seconds) for the entire object and its indexes, or a map that specifies the _time-to-live_ for individual properties.
+unindexedPrimaryKey | Alternative to specifying a @primaryKey@ for very large collections of objects where the @list()@ method isn't needed.
+{table}

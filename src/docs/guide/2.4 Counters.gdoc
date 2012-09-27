@@ -45,7 +45,9 @@ which produces a Map of results of the form:
 [www.siteone.com:18, www.sitetwo.com:26]
 {code}
 
-This query makes use of the @\[groupBy: 'siteName'\]@ index definition.  It provides a very efficient way of knowing
+h3. Grouping by a time-based dimension
+
+The previous query makes use of the @\[groupBy: 'siteName'\]@ index definition.  It provides a very efficient way of knowing
 the total visits for each site for all time, but it doesn't provide any time-based information.  To display the number
 of visits by hour for all sites you'd use the query:
 
@@ -60,6 +62,8 @@ which uses the @\[groupBy: 'occurTime'\]@ counter to return:
 2012-02-10T05:3, 2012-02-12T05:5, 2012-02-13T05:1, 2012-02-15T05:1, 2012-02-16T05:3,
 2012-02-17T05:3, 2012-02-22T05:3, 2012-02-25T05:3]
 {code}
+
+h3. Aggregating by different time granularity
 
 You can also aggregate the counts by day, month, or year:
 
@@ -80,6 +84,8 @@ producing:
 [2011:9, 2012:35]
 {code}
 
+h3. Nested counter results
+
 If you wanted to generate a stacked bar graph showing the monthly visits by site, you'd use the expression:
 
 {code}
@@ -95,6 +101,8 @@ which uses the @\[groupBy: \['occurTime','siteName'\]\]@ counter to return:
  2012-02:[www.siteone.com:10, www.sitetwo.com:12]
 ]
 {code}
+
+h3. Filtering with findBy properties
 
 If you wanted to see the monthly visits for a single site you'd use either of these expressions:
 
@@ -133,6 +141,8 @@ producing:
 [2011-12:[Google:1, Facebook:1], 2012-01:[Bing:1, Twitter:2, Google:1], 2012-02:[Google:3, Facebook:2, Bing:2, Twitter:1]]
 {code}
 
+h3. Multiple matching counter definitions
+
 Both of these queries use the @\[findBy: 'siteName', groupBy: \['occurTime','referrerType','referrerName'\]\]@ counter.
 You don't need to specify every groupBy property in the query, but you do need so specify every findBy property.  So
 with the above counter definition you could execute the query @Visit.getCountsGroupByReferrerType()@.  To do that you
@@ -146,6 +156,8 @@ in another time zone specify it as an option:
 Visit.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH, timeZone: TimeZone.getDefault())
 Visit.getCountsGroupByOccurTime(timeZone: TimeZone.getDefault())
 {code}
+
+h3. Filling in zero values
 
 The default behavior of the time-based counters is to only return items where the count is non-zero.  However, when
 graphing data it is often convenient to have all time increments returned.  You can do this by saying:
@@ -180,5 +192,21 @@ or to display results only within a specific range of times:
 Visit.getCountsGroupByOccurTime(grain: Calendar.DAY_OF_MONTH, fill: true,
         start: Date.parse('yyyy-MM-dd','2012-02-01'),
         finish: Date.parse('yyyy-MM-dd','2012-02-15'))
+{code}
+
+h3. Custom DateFormats
+
+You can also specify your own custom date format.  This option is useful if you want the date values formatted in a
+different way, or if you want to display count histograms. Either a Java @SimpleDateFormat@ String or a @DateFormat@
+object can be passed in to the @dateFormat@ option. For example, the following query:
+
+{code}
+Visit.getCountsGroupByOccurTime(dateFormat: 'HH')
+{code}
+
+displays counts by hour of the day:
+
+{code}
+[22:1, 23:2, 00:41]
 {code}
 

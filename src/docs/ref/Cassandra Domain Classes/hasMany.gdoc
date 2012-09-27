@@ -1,0 +1,37 @@
+h1. hasMany
+
+The @hasMany@ property declares one-to-many and many-to-many relationships between objects.  For example, the class:
+
+{code}
+class Author
+{
+    String name
+
+    static hasMany = [books: Book]
+}
+{code}
+
+defines a relationship where each Author has zero or more Books.  You iterate over the list of books an author has
+by referencing the name of the property:
+
+{code}
+author.books.each {book ->
+    println book.title
+}
+{code}
+
+The default type returned from this query is an ordered Set.  The order of the elements is determined by the natural
+order of the primary keys of the referenced class (Book, in this case).  If you'd prefer the type to be a List, so that
+you can use the index operator, just declare a List parameter with the same name:
+
+{code}
+class Author
+{
+    String name
+    List books
+    static hasMany = [books: Book]
+}
+{code}
+
+Has Many relationships are always lazy-evaluated (i.e. not read from Cassandra until the property is mentioned). There
+is also an built-in limit of 5000 items.
