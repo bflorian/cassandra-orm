@@ -285,7 +285,7 @@ class InstanceMethods extends MappingUtils
 				// delete old index row keys
 				if (oldIndexRows) {
 					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+					m = persistence.prepareMutationBatch(ks, consistencyLevel)
 				}
 
 				// insert this object
