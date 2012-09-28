@@ -416,7 +416,7 @@ class MappingUtils extends CounterUtils
 		def findByNames = counterDef.findBy
 		def result = [:]
 		whereFilter.each {name, values ->
-			if (findByNames.contains(name)) {
+			if (findByNames?.contains(name)) {
 				result[name] = values
 			}
 		}
@@ -428,7 +428,7 @@ class MappingUtils extends CounterUtils
 		def findByNames = counterDef.findBy
 		def result = [:]
 		whereFilter.each {name, values ->
-			if (!findByNames.contains(name)) {
+			if (!findByNames?.contains(name)) {
 				result[name] = collection(values).collect{it.toString()}
 			}
 		}
