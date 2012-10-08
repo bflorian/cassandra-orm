@@ -313,6 +313,20 @@ class MappingUtils extends CounterUtils
 		persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
 	}
 
+	static void removeAllJoins(persistence, m, objClass, object, itemClass, items, propName)
+	{
+		// the row itself
+		def columnFamily = itemClass.indexColumnFamily
+		def rowKey = joinRowKey(objClass, itemClass, propName, object)
+		persistence.deleteRow(m, columnFamily, rowKey)
+
+		// the back pointer
+		items.each{item ->
+			def backIndexRowKey = manyBackIndexRowKey(item.id)
+			persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
+		}
+	}
+
 	static getFromHasMany(thisObj, propName, options=[:], clazz=LinkedHashSet)
 	{
 		getByMappedObject(thisObj, propName, thisObj.hasMany[propName], options, clazz)

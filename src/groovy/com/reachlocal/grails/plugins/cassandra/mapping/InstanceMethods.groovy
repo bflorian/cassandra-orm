@@ -318,34 +318,43 @@ class InstanceMethods extends MappingUtils
 			def indexColumnFamily = thisObj.indexColumnFamily
 			def maxCascade = args.max ?: MAX_ROWS
 			def cascadedDeletes = []
-			if (args.cascade) {
 
-				// has one
-				clazz.metaClass.properties.each {property ->
-					def name = property.name
-					if (name.endsWith(DIRTY_SUFFIX)) {
-						def pName = name - DIRTY_SUFFIX
-						def pValue = PropertyUtils.getProperty(thisObj, pName)
-						if (pValue && pValue.belongsToClass(clazz)) {
-							PropertyUtils.setProperty(pValue, pValue.belongsToPropName(clazz), null)
-							cascadedDeletes << pValue
+			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
+
+				// delete the object
+				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				if (args.cascade) {
+
+					// has one
+					clazz.metaClass.properties.each {property ->
+						def name = property.name
+						if (name.endsWith(DIRTY_SUFFIX)) {
+							def pName = name - DIRTY_SUFFIX
+							def pValue = PropertyUtils.getProperty(thisObj, pName)
+							if (pValue && pValue.belongsToClass(clazz)) {
+								PropertyUtils.setProperty(pValue, pValue.belongsToPropName(clazz), null)
+								cascadedDeletes << pValue
+							}
 						}
 					}
-				}
 
-				// has many
-				if (clazz.metaClass.hasMetaProperty('hasMany')) {
-					clazz.hasMany.each {propName, propClass ->
-						if (propClass.belongsToClass(clazz)) {
-							//def items = thisObj.getProperty(propName) // TODO -- need to invoke method
+					// has many
+					if (clazz.metaClass.hasMetaProperty('hasMany')) {
+						clazz.hasMany.each {propName, propClass ->
 							def items = thisObj.invokeMethod(propName,[max: maxCascade])
 							if (items) {
 								if (items?.size() < maxCascade) {
 									def pName = propClass.belongsToPropName(clazz)
-									items.each {
-										safeSetProperty(it, pName, null)
+									if (propClass.belongsToClass(clazz)) {
+										items.each {
+											safeSetProperty(it, pName, null)
+										}
+										cascadedDeletes.addAll(items)
 									}
-									cascadedDeletes.addAll(items)
+									else {
+										// indexes that don't belong-to, clean up indexes and back-pointers
+										removeAllJoins(persistence, m, clazz, thisObj, propClass, items, propName)
+									}
 								}
 								else {
 									throw new CassandraMappingException("Cascaded delete failed because '${propName}' property potentially has more than ${maxCascade} values. Specify a larger max value.")
@@ -354,12 +363,25 @@ class InstanceMethods extends MappingUtils
 						}
 					}
 				}
-			}
-
-			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
+				else {
+					// not cascaded, but need to clean up indexes and back-pointers
+					if (clazz.metaClass.hasMetaProperty('hasMany')) {
+						clazz.hasMany.each {propName, propClass ->
+							def items = thisObj.invokeMethod(propName,[max: maxCascade])
+							if (items) {
+								if (items?.size() < maxCascade) {
+									// clean up indexes and back-pointers
+									removeAllJoins(persistence, m, clazz, thisObj, propClass, items, propName)
+								}
+								else {
+									throw new CassandraMappingException("Cascaded delete failed because '${propName}' property potentially has more than ${maxCascade} values. Specify a larger max value.")
+								}
+							}
+						}
+					}
+				}
 
 				// delete the object
-				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				persistence.deleteRow(m, thisObj.columnFamily, thisObjId)
 
 				// primary index
