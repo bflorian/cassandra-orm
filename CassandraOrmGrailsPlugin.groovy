@@ -43,7 +43,8 @@ class CassandraOrmGrailsPlugin
 	def scm = [url: 'https://github.com/bflorian/cassandra-orm']
 
 	def description = '''\\
-Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra (does not implement the GORM API).
+Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra (but does not implement the GORM API).
+It also adds a number of dynamic methods and arguments specific to typical Cassandra usage, like the ability to specify consistency level and manipulate counters.
 Must me used in concert with the cassandra-astyanax plugin.
 '''
 
