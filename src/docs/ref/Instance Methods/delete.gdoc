@@ -1,0 +1,27 @@
+h1. delete
+
+Deletes an object from Cassandra.
+
+h2. Arguments
+
+{table}
+*Name* | *Description*
+cascade | @true@ causes any belonging to this object to be deleted along with the object itself
+{table}
+
+h2. Examples
+
+{code}
+def book = Book.findByName("Grapes of Wrath")
+b.delete()
+{code}
+
+Unlike standard GORM, the @cassandra-orm@ plugin does not cascade any saves or deletes unless specifically specified. In
+order to automatically delete objects that belong to the object being deleted specify @cascade: true@. For example,
+if the @Book@ class belongs to the @Author@ class, to delete and author and all of his books you would set the cascade
+option to true:
+
+{code}
+def author = Author.findByName("John Steinbeck")
+b.delete(cascade: true)
+{code}

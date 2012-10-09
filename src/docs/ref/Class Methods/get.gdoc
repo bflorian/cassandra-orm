@@ -1,0 +1,92 @@
+h1. get
+
+Returns an instance of the object specified by the provided id, or @null@ if no such object exists.  The specified
+arguments can be either the @id@ string (i.e. the value of the @id@ object property) or the primary key(s) of the
+object.
+
+h2. Arguments
+
+{table}
+*Name* | *Required*| *Description*
+identifier | yes | primary key or @ident()@ value
+cascade | no | @true@ causes any belonging to this object to be deleted along with the object itself
+cluster | no | name of the cluster (as specified in the configuration) from which to retrieve the object
+consistencyLevel | no | @"CL_ONE"@, @"CL_LOCAL_QUORUM"@, @"CL_QUORUM"@, or @"CL_ALL"@
+{table}
+
+h2. Examples
+
+h3. Single string primary key
+
+Given the class:
+
+{code}
+class Person
+{
+    String username
+    static cassandraMapping = [
+            primaryKey: 'username'
+    ]
+}
+{code}
+
+Retrieve an object by specifying the primary key, which is also the value returned by @person.id@:
+
+{code}
+def person = Person.get("joeuser")
+{code}
+
+h3. Time based UUID primary key
+
+Given the class:
+
+{code}
+class Post
+{
+    UUID uuid
+    static cassandraMapping = [
+            primaryKey: 'uuid'
+    ]
+}
+{code}
+
+Retrieve an object by specify a UUID value:
+
+{code}
+def post = Post.get("5f5d32e0-1177-11e2-ac9f-001c42000009".toUUID())
+{code}
+
+or the string value returned by the @post.id@ value:
+
+{code}
+def post = Post.get("001349721517326_5f5d32e0-1177-11e2-ac9f-001c42000009")
+{code}
+
+h3. Composite primary key
+
+Given the class:
+
+{code}
+class Like
+{
+    Long postId
+    Long userId
+    static cassandraMapping = [
+            primaryKey: ['postId','userId'],
+    ]
+}
+{code}
+
+Retrieve an object by specifying a list of the primary key values:
+
+{code}
+def like = Like.get([1001,1002])
+{code}
+
+or by specifying the string returned by @.id@:
+
+{code}
+def like = Like.get("1001_1002")
+{code}
+
+

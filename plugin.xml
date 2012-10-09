@@ -1,9 +1,10 @@
-<plugin name='cassandra-orm' version='0.2.5' grailsVersion='2.0.0 &gt; *'>
+<plugin name='cassandra-orm' version='0.2.6' grailsVersion='2.0.0 &gt; *'>
   <author>Bob Florian</author>
   <authorEmail>bob.florian@reachlocal.com</authorEmail>
-  <title>Cassandra Persistence Framework</title>
+  <title>Cassandra Object Persistence Framework</title>
   <description>\
 Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra (does not implement the GORM API).
+Must me used in concert with the cassandra-astyanax plugin.
 </description>
   <documentation>http://grails.org/plugin/cassandra-orm</documentation>
   <type>CassandraOrmGrailsPlugin</type>
@@ -19,8 +20,8 @@ Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra 
   </repositories>
   <dependencies>
     <compile>
-      <dependency group='org.codehaus.jackson' name='jackson-mapper-asl' version='1.9.7' />
       <dependency group='org.codehaus.jackson' name='jackson-core-asl' version='1.9.7' />
+      <dependency group='org.codehaus.jackson' name='jackson-mapper-asl' version='1.9.7' />
     </compile>
     <runtime>
       <dependency group='com.github.stephenc.eaio-uuid' name='uuid' version='3.2.0' />

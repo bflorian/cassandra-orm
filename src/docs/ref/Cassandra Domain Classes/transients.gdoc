@@ -1,1 +1,15 @@
 h1. transients
+
+The @transients@ property declares a list of property names that should not be stored in Cassandra.  Typically these
+are read-only properties implemented with getter methods.  For example:
+
+{code}
+class Author
+{
+    String name
+
+    String getUpperCaseName() { name.toUpperCase() }
+
+    static transients = ['upperCaseName']
+}
+{code}

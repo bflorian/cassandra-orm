@@ -50,8 +50,13 @@ class InstanceMethods extends MappingUtils
 		// cluster property
 		clazz.metaClass."${CLUSTER_PROP}" = null
 
-		// cassandraKey
+		// cassandra row key (alternative)
 		clazz.metaClass.getId = {
+			delegate.ident()
+		}
+
+		// cassandra row key
+		clazz.metaClass.ident = {
 			def thisObj = delegate
 			def names = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 			def values = names.collect {

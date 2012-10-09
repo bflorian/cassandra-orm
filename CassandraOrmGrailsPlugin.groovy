@@ -20,7 +20,7 @@ import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 class CassandraOrmGrailsPlugin
 {
 	// the plugin version
-	def version = "0.2.5"
+	def version = "0.2.6"
 
 	// the version or versions of Grails the plugin is designed for
 	def grailsVersion = "2.0.0 > *"
@@ -36,14 +36,15 @@ class CassandraOrmGrailsPlugin
 
 	def author = "Bob Florian"
 	def authorEmail = "bob.florian@reachlocal.com"
-	def title = "Cassandra Persistence Framework"
+	def title = "Cassandra Object Persistence Framework"
 	def license = 'APACHE'
 	def organization = [name: 'ReachLocal', url: 'http://www.reachlocal.com/']
-	def issueManagement = [system: 'JIRA', url: 'http://jira.grails.org/browse/GPCASSANDRAASTYANAX']
+	def issueManagement = [system: 'JIRA', url: 'http://jira.grails.org/browse/GPCASSANDRAORM']
 	def scm = [url: 'https://github.com/bflorian/cassandra-orm']
 
 	def description = '''\\
 Provides GORM-like dynamic methods for persisting Groovy objects into Cassandra (does not implement the GORM API).
+Must me used in concert with the cassandra-astyanax plugin.
 '''
 
 	// URL to the plugin's documentation
