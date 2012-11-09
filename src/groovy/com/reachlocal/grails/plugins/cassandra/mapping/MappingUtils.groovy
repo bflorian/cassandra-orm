@@ -545,7 +545,7 @@ class MappingUtils extends CounterUtils
 	static queryByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = addOptionDefaults(opts, MAX_ROWS)
-		def start = options.startAfter ?: options.start
+		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -559,7 +559,7 @@ class MappingUtils extends CounterUtils
 						indexCf,
 						rowKey,
 						start,
-						options.finish,
+						nullablePrimaryRowKey(options.finish),
 						options.reversed,
 						max,
 						opts.consistencyLevel)
@@ -571,13 +571,14 @@ class MappingUtils extends CounterUtils
 
 			def result
 			def names = columnNames(options)
+			def resultClass = options.startAfter ? LinkedList : LinkedHashSet
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, clazz.columnFamily, keys, names, opts.consistencyLevel)
-				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
+				result = clazz.cassandra.mapping.makeResult(keys, rows, options, resultClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, clazz.columnFamily, keys, opts.consistencyLevel)
-				result = clazz.cassandra.mapping.makeResult(keys, rows, options)
+				result = clazz.cassandra.mapping.makeResult(keys, rows, options, resultClass)
 			}
 			return options.startAfter && result ? result[1..-1] : result
 		}
@@ -586,7 +587,7 @@ class MappingUtils extends CounterUtils
 	static countByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = addOptionDefaults(opts, MAX_ROWS)
-		def start = options.startAfter ?: options.start
+		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
@@ -599,7 +600,7 @@ class MappingUtils extends CounterUtils
 						indexCf,
 						rowKey,
 						start,
-						options.finish,
+						nullablePrimaryRowKey(options.finish),
 						opts.consistencyLevel)
 
 				total += count
@@ -707,13 +708,14 @@ class MappingUtils extends CounterUtils
 					.collect{persistence.name(it)}
 
 			def names = columnNames(options)
+			def resultClass = options.startAfter ? LinkedList : listClass
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names, opts.consistencyLevel)
-				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, resultClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys, opts.consistencyLevel)
-				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, listClass)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, resultClass)
 				if (belongsToPropName) {
 					result.each {
 						it.setProperty(belongsToPropName, thisObj)

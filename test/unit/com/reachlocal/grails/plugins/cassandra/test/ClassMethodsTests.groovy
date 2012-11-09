@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat
 import com.reachlocal.grails.plugins.cassandra.test.orm.Color
 import org.junit.Test;
 import static org.junit.Assert.*
+import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
 
 /**
  * @author: Bob Florian
@@ -96,6 +97,27 @@ public class ClassMethodsTests extends OrmTestCase
 				city: 'Reston',
 				favoriteColor: Color.RED,
 				birthDate:  DAY_FORMAT.parse('1985-09-14')).save(cluster: "mockCluster2")
+
+		def v1 = new Visit(
+				siteName : "SITE1",
+				referrerType: "Search",
+				referrerName: "Google",
+				occurTime: new Date()
+		).save()
+
+		def v2 = new Visit(
+				siteName : "SITE1",
+				referrerType: "Search",
+				referrerName: "Bing",
+				occurTime: new Date()
+		).save()
+
+		def v3 = new Visit(
+				siteName : "SITE1",
+				referrerType: "Facebook",
+				referrerName: "Social",
+				occurTime: new Date()
+		).save()
 
 		persistence.printClear()
 
@@ -234,6 +256,12 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 3, r.size()
 
+		println "\n--- list(startAfter: 'x1', finish: 'x3') ---"
+		r = User.list(startAfter: 'x1', finish: 'x3')
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+
 		println "\n--- list(start: 'x4z', finish: 'x3z', reversed: true) ---"
 		r = User.list(start: 'x4z', finish: 'x3z', reversed:  true) as List
 		persistence.printClear()
@@ -280,6 +308,18 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals 3, r.size()
+
+		println "\n--- findAllByPhone('301-555-1212', [start: 'x2xx-xxxx-xxxx-xxxx']) [explicit] ---"
+		r = User.findAllByPhone('301-555-1212', [start: 'x2xx-xxxx-xxxx-xxxx'])
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+
+		println "\n--- findAllByPhone('301-555-1212', [startAfter: 'x2xx-xxxx-xxxx-xxxx']) [explicit] ---"
+		r = User.findAllByPhone('301-555-1212', [startAfter: 'x2xx-xxxx-xxxx-xxxx'])
+		persistence.printClear()
+		println r
+		assertEquals 1, r.size()
 
 		println "\n--- findAllByGender('Male') [secondary TO BE IMPLEMENTED] ---"
 		r = User.findAllByGender('Male')
@@ -461,6 +501,24 @@ public class ClassMethodsTests extends OrmTestCase
 		r = User.getCountsGroupByBirthDate(where: [gender: 'Female'], dateFormat: new SimpleDateFormat("yyyy"))
 		persistence.printClear()
 		println r
+
+		println "\n--- Visit.findAllBySiteName('SITE1')"
+		r = Visit.findAllBySiteName('SITE1')
+		persistence.printClear()
+		println r
+		assertEquals 3, r.size()
+
+		println "\n--- Visit.findAllBySiteName('SITE1', [start:  v2.uuid])"
+		r = Visit.findAllBySiteName('SITE1', [start:  v2])
+		persistence.printClear()
+		println r
+		assertEquals 2, r.size()
+
+		println "\n--- Visit.findAllBySiteName('SITE1', [startAfter:  v2.uuid])"
+		r = Visit.findAllBySiteName('SITE1', [startAfter:  v2.ident()])
+		persistence.printClear()
+		println r
+		assertEquals 1, r.size()
 	}
 
 	static protected DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")

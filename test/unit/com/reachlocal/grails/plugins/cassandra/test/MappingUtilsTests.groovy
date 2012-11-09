@@ -126,6 +126,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 	void testRollUpCounterDatesHoursStringFormatGMT()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+		hf.setTimeZone(TimeZone.getTimeZone("EST"))
 
 		def hours = [
 				('2012-02-04T16'): 2,
@@ -188,6 +189,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 	void testRollUpCounterDatesHoursObjectFormatGMT()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
+		hf.setTimeZone(TimeZone.getTimeZone("EST"))
 
 		def hours = [
 				('2012-02-04T16'): 2,

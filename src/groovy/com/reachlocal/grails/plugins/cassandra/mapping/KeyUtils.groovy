@@ -273,7 +273,7 @@ class KeyUtils extends BaseUtils
 			throw new CassandraMappingNullIndexException("Primary keys and indexed properties cannot have null values")
 		}
 		else if (isMappedObject(obj)) {
-			return obj.id
+			return obj.ident()
 		}
 		else {
 			try {
