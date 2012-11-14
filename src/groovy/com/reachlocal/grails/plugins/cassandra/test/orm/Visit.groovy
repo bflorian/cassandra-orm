@@ -9,10 +9,14 @@ class Visit
 	String siteName
 	String referrerType
 	String referrerName
+    String referrerUrl
+    String referrerKeyword
+    String pageUrl
+    String userAgent
 	Date occurTime
 
 	static cassandraMapping = [
-			primaryKey: 'uuid',
+			unindexedPrimaryKey: 'uuid',
 			explicitIndexes: [
 			        'siteName'
 			]
