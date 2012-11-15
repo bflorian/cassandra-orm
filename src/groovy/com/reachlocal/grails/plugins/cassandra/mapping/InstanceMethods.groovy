@@ -18,6 +18,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.codehaus.groovy.grails.commons.GrailsClassUtils
 import org.apache.commons.beanutils.PropertyUtils
+import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
 
 /**
  * @author: Bob Florian
@@ -108,42 +109,39 @@ class InstanceMethods extends MappingUtils
 
 				// one-to-one relationships
 				def keyDeleted = false
-				clazz.metaClass.properties.each {property ->
+				DataMapper.dirtyPropertyNames(thisObj).each {name ->
 
 					// need to save object (if cascading) and remove the key column from cassandra if its
 					// been set to null (uses dirty bit to know if it should be null since values are
 					// lazy evaluated
-					def name = property.name
-					if (name.endsWith(DIRTY_SUFFIX)) {
-						def pName = name - DIRTY_SUFFIX
-						def pValue = PropertyUtils.getProperty(thisObj, pName)
-						def dValue = thisObj.getProperty(name)
-						if (pValue == null) {
-							if (dValue != null) {
-								// property is null but dirty bit is not null -- remove the key from cassandra
-								thisObj.setProperty(name, null)
-								def cName = "${pName}${KEY_SUFFIX}".toString()
-								persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
-								keyDeleted = true
+					def pName = name - DIRTY_SUFFIX
+					def pValue = PropertyUtils.getProperty(thisObj, pName)
+					def dValue = thisObj.getProperty(name)
+					if (pValue == null) {
+						if (dValue != null) {
+							// property is null but dirty bit is not null -- remove the key from cassandra
+							thisObj.setProperty(name, null)
+							def cName = "${pName}${KEY_SUFFIX}".toString()
+							persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
+							keyDeleted = true
 
-								// back links
-								if (!(dValue instanceof Boolean)) {
-									def backLinkRowKey = oneBackIndexRowKey(dValue.id)
-									def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-									persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
-								}
+							// back links
+							if (!(dValue instanceof Boolean)) {
+								def backLinkRowKey = oneBackIndexRowKey(dValue.id)
+								def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+								persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 							}
 						}
-						else {
-							// back links
-							def backLinkRowKey = oneBackIndexRowKey(pValue.id)
-							def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-							persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+					}
+					else {
+						// back links
+						def backLinkRowKey = oneBackIndexRowKey(pValue.id)
+						def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 
-							// cascade?
-							if (args?.cascade) {
-								pValue.save(cluster: thisObj.getProperty(CLUSTER_PROP))
-							}
+						// cascade?
+						if (args?.cascade) {
+							pValue.save(cluster: thisObj.getProperty(CLUSTER_PROP))
 						}
 					}
 				}

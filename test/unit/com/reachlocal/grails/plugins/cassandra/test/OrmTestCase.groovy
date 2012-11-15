@@ -25,6 +25,7 @@ import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupPost
 import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
 import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
+import com.reachlocal.grails.plugins.cassandra.test.orm.WebsiteVisit
 
 /**
  * @author: Bob Florian
@@ -58,6 +59,7 @@ class OrmTestCase
 		OrmUtility.addDynamicMethods(UserGroupMeeting, ctx)
 		OrmUtility.addDynamicMethods(UserGroupPost, ctx)
 		OrmUtility.addDynamicMethods(Visit, ctx)
+		OrmUtility.addDynamicMethods(WebsiteVisit, ctx)
 		UuidDynamicMethods.addAll()
 	}
 }

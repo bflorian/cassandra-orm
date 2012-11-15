@@ -16,6 +16,8 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
+import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
+
 /**
  * @author: Bob Florian
  */
@@ -25,58 +27,15 @@ class DataMapping extends MappingUtils
 
 	def dataProperties(data)
 	{
-		def map = [:]
 		if (data instanceof Map) {
-			data.each() {name, value ->
-				if (value != null) {
-					map[name] = dataProperty(value)
-				}
-			}
+			return DataMapper.dataProperties((Map<String, Object>)data);
 		}
 		else {
-			def transients = MappingUtils.safeGetProperty(data, 'transients', List, [])
-			def hasMany = MappingUtils.safeGetProperty(data, 'hasMany', Map, [:])
-			def clazz = data.getClass()
-
-			def expandoMapName = clazz.cassandraMapping.expandoMap
-			if (expandoMapName) {
-				transients << expandoMapName
-			}
-
-			map[CLASS_NAME_KEY] = clazz.getName()
-			data.metaClass.properties.each() {
-				if (!it.name.endsWith(DIRTY_SUFFIX)) {
-
-					if (it.getter &&
-							!it.getter.isStatic() &&
-							!transients.contains(it.name) &&
-							!GLOBAL_TRANSIENTS.contains(it.name) &&
-							!hasMany[it.name])
-					{
-						def prop = data.getProperty(it.name)
-						if (prop != null) {
-							// Don't need to write mapped object IDs because getXxxId method handles them
-							if (!MappingUtils.isMappedObject(prop)) {
-								def value = dataProperty(prop)
-								if (value != null) {
-									map[it.name] = value
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if (expandoMapName) {
-				def expandoMap = data.getProperty(expandoMapName)
-				expandoMap?.each {name, value ->
-					if (value != null) {
-						map[name] = value
-					}
-				}
-			}
+			List<String> transients = (List<String>)MappingUtils.safeGetProperty(data, 'transients', List, [])
+			Map<String, Class> hasMany = (Map<String, Class>)MappingUtils.safeGetProperty(data, 'hasMany', Map, [:])
+			String expandoMapName = data.getClass().cassandraMapping.expandoMap
+			return DataMapper.dataProperties(data, transients, hasMany, expandoMapName);
 		}
-		return map
 	}
 
 	def makeResult(rows, Map options, Class clazz=LinkedHashSet)

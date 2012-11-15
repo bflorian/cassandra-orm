@@ -139,48 +139,83 @@ class MockPersistenceMethods
 	{
 		logOp "prepareMutationBatch", consistencyLevel
 		"mutation"
+
+		mutationBatch = []
 	}
 
 	void deleteColumn(mutationBatch, columnFamily, rowKey, columnName)
 	{
 		logOp "deleteColumn", columnFamily, rowKey, columnName
 		data.deleteColumn(columnFamily, rowKey, columnName)
+
+		mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').deleteColumn('$columnName')"
 	}
 
 	void putColumn(mutationBatch, columnFamily, rowKey, name, value)
 	{
 		logOp "putColumn", columnFamily, rowKey, name, value
 		data.putColumn(columnFamily, rowKey, name, value)
+
+		mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').putColumn('$name', '$value')"
 	}
 
 	void putColumn(mutationBatch, columnFamily, rowKey, name, value, ttl)
 	{
 		logOp "putColumn", columnFamily, rowKey, name, value, ttl
 		data.putColumn(columnFamily, rowKey, name, value, ttl)
+
+		mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').putColumn('$name', '$value', $ttl)"
 	}
 
 	void putColumns(mutationBatch, columnFamily, rowKey, columnMap)
 	{
 		logOp "putColumns", columnFamily, rowKey, columnMap
 		data.putColumns(columnFamily, rowKey, columnMap)
+
+		def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
+		columnMap.each {k,v ->
+			sb << "\n      .putColumn('$k', '$v')"
+		}
+		mutationBatch << sb.toString()
 	}
 
 	void putColumns(mutationBatch, columnFamily, rowKey, columnMap, ttlMap)
 	{
 		logOp "putColumns", columnFamily, rowKey, columnMap, ttlMap
 		data.putColumns(columnFamily, rowKey, columnMap, ttlMap)
+
+		def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
+		if (ttlMap instanceof Number) {
+			columnMap.each {k, v ->
+				sb << "\n      .putColumn('$k', '$v', $ttlMap)"
+			}
+		}
+		else {
+			columnMap.each {k, v ->
+				sb << "\n      .putColumn('$k', '$v', ${ttlMap[k]})"
+			}
+		}
+		mutationBatch << sb.toString()
 	}
 
 	void incrementCounterColumn(mutationBatch, columnFamily, rowKey, name, value=1)
 	{
 		logOp "incrementCounterColumn", columnFamily, rowKey, name, value
 		data.incrementCounterColumn(columnFamily, rowKey, name, value)
+
+		mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').incrementCounterColumn('$name', $value)"
 	}
 
 	void incrementCounterColumns(mutationBatch, columnFamily, rowKey, columnMap)
 	{
 		logOp "incrementCounterColumns", columnFamily, rowKey, columnMap
 		data.incrementCounterColumns(columnFamily, rowKey, columnMap)
+
+		def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
+		columnMap.each {k,v ->
+			sb << "\n      .incrementCounterColumn('$k', $v)"
+		}
+		mutationBatch << sb.toString()
 	}
 
 	void deleteRow(mutationBatch, columnFamily, rowKey)
@@ -192,6 +227,14 @@ class MockPersistenceMethods
 	def execute(mutationBatch)
 	{
 		logOp "execute"
+
+		/*
+		println "def mutationBatch = ks.prepareMutationBatch()"
+		mutationBatch.each {
+			println it
+		}
+		println "mutationBatch.execute()"
+		*/
 	}
 
 	def getRow(rows, key)
@@ -242,7 +285,7 @@ class MockPersistenceMethods
 
 	void logOp(String method, Object... args)
 	{
-		def argStr = args.collect{it.toString()}.join(", ")
+		def argStr = args.collect{"\"${it}\""}.join(", ")
 		def s = "$method(${argStr})"
 		calls << [method: method, args: args, message: s]
 	}
@@ -282,4 +325,6 @@ class MockPersistenceMethods
 	{
 		MD5Codec.encode(calls.collect{it.toString()}.join("\n"))
 	}
+
+	def mutationBatch
 }
