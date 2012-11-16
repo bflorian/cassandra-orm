@@ -4,6 +4,7 @@ import java.text.DateFormat
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.text.DecimalFormat
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
@@ -126,7 +127,7 @@ class KeyUtils extends BaseUtils
 		try {
 			def valueList = propNames.collect{bean.getProperty(it)}
 			def result = []
-			def v2 = expandNestedArray(valueList)
+			def v2 = OrmHelper.expandNestedArray(valueList)
 			v2.each {values ->
 				def pairs = []
 				propNames.eachWithIndex {name, index ->

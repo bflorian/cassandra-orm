@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
@@ -31,8 +32,8 @@ class DataMapping extends MappingUtils
 			return DataMapper.dataProperties((Map<String, Object>)data);
 		}
 		else {
-			List<String> transients = (List<String>)MappingUtils.safeGetProperty(data, 'transients', List, [])
-			Map<String, Class> hasMany = (Map<String, Class>)MappingUtils.safeGetProperty(data, 'hasMany', Map, [:])
+			List<String> transients = (List<String>)OrmHelper.safeGetProperty(data, 'transients', List, [])
+			Map<String, Class> hasMany = (Map<String, Class>)OrmHelper.safeGetProperty(data, 'hasMany', Map, [:])
 			String expandoMapName = data.getClass().cassandraMapping.expandoMap
 			return DataMapper.dataProperties(data, transients, hasMany, expandoMapName);
 		}

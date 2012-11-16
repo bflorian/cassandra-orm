@@ -15,10 +15,17 @@ class Visit
     String userAgent
 	Date occurTime
 
+	static transients = ["ageInDays"]
+
 	static cassandraMapping = [
 			unindexedPrimaryKey: 'uuid',
 			explicitIndexes: [
 			        'siteName'
 			]
 	]
+
+	Integer getAgeInDays()
+	{
+		return new Date() - occurTime
+	}
 }

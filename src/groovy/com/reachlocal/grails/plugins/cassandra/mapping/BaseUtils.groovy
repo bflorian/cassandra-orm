@@ -20,16 +20,6 @@ class BaseUtils
 	static protected final CLUSTER_PROP = "_cassandra_cluster_"
 	static protected final GLOBAL_TRANSIENTS = ["class","id","cassandra","indexColumnFamily","columnFamily","counterColumnFamily","metaClass","keySpace","cassandraCluster",DIRTY_SUFFIX,CLUSTER_PROP] as Set
 
-	static String stringValue(String s)
-	{
-		'"' + s.replaceAll('"','\\"') + '"'
-	}
-
-	static String stringValue(s)
-	{
-		String.valueOf(s)
-	}
-
 	static String methodForPropertyName(prefix, propertyName)
 	{
 		return "${prefix}${propertyName[0].toUpperCase()}${propertyName.size() > 1 ? propertyName[1..-1] : ''}"

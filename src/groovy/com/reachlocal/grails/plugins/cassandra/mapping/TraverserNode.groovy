@@ -1,6 +1,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import org.apache.commons.beanutils.PropertyUtils
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
@@ -86,7 +87,7 @@ class TraverserNode
 		}
 
 		def result = []
-		def options = BaseUtils.addOptionDefaults(opts, BaseUtils.MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, BaseUtils.MAX_ROWS)
 		def cassandra = traverser.object.cassandra
 		def persistence = cassandra.persistence
 		def names = MappingUtils.columnNames(options)

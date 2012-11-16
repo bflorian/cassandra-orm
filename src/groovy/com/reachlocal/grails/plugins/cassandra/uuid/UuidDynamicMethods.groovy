@@ -66,8 +66,13 @@ class UuidDynamicMethods
 		}
 
 		UUID.metaClass.getTime = {
-			return (delegate.timestamp() - UuidHelper.NUM_100NS_INTERVALS_SINCE_UUID_EPOCH) / 10000 as Long
+			return time(delegate)
 		}
+	}
+
+	static Long time(UUID uuid)
+	{
+		return (uuid.timestamp() - UuidHelper.NUM_100NS_INTERVALS_SINCE_UUID_EPOCH) / 10000 as Long
 	}
 
 	static rand = new Random()

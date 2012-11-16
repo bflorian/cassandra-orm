@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
@@ -38,12 +39,12 @@ class MappingUtils extends CounterUtils
 		// TODO - combine with rowFilterList
 		def multiWhereKeys = []
 		whereFilter.each {key, values ->
-			if (collection(values).size() > 1) {
+			if (OrmHelper.collection(values).size() > 1) {
 				multiWhereKeys << key
 			}
 		}
 
-		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames), multiWhereKeys)
+		def counterDef = findCounter(counterDefs, whereFilter, OrmHelper.collection(byPropNames), multiWhereKeys)
 		if (counterDef == null) {
 			throw new CassandraMappingException("Counter definition not found, where: ${whereFilter}, groupBy: ${byPropNames}")
 		}
@@ -52,7 +53,7 @@ class MappingUtils extends CounterUtils
 		def columnFilter = counterColumnFilter(whereFilter, counterDef)
 
 		def value
-		def groupByPropNames = byPropNames ? collection(byPropNames) : []
+		def groupByPropNames = byPropNames ? OrmHelper.collection(byPropNames) : []
 		if (groupByPropNames) {
 			def i = 0
 			def indexes = []
@@ -131,7 +132,7 @@ class MappingUtils extends CounterUtils
 			byPropNames, start, finish, consistencyLevel, clusterName)
 	{
 		def cluster = clusterName ?: clazz.cassandraCluster
-		def counterDef = findCounter(counterDefs, whereFilter, collection(byPropNames))
+		def counterDef = findCounter(counterDefs, whereFilter, OrmHelper.collection(byPropNames))
 		def rowFilterList = expandFilters(counterRowFilter(whereFilter, counterDef))
 		def columnFilter = counterColumnFilter(whereFilter, counterDef)
 		def cols = getDateCounterColumnsForTotals (clazz, rowFilterList, [], columnFilter, counterDef, start, finish, consistencyLevel, cluster)
@@ -142,7 +143,7 @@ class MappingUtils extends CounterUtils
 	static updateCounterColumns(Class clazz, Map counterDef, m, oldObj, thisObj)
 	{
 		def whereKeys = counterDef.findBy
-		def groupKeys = collection(counterDef.groupBy)
+		def groupKeys = OrmHelper.collection(counterDef.groupBy)
 		def counterColumnFamily = clazz.counterColumnFamily
 		def cassandra = clazz.cassandra
 
@@ -397,7 +398,7 @@ class MappingUtils extends CounterUtils
 		def filter1 = filterList[0]
 		for (counter in counterList) {
 			def findBy = counter.findBy ?: [] //TODO - right?
-			def groupBy = collection(counter.groupBy)
+			def groupBy = OrmHelper.collection(counter.groupBy)
 			def params = findBy instanceof List ? findBy : [findBy]
 			if (params.size() == filter1.size()) {
 				def all = true
@@ -443,7 +444,7 @@ class MappingUtils extends CounterUtils
 		def result = [:]
 		whereFilter.each {name, values ->
 			if (!findByNames?.contains(name)) {
-				result[name] = collection(values).collect{it.toString()}
+				result[name] = OrmHelper.collection(values).collect{it.toString()}
 			}
 		}
 		return result
@@ -457,7 +458,7 @@ class MappingUtils extends CounterUtils
 		for (counter in counterList) {
 			def counterFindBy = counter.findBy ?: [] //TODO - right?
 			def counterFilterPropNames = counterFindBy instanceof List ? counterFindBy : [counterFindBy]
-			def counterGroupPropNames = collection(counter.groupBy)
+			def counterGroupPropNames = OrmHelper.collection(counter.groupBy)
 			def queryFilterPropsRemaining = new LinkedHashSet()
 			queryFilterPropsRemaining.addAll(queryFilterPropNames)
 			def found = true
@@ -544,7 +545,7 @@ class MappingUtils extends CounterUtils
 
 	static queryByExplicitIndex(clazz, filterList, index, opts)
 	{
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
@@ -567,7 +568,7 @@ class MappingUtils extends CounterUtils
 				columns << cols.collect{persistence.name(it)}
 			}
 			def keys = mergeKeys(columns, max, options.reversed)
-			checkForDefaultRowsInsufficient(opts.max, keys.size())
+			OrmHelper.checkForDefaultRowsInsufficient(opts.max, keys.size())
 
 			def result
 			def names = columnNames(options)
@@ -586,7 +587,7 @@ class MappingUtils extends CounterUtils
 
 	static countByExplicitIndex(clazz, filterList, index, opts)
 	{
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -611,7 +612,7 @@ class MappingUtils extends CounterUtils
 
 	static queryBySecondaryIndex(clazz, propertyMap, opts)
 	{
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def cluster = opts.cluster ?: clazz.cassandraCluster
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def properties = [:]
@@ -619,7 +620,7 @@ class MappingUtils extends CounterUtils
 				properties[k] = primaryRowKey(v)
 			}
 			def rows = clazz.cassandra.persistence.getRowsWithEqualityIndex(ks, clazz.columnFamily, properties, options.max, opts.consistencyLevel)
-			checkForDefaultRowsInsufficient(opts.max, rows.size())
+			OrmHelper.checkForDefaultRowsInsufficient(opts.max, rows.size())
 			return clazz.cassandra.mapping.makeResult(rows, options)
 		}
 	}
@@ -638,7 +639,7 @@ class MappingUtils extends CounterUtils
 
 	static queryByCql(clazz, opts) throws IllegalArgumentException
 	{
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def cluster = opts.cluster ?: clazz.cassandraCluster
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			if (options.columns) {
@@ -658,7 +659,7 @@ class MappingUtils extends CounterUtils
 
 	static countByCql(clazz, opts) throws IllegalArgumentException
 	{
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def cluster = opts.cluster ?: clazz.cassandraCluster
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			return clazz.cassandra.persistence.getRowsWithCqlWhereClause(ks, clazz.columnFamily, options.where, opts.consistencyLevel)
@@ -692,7 +693,7 @@ class MappingUtils extends CounterUtils
 	static getByMappedObject(thisObj, propName, itemClass, opts=[:], listClass=LinkedHashSet)
 	{
 		def result = []
-		def options = addOptionDefaults(opts, MAX_ROWS, thisObj.getProperty(CLUSTER_PROP))
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS, thisObj.getProperty(CLUSTER_PROP))
 		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def finish = nullablePrimaryRowKey(options.finish)
 		def max = options.startAfter ? options.max + 1 : options.max
@@ -729,7 +730,7 @@ class MappingUtils extends CounterUtils
 	static getKeysForMappedObject(thisClass, thisId, propName, itemClass, opts=[:])
 	{
 		def result = []
-		def options = addOptionDefaults(opts, MAX_ROWS, thisClass.cassandraCluster)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS, thisClass.cassandraCluster)
 		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def finish = nullablePrimaryRowKey(options.finish)
 		def max = options.startAfter ? options.max + 1 : options.max
@@ -748,7 +749,7 @@ class MappingUtils extends CounterUtils
 	static countByMappedObject(thisObj, propName, itemClass, opts=[:])
 	{
 		def result = []
-		def options = addOptionDefaults(opts, MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def persistence = thisObj.cassandra.persistence
 		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def finish = nullablePrimaryRowKey(options.finish)

@@ -29,13 +29,6 @@ import static org.junit.Assert.*
 class MappingUtilsTests extends GrailsUnitTestCase
 {
 	@Test
-	void testStringValue()
-	{
-		assertEquals '"value"', MappingUtils.stringValue("value")
-		assertEquals '123', MappingUtils.stringValue(123)
-	}
-
-	@Test
 	void testMethodForPropertyName()
 	{
 		assertEquals "getSomeOtherProperty", MappingUtils.methodForPropertyName("get", "someOtherProperty")

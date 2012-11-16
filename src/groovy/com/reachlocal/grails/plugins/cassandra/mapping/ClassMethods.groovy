@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
@@ -63,7 +64,7 @@ class ClassMethods extends MappingUtils
 		// initialize counter types
 		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->
 			if (ctr.groupBy) {
-				ctr.groupBy = collection(ctr.groupBy)
+				ctr.groupBy = OrmHelper.collection(ctr.groupBy)
 				def prop = clazz.metaClass.getMetaProperty(ctr.groupBy[0])
 				if (prop) {
 					ctr.isDateIndex = prop.type.isAssignableFrom(Date)
@@ -145,7 +146,7 @@ class ClassMethods extends MappingUtils
 			def rowKeys = ids.collect{primaryRowKey(it)}
 			def cluster = opts.cluster ?: cassandraCluster
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
-				def options = addOptionDefaults(opts, MAX_ROWS)
+				def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 				def names = columnNames(options)
 				if (names) {
 					def rows = cassandra.persistence.getRowsColumnSlice(ks, clazz.columnFamily, rowKeys, names, opts.consistencyLevel)
@@ -163,7 +164,7 @@ class ClassMethods extends MappingUtils
 		clazz.metaClass.'static'.findOrCreate = {id, opts=[:] ->
 			def result = get(id, opts)
 			if (!result) {
-				def names = collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
+				def names = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 				if (names.size() > 1) {
 					throw new CassandraMappingException("findOrCreate() and findOrSave() methods not defined for classes with compound keys")
 				}
@@ -195,7 +196,7 @@ class ClassMethods extends MappingUtils
 		// list(start: id1, finish: id1, reversed: true, max: max_rows)
 		clazz.metaClass.'static'.list = {opts=[:] ->
 
-			def options = addOptionDefaults(opts, MAX_ROWS)
+			def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 			def cluster = opts.cluster ?: cassandraCluster
 			def start = options.startAfter ?: options.start
 			def max = options.startAfter ? options.max + 1 : options.max
@@ -212,7 +213,7 @@ class ClassMethods extends MappingUtils
 				)
 
 				def keys = columns.collect{cassandra.persistence.name(it)}
-				checkForDefaultRowsInsufficient(opts.max, keys.size())
+				OrmHelper.checkForDefaultRowsInsufficient(opts.max, keys.size())
 
 				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
 				def result = cassandra.mapping.makeResult(keys, rows, options, LinkedList)
@@ -356,7 +357,7 @@ class ClassMethods extends MappingUtils
 				count = true
 			}
 			if (str) {
-				def propertyList = propertyListFromMethodName(str)
+				def propertyList = OrmHelper.propertyListFromMethodName(str)
 				def params = [:]
 				propertyList.eachWithIndex {it, i ->
 					params[it] = args[i]
@@ -402,11 +403,11 @@ class ClassMethods extends MappingUtils
 					else {
 						def pos = str.indexOf("GroupBy")
 						if (pos > 0) {
-							groupByPropList = propertyListFromMethodName(str[pos+7..-1])
+							groupByPropList = OrmHelper.propertyListFromMethodName(str[pos+7..-1])
 							str = str[0..pos-1]
 						}
 					}
-					wherePropList = propertyListFromMethodName(str)
+					wherePropList = OrmHelper.propertyListFromMethodName(str)
 				}
 				else if (name.startsWith("getCountsGroupBy")) {
 					str = name - "getCountsGroupBy"
@@ -414,7 +415,7 @@ class ClassMethods extends MappingUtils
 					if (total) {
 						str = str - "Total"
 					}
-					groupByPropList = propertyListFromMethodName(str)
+					groupByPropList = OrmHelper.propertyListFromMethodName(str)
 				}
 				else if (name == "getCountsTotal") {
 					total = true

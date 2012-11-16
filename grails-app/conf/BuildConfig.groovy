@@ -52,5 +52,8 @@ grails.project.dependency.resolution = {
 		build (":svn:1.0.2") {
 			export = false
 		}
+		test (":spock:0.6") {
+			export = false
+		}
 	}
 }
