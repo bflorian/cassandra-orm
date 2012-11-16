@@ -21,7 +21,7 @@ import java.util.*;
  */
 public class KeyHelper
 {
-	static String makeComposite(List<String> list)
+	public static String makeComposite(List<String> list)
 	{
 		int len = list.size();
 		if (len == 1) {
@@ -37,49 +37,50 @@ public class KeyHelper
 		}
 	}
 
-	static String[] parseComposite(String value)
+	public static String[] parseComposite(String value)
 	{
 		return value.split("__");
 	}
 
-	static String joinRowKey(Class fromClass, Class toClass, String propName, GroovyObject object) throws UnsupportedEncodingException
+	public static String joinRowKey(Class fromClass, Class toClass, String propName, GroovyObject object) throws UnsupportedEncodingException
 	{
 		//def fromClassName = fromClass.name.split("\\.")[-1]
 		//"${fromClassName}?${propName}=${URLEncoder.encode(object.id)}".toString()
-		return joinRowKeyFromId(fromClass, toClass, propName, String.valueOf(object.getProperty("id")));
+		return joinRowKeyFromId(fromClass, toClass, propName, (String)object.getProperty("id"));
 	}
 
-	static String joinRowKeyFromId(Class fromClass, Class toClass, String propName, String objectId) throws UnsupportedEncodingException
+	public static String joinRowKeyFromId(Class fromClass, Class toClass, String propName, String objectId) throws UnsupportedEncodingException
 	{
 		String fromClassName = fromClass.getSimpleName();
 		return fromClassName + "?" + propName + "=" + URLEncoder.encode(objectId, ENC);
 	}
 
-	static String primaryKeyIndexRowKey()
+	public static String primaryKeyIndexRowKey()
 	{
 		return "this";
 	}
 
-	static String counterRowKey(List whereKeys, List<String> groupKeys, Map map) throws IOException
+	public static String counterRowKey(List<String> whereKeys, List<String> groupKeys, Map map) throws IOException
 	{
 		String key = objectIndexRowKey(whereKeys, map);
 		return key != null ? key + "#" + makeComposite(groupKeys) : null;
 	}
 
-	static String counterRowKey(List whereKeys, List<String> groupKeys, GroovyObject bean) throws IOException
+	public static String counterRowKey(List<String> whereKeys, List<String> groupKeys, GroovyObject bean) throws IOException
 	{
 		String key = objectIndexRowKey(whereKeys, bean);
 		return key != null ? key + "#" + makeComposite(groupKeys) : null;
 	}
 
-	static List<String> makeGroupKeyList(List<String>keys, String dateSuffix)
+	public static List<String> makeGroupKeyList(List<String>keys, String dateSuffix)
 	{
 		List<String> result = new ArrayList<String>(keys.size());
-		result.add(0, keys.get(0) + "[" + dateSuffix + "]");
+		result.addAll(keys);
+		result.set(0, keys.get(0) + "[" + dateSuffix + "]");
 		return result;
 	}
 
-	static String objectIndexRowKey(String propName, Map map) throws IOException
+	public static String objectIndexRowKey(String propName, Map map) throws IOException
 	{
 		try {
 			return indexRowKey(propName, map.get(propName));
@@ -89,7 +90,7 @@ public class KeyHelper
 		}
 	}
 
-	static String objectIndexRowKey(List propNames, Map map) throws IOException
+	public static String objectIndexRowKey(List propNames, Map map) throws IOException
 	{
 		try {
 			List<List<Object>> items = new ArrayList<List<Object>>();
@@ -106,7 +107,7 @@ public class KeyHelper
 		}
 	}
 
-	static String objectIndexRowKey(String propName, GroovyObject bean) throws IOException
+	public static String objectIndexRowKey(String propName, GroovyObject bean) throws IOException
 	{
 		try {
 			return indexRowKey(propName, bean.getProperty(propName));
@@ -116,7 +117,7 @@ public class KeyHelper
 		}
 	}
 
-	static String objectIndexRowKey(List<String> propNames, GroovyObject bean) throws IOException
+	public static String objectIndexRowKey(List<String> propNames, GroovyObject bean) throws IOException
 	{
 		try {
 			List<List<Object>> items = new ArrayList<List<Object>>(propNames.size());
@@ -134,7 +135,7 @@ public class KeyHelper
 	}
 
 
-	static Collection objectIndexRowKeys(String propName, GroovyObject bean) throws IOException
+	public static Collection objectIndexRowKeys(String propName, GroovyObject bean) throws IOException
 	{
 		try {
 			Object value = bean.getProperty(propName);
@@ -160,7 +161,7 @@ public class KeyHelper
 		}
 	}
 
-	static Collection<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
+	public static Collection<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
 	{
 		try {
 			List<Object> valueList = new ArrayList<Object>(propNames.size());
@@ -191,7 +192,7 @@ public class KeyHelper
 		}
 	}
 
-	static String indexRowKey(String name, Object value) throws CassandraMappingNullIndexException, IOException
+	public static String indexRowKey(String name, Object value) throws CassandraMappingNullIndexException, IOException
 	{
 		try {
 			//"this?${name}=${URLEncoder.encode(primaryRowKey(value))}".toString()
@@ -202,23 +203,23 @@ public class KeyHelper
 		}
 	}
 
-	static String manyBackIndexRowKey(String objectId)
+	public static String manyBackIndexRowKey(String objectId)
 	{
 		return "this#" + objectId;
 	}
 
-	static String oneBackIndexRowKey(String objectId)
+	public static String oneBackIndexRowKey(String objectId)
 	{
 		return "this@" + objectId;
 	}
 
-	static String oneBackIndexColumnName(String columnFamily, String propertyName, String objectKey)
+	public static String oneBackIndexColumnName(String columnFamily, String propertyName, String objectKey)
 	{
 		//"${objectKey}${END_CHAR}${propertyName}${END_CHAR}${columnFamily}".toString()
 		return objectKey + END_CHAR + propertyName + END_CHAR + columnFamily;
 	}
 
-	static List<String> oneBackIndexColumnValues(String name)
+	public static List<String> oneBackIndexColumnValues(String name)
 	{
 		String[] array = name.split(END_CHAR);
 		List<String> result = new ArrayList<String>(array.length);
@@ -228,7 +229,7 @@ public class KeyHelper
 		return result;
 	}
 
-	static String indexRowKey(List<List<Object>> pairs) throws CassandraMappingNullIndexException, IOException
+	public static String indexRowKey(List<List<Object>> pairs) throws CassandraMappingNullIndexException, IOException
 	{
 		try {
 			String sep = "?";
@@ -246,52 +247,42 @@ public class KeyHelper
 			return null;
 		}
 	}
-	static String counterColumnKey(List items, DateFormat dateFormat) throws CassandraMappingNullIndexException, IOException
+
+	public static String counterColumnKey(Object obj, DateFormat dateFormat) throws CassandraMappingNullIndexException, IOException
 	{
-		if (items != null && items.size() > 0) {
-			List<String> list = new ArrayList<String>(items.size());
-			for (Object it: items) {
-				list.add(counterColumnKey(it, dateFormat));
+		if (obj == null) {
+			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
+		}
+		else if (obj instanceof String) {
+			return (String)obj; // TODO -- escape delimiters???
+		}
+		else if (obj instanceof Date) {
+			return dateFormat.format((Date)obj);
+		}
+		else if (obj instanceof List) {
+			List items = (List)obj;
+			if (items.size() == 0) {
+				throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
 			}
-			return makeComposite(list);
-
+			else {
+				List<String> list = new ArrayList<String>(items.size());
+				for (Object it: items) {
+					list.add(counterColumnKey(it, dateFormat));
+				}
+				return makeComposite(list);
+			}
 		}
 		else {
-			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
+			return primaryRowKey(obj);
 		}
 	}
 
-	static String counterColumnKey(Date date, DateFormat dateFormat) throws CassandraMappingNullIndexException
-	{
-		if (date != null) {
-			return dateFormat.format(date);
-		}
-		else {
-			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
-		}
-	}
-
-	static String counterColumnKey(String str, DateFormat dateFormat) throws CassandraMappingNullIndexException
-	{
-		if (str != null && str.length() > 0) {
-			return str;
-		}
-		else {
-			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
-		}
-	}
-
-	static String counterColumnKey(Object obj, DateFormat dateFormat) throws CassandraMappingNullIndexException, IOException
-	{
-		return primaryRowKey(obj);  //TODO - dateFormat???
-	}
-
-	static String nullablePrimaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
+	public static String nullablePrimaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
 	{
 		return obj == null ? null : primaryRowKey(obj);
 	}
 
-	static String primaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
+	public static String primaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
 	{
 		if (obj instanceof String) {
 			return (String)obj;
@@ -338,13 +329,13 @@ public class KeyHelper
 		}
 	}
 
-	static final String ENC = "UTF-8";
-	static final String END_CHAR = "\u00ff";
+	public static final String ENC = "UTF-8";
+	public static final String END_CHAR = "\u00ff";
 
-	static final DecimalFormat INT_KEY_FMT1 = new DecimalFormat("000000000000000");
-	static final DecimalFormat INT_KEY_FMT2 = new DecimalFormat("00000000000000");
+	public static final DecimalFormat INT_KEY_FMT1 = new DecimalFormat("000000000000000");
+	public static final DecimalFormat INT_KEY_FMT2 = new DecimalFormat("00000000000000");
 
-	static DateFormat ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	public static DateFormat ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	static {
 		ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}

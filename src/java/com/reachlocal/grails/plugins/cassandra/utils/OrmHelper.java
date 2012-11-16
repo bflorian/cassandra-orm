@@ -83,8 +83,13 @@ public class OrmHelper
 	public static boolean isMappedObject(GroovyObject object) {
 		// TODO - doesn't test for static!
 		//return object ? object.getClass().metaClass.hasMetaProperty("cassandraMapping") : false
-		Object value = object.getProperty("cassandraMapping");
-		return value != null && value instanceof Map;
+		try {
+			Object value = object.getProperty("cassandraMapping");
+			return value != null && value instanceof Map;
+		}
+		catch (MissingPropertyException e) {
+			return false;
+		}
 	}
 /*
 	public static boolean isMappedProperty(Class clazz, String name) {

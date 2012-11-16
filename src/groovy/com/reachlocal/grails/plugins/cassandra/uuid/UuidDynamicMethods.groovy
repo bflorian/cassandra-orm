@@ -40,17 +40,15 @@ class UuidDynamicMethods
 		}
 
 		UUID.metaClass.'static'.timeUUID = {
-			return new java.util.UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode())
+			return timeUUID()
 		}
 
 		UUID.metaClass.'static'.reverseTimeUUID = {
-			long t = UuidHelper.createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
-			return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+			reverseTimeUUID()
 		}
 
 		UUID.metaClass.'static'.timeUUID = {msec ->
-			long t = UuidHelper.createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
-			return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+			timeUUID(msec)
 		}
 
 		UUID.metaClass.'static'.fromBytes = {uuid ->
@@ -73,6 +71,23 @@ class UuidDynamicMethods
 	static Long time(UUID uuid)
 	{
 		return (uuid.timestamp() - UuidHelper.NUM_100NS_INTERVALS_SINCE_UUID_EPOCH) / 10000 as Long
+	}
+
+	static UUID timeUUID()
+	{
+		return new java.util.UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode())
+	}
+
+	static UUID timeUUID(long msec)
+	{
+		long t = UuidHelper.createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
+		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+	}
+
+	static UUID reverseTimeUUID()
+	{
+		long t = UuidHelper.createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
+		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static rand = new Random()

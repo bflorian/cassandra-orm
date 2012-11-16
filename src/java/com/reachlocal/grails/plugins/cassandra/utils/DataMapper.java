@@ -23,11 +23,11 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 public class DataMapper
 {
-	public static Map<String, Object> dataProperties(Map<String, Object> data)
+	public static Map<String, Object> dataProperties(Map<String, Object> data) throws IOException
 	{
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		for (Map.Entry<String, Object> entry: data.entrySet()) {
-			map.put(entry.getKey(), entry.getValue());
+			map.put(entry.getKey(), dataProperty(entry.getValue()));
 		}
 		return map;
 	}
@@ -38,7 +38,7 @@ public class DataMapper
 			Map<String, Class> hasMany,
 			String expandoMapName
 	)
-			throws JsonMappingException, JsonGenerationException, IOException
+			throws IOException
 	{
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		Class clazz = data.getClass();
@@ -49,11 +49,17 @@ public class DataMapper
 		map.put(CLASS_NAME_KEY, clazz.getName());
 
 		for (PropertyDescriptor pd: PropertyUtils.getPropertyDescriptors(data)) {
+		//for (MetaProperty pd: data.getMetaClass().getProperties()) {
 			String name = pd.getName();
 			if (!transients.contains(name) && !GLOBAL_TRANSIENTS.contains(name) && hasMany.get(name) == null) {
 				Object prop = data.getProperty(name);
 				if (prop != null) {
-					if (!MappingUtils.isMappedObject(prop)) {
+					if (MappingUtils.isMappedObject(prop)) {   // TODO new is mapped
+						GroovyObject g = (GroovyObject)prop;
+						String idName = name + "Id";
+						map.put(idName, g.getProperty("id"));
+					}
+					else {
 						Object value = dataProperty(prop);
 						if (value != null) {
 							map.put(name, value);
@@ -77,21 +83,21 @@ public class DataMapper
 		return map;
 	}
 
-	public static List<String> propertyNames(Object object)
+	public static List<String> propertyNames(GroovyObject object)
 	{
-		PropertyDescriptor[] props = PropertyUtils.getPropertyDescriptors(object);
-		List<String> result = new ArrayList<String>(props.length);
-		for (PropertyDescriptor pd: props) {
+		List<MetaProperty> props = object.getMetaClass().getProperties();
+		List<String> result = new ArrayList<String>(props.size());
+		for (MetaProperty pd: props) {
 			result.add(pd.getName());
 		}
 		return result;
 	}
 
-	public static List<String> dirtyPropertyNames(Object object)
+	public static List<String> dirtyPropertyNames(GroovyObject object)
 	{
-		PropertyDescriptor[] props = PropertyUtils.getPropertyDescriptors(object);
-		List<String> result = new ArrayList<String>(props.length);
-		for (PropertyDescriptor pd: props) {
+		List<MetaProperty> props = object.getMetaClass().getProperties();
+		List<String> result = new ArrayList<String>();
+		for (MetaProperty pd: props) {
 			if (pd.getName().endsWith(DIRTY_SUFFIX)) {
 				result.add(pd.getName());
 			}
@@ -99,7 +105,7 @@ public class DataMapper
 		return result;
 	}
 
-	public static Object dataProperty(Object value) throws JsonMappingException, JsonGenerationException, IOException
+	public static Object dataProperty(Object value) throws IOException
 	{
 		if (value == null) {
 			return null;

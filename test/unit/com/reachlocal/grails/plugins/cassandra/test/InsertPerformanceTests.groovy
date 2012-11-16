@@ -11,7 +11,7 @@ class InsertPerformanceTests extends OrmTestCase
 {
 	static iterations = 5
 	static num = 100
-/*
+
 	@Test
 	void testOne()
 	{
@@ -33,7 +33,7 @@ class InsertPerformanceTests extends OrmTestCase
 		)
 		v.save(nocheck: true)
 	}
-
+/*
     @Test
     void testTwo()
     {
@@ -81,18 +81,20 @@ class InsertPerformanceTests extends OrmTestCase
 		println m1
 		//println m2
 	}
-*/
+
 	@Test
 	void testFour()
 	{
 		initialize()
-		def uuid = UUID.timeUUID()
-        for (k in 1..iterations) {
+
+		println "------------------------------------------------------------------"
+		def totalNum = 0
+		def totalElapsed = 0
+		for (k in 1..iterations) {
             def t0 = System.currentTimeMillis()
             for (i in 1..num) {
                 def v = new Visit(
-						//uuid:  uuid,
-                        siteName: "SITE_01",
+						siteName: "SITE_01",
                         occurTime: new Date(),
                         referrerType: "Search",
                         referrerName: "Google",
@@ -101,11 +103,58 @@ class InsertPerformanceTests extends OrmTestCase
                         pageUrl: "http://docs.mongodb.org/manual/faq/developers/",
                         userAgent: "Chrome"
                 )
-                v.save(nocheck: true)
+                v.saveTimed(nocheck: true)
             }
             def elapsed = System.currentTimeMillis() - t0
 			println "Inserted $num records in $elapsed msec, ${(num / (elapsed / 1000.0)).toInteger()} rec/sec, ${elapsed / num} msec/rec"
-        }
+			totalNum += num
+			totalElapsed += elapsed
+		}
+		println "------------------------------------------------------------------"
+		println "Mean for $num records is ${(totalElapsed/iterations).toInteger()} msec, ${(totalNum / (totalElapsed / 1000.0)).toInteger()} rec/sec, ${totalElapsed / totalNum} msec/item"
+		println "------------------------------------------------------------------"
+		println ""
+
+		InstanceMethods.dumpProfiler()
+	}
+*/
+	@Test
+	void testWebsiteVisit()
+	{
+		initialize()
+
+		println "------------------------------------------------------------------"
+		def totalNum = 0
+		def totalElapsed = 0
+		for (k in 1..iterations) {
+			def t0 = System.currentTimeMillis()
+			for (i in 1..num) {
+				def visitorId = UUID.timeUUID()
+				def v = new WebsiteVisit(
+						gmaid:  "USA_1",
+						etsSiteId:  "SITE_0001",
+						visitorId:  visitorId,
+						occurTime: new Date(),
+						refClass:  "Organic",
+						refType: "Search",
+						refName: "Google",
+						refKeyword: "Super duper",
+						refUrl: "http://www.reachlocal.com",
+						pageUrl: "http://docs.mongodb.org/manual/faq/developers/",
+						userAgent: "Chrome"
+				)
+				v.saveTimed(nocheck: true)
+
+			}
+			def elapsed = System.currentTimeMillis() - t0
+			println "Inserted $num records in $elapsed msec, ${(num / (elapsed / 1000.0)).toInteger()} rec/sec, ${elapsed / num} msec/rec"
+			totalNum += num
+			totalElapsed += elapsed
+		}
+		println "------------------------------------------------------------------"
+		println "Mean for $num records is ${(totalElapsed/iterations).toInteger()} msec, ${(totalNum / (totalElapsed / 1000.0)).toInteger()} rec/sec, ${totalElapsed / totalNum} msec/item"
+		println "------------------------------------------------------------------"
+		println ""
 
 		InstanceMethods.dumpProfiler()
 	}

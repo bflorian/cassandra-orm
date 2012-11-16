@@ -98,6 +98,146 @@ class InstanceMethods extends MappingUtils
 
 		// save()
 		clazz.metaClass.save = {args ->
+			def thisObj = delegate
+			def ttl = args?.ttl ?: cassandraMapping.timeToLive
+			if (args?.cluster) {
+				thisObj.setProperty(CLUSTER_PROP, args.cluster)
+			}
+			def cluster = thisObj.cassandraCluster
+			def persistence = cassandra.persistence
+
+			cassandra.withKeyspace(thisObj.keySpace, cluster) {ks ->
+				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+
+				// get the primary row key
+				def id
+				try {
+					id = thisObj.id
+				}
+				catch (CassandraMappingNullIndexException e) {
+					// if primary key is a UUID and its null, set it
+					def keyNames = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
+					def keyClass = keyNames.size() == 1 ? clazz.getDeclaredField(keyNames[0]).type : null
+
+					if (keyClass == UUID) {
+						def uuid = UUID.timeUUID()
+						thisObj.setProperty(keyNames[0], uuid)
+						id = thisObj.id
+					}
+					else {
+						throw e
+					}
+				}
+
+				// see if it exists
+				def oldObj = args?.nocheck ? null : clazz.get(id, [cluster:cluster])
+
+				// one-to-one relationships
+				def keyDeleted = false
+				DataMapper.dirtyPropertyNames(thisObj).each {name ->
+
+					// need to save object (if cascading) and remove the key column from cassandra if its
+					// been set to null (uses dirty bit to know if it should be null since values are
+					// lazy evaluated
+					def pName = name - DIRTY_SUFFIX
+					def pValue = PropertyUtils.getProperty(thisObj, pName)
+					def dValue = thisObj.getProperty(name)
+					if (pValue == null) {
+						if (dValue != null) {
+							// property is null but dirty bit is not null -- remove the key from cassandra
+							thisObj.setProperty(name, null)
+							def cName = "${pName}${KEY_SUFFIX}".toString()
+							persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
+							keyDeleted = true
+
+							// back links
+							if (!(dValue instanceof Boolean)) {
+								def backLinkRowKey = oneBackIndexRowKey(dValue.id)
+								def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+								persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+							}
+						}
+					}
+					else {
+						// back links
+						def backLinkRowKey = oneBackIndexRowKey(pValue.id)
+						def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+
+						// cascade?
+						if (args?.cascade) {
+							pValue.save(cluster: thisObj.getProperty(CLUSTER_PROP))
+						}
+					}
+				}
+
+				// commit deletion of relationship keys
+				if (keyDeleted) {
+					persistence.execute(m)
+					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				}
+
+				// manage index rows
+				def indexRows = [:]
+				def oldIndexRows = [:]
+				def indexColumnFamily = thisObj.indexColumnFamily
+
+				// primary key index
+				if (cassandraMapping.primaryKey) {
+					indexRows[primaryKeyIndexRowKey()] = [(thisObj.id):'']
+				}
+
+				// explicit indexes
+				cassandraMapping.explicitIndexes?.each {propName ->
+					if (oldObj) {
+
+						def oldIndexRowKeys = objectIndexRowKeys(propName, oldObj)
+						oldIndexRowKeys.each {oldIndexRowKey ->
+							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
+						}
+					}
+
+					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+					indexRowKeys.each {indexRowKey ->
+						indexRows[indexRowKey] = [(thisObj.id):'']
+					}
+				}
+
+				oldIndexRows.each {rowKey, col ->
+					col.each {colKey, v ->
+						persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
+					}
+				}
+
+				// delete old index row keys
+				if (oldIndexRows) {
+					persistence.execute(m)
+					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				}
+
+				// insert this object
+				def dataProperties = cassandra.mapping.dataProperties(thisObj)
+				persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
+
+				// insert new index row keys
+				if (indexRows) {
+					indexRows.each {rowKey, cols ->
+						persistence.putColumns(m, indexColumnFamily, rowKey, cols, ttl)
+					}
+				}
+
+				// counters
+				cassandraMapping.counters?.each {ctr ->
+					updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
+				}
+
+				persistence.execute(m)
+			}
+			thisObj
+		}
+
+		// saveTimed()
+		clazz.metaClass.saveTimed = {args ->
 			profiler.increment("Iterations", 1)
 
 			def t0 = System.currentTimeMillis()
