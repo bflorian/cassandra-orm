@@ -7,6 +7,7 @@ import java.text.DateFormat
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 
 /**
  * @author: Bob Florian
@@ -83,9 +84,9 @@ class CounterUtils extends KeyUtils
 	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
 	{
 		try {
-			return makeComposite(
+			return KeyHelper.makeComposite(
 					groupKeys.collect{
-						counterColumnKey(bean.getProperty(it), dateFormat)
+						KeyHelper.counterColumnKey(bean.getProperty(it), dateFormat)
 					}
 			)
 		}
@@ -99,10 +100,10 @@ class CounterUtils extends KeyUtils
 		try {
 			def result = []
 			def keys = groupKeys.collect{
-				counterColumnKey(bean.getProperty(it), dateFormat)
+				KeyHelper.counterColumnKey(bean.getProperty(it), dateFormat)
 			}
 			OrmHelper.expandNestedArray(keys).each {
-				result << makeComposite(it)
+				result << KeyHelper.makeComposite(it)
 			}
 			return result
 		}
@@ -126,20 +127,20 @@ class CounterUtils extends KeyUtils
 
 				def rowKeyValues = multiRowKeyValues(filter, multiWhereKeys)
 				def groupKeys = groupBy
-				def rowKey = counterRowKey(counterDef.findBy, groupKeys, filter)
+				def rowKey = KeyHelper.counterRowKey(counterDef.findBy, groupKeys, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						cf,
 						rowKey,
-						start ? counterColumnKey(start, UTC_HOUR_FORMAT) : '',
-						finish ? counterColumnKey(finish, UTC_HOUR_FORMAT) : '',
+						start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : '',
+						finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT) : '',
 						reversed ?: false,
 						MAX_COUNTER_COLUMNS,
 						consistencyLevel)
 
 				if (columnFilter) {
 					cols.each {col ->
-						def keyValues = parseComposite(persistence.name(col))
+						def keyValues = KeyHelper.parseComposite(persistence.name(col))
 						def passed = CounterHelper.filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 						if (passed) {
 							def resultKeyValues = CounterHelper.filterResultKeyValues(keyValues, matchIndexes)
@@ -149,7 +150,7 @@ class CounterUtils extends KeyUtils
 				}
 				else {
 					cols.each {col ->
-						result.increment(CounterHelper.mergeNonDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
+						result.increment(CounterHelper.mergeNonDateKeys(rowKeyValues, KeyHelper.parseComposite(persistence.name(col))) + persistence.longValue(col))
 					}
 				}
 			}
@@ -203,7 +204,7 @@ class CounterUtils extends KeyUtils
 
 					if (columnFilter) {
 						cols.each {col ->
-							def keyValues = parseComposite(persistence.name(col))
+							def keyValues = KeyHelper.parseComposite(persistence.name(col))
 							def passed = CounterHelper.filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 							if (passed) {
 								def resultKeyValues = CounterHelper.filterResultKeyValues(keyValues, matchIndexes)
@@ -213,7 +214,7 @@ class CounterUtils extends KeyUtils
 					}
 					else {
 						cols.each {col ->
-							result.increment(CounterHelper.mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
+							result.increment(CounterHelper.mergeDateKeys(rowKeyValues, KeyHelper.parseComposite(persistence.name(col))) + persistence.longValue(col))
 						}
 					}
 				}
@@ -271,7 +272,7 @@ class CounterUtils extends KeyUtils
 
 					if (columnFilter) {
 						cols.each {col ->
-							def keyValues = parseComposite(persistence.name(col))
+							def keyValues = KeyHelper.parseComposite(persistence.name(col))
 							def passed = CounterHelper.filterPassed(matchIndexes, keyValues, groupBy, columnFilter)
 							if (passed) {
 								def resultKeyValues = CounterHelper.filterResultKeyValues(keyValues, matchIndexes)
@@ -281,7 +282,7 @@ class CounterUtils extends KeyUtils
 					}
 					else {
 						cols.each {col ->
-							result.increment(CounterHelper.mergeDateKeys(rowKeyValues, parseComposite(persistence.name(col))) + persistence.longValue(col))
+							result.increment(CounterHelper.mergeDateKeys(rowKeyValues, KeyHelper.parseComposite(persistence.name(col))) + persistence.longValue(col))
 						}
 					}
 				}
@@ -307,15 +308,15 @@ class CounterUtils extends KeyUtils
 
 	static private getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
-		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
-		def rowKey = counterRowKey(findBy, groupKeys, filter)
+		def groupKeys = KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM')
+		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 
 		columnsList(persistence.getColumnRange(
 				ks,
 				cf,
 				rowKey,
-				start ? counterColumnKey(start, UTC_MONTH_FORMAT) : null,
-				finish ? counterColumnKey(finish, UTC_MONTH_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UTC_MONTH_FORMAT) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UTC_MONTH_FORMAT)+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel))
@@ -323,15 +324,15 @@ class CounterUtils extends KeyUtils
 
 	static private getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
-		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM-dd')
-		def rowKey = counterRowKey(findBy, groupKeys, filter)
+		def groupKeys = KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM-dd')
+		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 
 		columnsList(persistence.getColumnRange(
 				ks,
 				cf,
 				rowKey,
-				start ? counterColumnKey(start, UTC_DAY_FORMAT) : null,
-				finish ? counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UTC_DAY_FORMAT) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel))
@@ -340,14 +341,14 @@ class CounterUtils extends KeyUtils
 	static private getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	{
 		def groupKeys = groupBy //makeGroupKeyList(groupBy, "yyyy-MM-dd'T'HH")
-		def rowKey = counterRowKey(findBy, groupKeys, filter)
+		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 
 		columnsList(persistence.getColumnRange(
 				ks,
 				cf,
 				rowKey,
-				start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-				finish ? counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel))
@@ -367,8 +368,8 @@ class CounterUtils extends KeyUtils
 
 		def rowKeys = []
 		while (cal.time.before(finish)) {
-			def groupKeys = makeGroupKeyList(groupBy, UTC_YEAR_FORMAT.format(cal.time))
-			rowKeys << counterRowKey(findBy, groupKeys, filter)
+			def groupKeys = KeyHelper.makeGroupKeyList(groupBy, UTC_YEAR_FORMAT.format(cal.time))
+			rowKeys << KeyHelper.counterRowKey(findBy, groupKeys, filter)
 			cal.add(Calendar.YEAR, 1)
 		}
 
@@ -376,8 +377,8 @@ class CounterUtils extends KeyUtils
 				ks,
 				cf,
 				rowKeys,
-				start ? counterColumnKey(start, UTC_DAY_FORMAT) : null,
-				finish ? counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UTC_DAY_FORMAT) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel), persistence)
@@ -396,8 +397,8 @@ class CounterUtils extends KeyUtils
 		def rowKeys = []
 		while (cal.time.before(finish)) {
 			def format = UTC_MONTH_FORMAT.format(cal.time)
-			def groupKeys = makeGroupKeyList(groupBy, format)
-			rowKeys << counterRowKey(findBy, groupKeys, filter)
+			def groupKeys = KeyHelper.makeGroupKeyList(groupBy, format)
+			rowKeys << KeyHelper.counterRowKey(findBy, groupKeys, filter)
 			cal.add(Calendar.MONTH, 1)
 		}
 
@@ -405,8 +406,8 @@ class CounterUtils extends KeyUtils
 				ks,
 				cf,
 				rowKeys,
-				start ? counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-				finish ? counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel), persistence)
@@ -415,8 +416,8 @@ class CounterUtils extends KeyUtils
 
 	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter, consistencyLevel)
 	{
-		def groupKeys = makeGroupKeyList(groupBy, 'yyyy-MM')
-		def rowKey = counterRowKey(findBy, groupKeys, filter)
+		def groupKeys = KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM')
+		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1, consistencyLevel)
 		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
 	}

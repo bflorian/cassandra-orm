@@ -18,6 +18,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 
 /**
  * @author: Bob Florian
@@ -131,7 +132,7 @@ class ClassMethods extends MappingUtils
 		// get(id, options?)
 		clazz.metaClass.'static'.get = {id, opts=[:] ->
 			def result = null
-			def rowKey = primaryRowKey(id)
+			def rowKey = KeyHelper.primaryRowKey(id)
 			def cluster = opts.cluster ?: cassandraCluster
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
@@ -143,7 +144,7 @@ class ClassMethods extends MappingUtils
 		// get(id, options?)
 		clazz.metaClass.'static'.getAll = {ids, opts=[:] ->
 			def result = null
-			def rowKeys = ids.collect{primaryRowKey(it)}
+			def rowKeys = ids.collect{KeyHelper.primaryRowKey(it)}
 			def cluster = opts.cluster ?: cassandraCluster
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
@@ -204,7 +205,7 @@ class ClassMethods extends MappingUtils
 				def columns = cassandra.persistence.getColumnRange(
 						ks,
 						indexColumnFamily,
-						primaryKeyIndexRowKey(),
+						KeyHelper.primaryKeyIndexRowKey(),
 						start,
 						options.finish,
 						options.reversed,

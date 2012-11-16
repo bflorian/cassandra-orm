@@ -37,9 +37,9 @@ public class KeyHelper
 		}
 	}
 
-	public static String[] parseComposite(String value)
+	public static List<String> parseComposite(String value)
 	{
-		return value.split("__");
+		return Arrays.asList(value.split("__"));
 	}
 
 	public static String joinRowKey(Class fromClass, Class toClass, String propName, GroovyObject object) throws UnsupportedEncodingException
@@ -93,12 +93,18 @@ public class KeyHelper
 	public static String objectIndexRowKey(List propNames, Map map) throws IOException
 	{
 		try {
-			List<List<Object>> items = new ArrayList<List<Object>>();
-			for (Object it: propNames) {
-				List<Object> tuple = new ArrayList<Object>(2);
-				tuple.add(it);
-				tuple.add(map.get(it));
-				items.add(tuple);
+			List<List<Object>> items;
+			if (propNames == null) {
+				items = new ArrayList<List<Object>>();
+			}
+			else {
+				items = new ArrayList<List<Object>>(propNames.size());
+				for (Object it: propNames) {
+					List<Object> tuple = new ArrayList<Object>(2);
+					tuple.add(it);
+					tuple.add(map.get(it));
+					items.add(tuple);
+				}
 			}
 			return indexRowKey(items);
 		}
@@ -120,12 +126,18 @@ public class KeyHelper
 	public static String objectIndexRowKey(List<String> propNames, GroovyObject bean) throws IOException
 	{
 		try {
-			List<List<Object>> items = new ArrayList<List<Object>>(propNames.size());
-			for (String it: propNames) {
-				List<Object> tuple = new ArrayList<Object>(2);
-				tuple.add(it);
-				tuple.add(bean.getProperty(it));
-				items.add(tuple);
+			List<List<Object>> items;
+			if (propNames == null) {
+				items = new ArrayList<List<Object>>();
+			}
+			else {
+				items = new ArrayList<List<Object>>(propNames.size());
+				for (String it: propNames) {
+					List<Object> tuple = new ArrayList<Object>(2);
+					tuple.add(it);
+					tuple.add(bean.getProperty(it));
+					items.add(tuple);
+				}
 			}
 			return indexRowKey(items);
 		}
@@ -257,7 +269,7 @@ public class KeyHelper
 			return (String)obj; // TODO -- escape delimiters???
 		}
 		else if (obj instanceof Date) {
-			return dateFormat.format((Date)obj);
+			return dateFormat.format((Date) obj);
 		}
 		else if (obj instanceof List) {
 			List items = (List)obj;

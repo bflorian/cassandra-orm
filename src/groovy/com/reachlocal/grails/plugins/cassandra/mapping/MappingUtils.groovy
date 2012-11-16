@@ -18,6 +18,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 
 /**
  * @author: Bob Florian
@@ -151,7 +152,7 @@ class MappingUtils extends CounterUtils
 			if (oldObj) {
 				def oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 				def gKeys = groupKeys
-				def ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+				def ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 				if (oldColNames && ocrk) {
 
 					/** ALTERNATE ONE **/
@@ -163,8 +164,8 @@ class MappingUtils extends CounterUtils
 					// all days row
 					oldColNames = counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT)
 					oldColNames.each {oldColName ->
-						gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
-						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd")
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 					}
 
@@ -172,8 +173,8 @@ class MappingUtils extends CounterUtils
 					// all months row
 					oldColNames = counterColumnNames(groupKeys, oldObj, UTC_MONTH_FORMAT)
 					oldColNames.each {oldColName ->
-						gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
-						ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM")
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 					}
 
@@ -182,8 +183,8 @@ class MappingUtils extends CounterUtils
 						// specific year/hour row (currently not used)
 						oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 						oldColNames.each {oldColName ->
-							gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0]))+"THH")
-							ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0]))+"THH")
+							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 						}
 
@@ -191,8 +192,8 @@ class MappingUtils extends CounterUtils
 						// specific month/hour row
 						oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 						oldColNames.each {oldColName ->
-							gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
-							ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 						}
 
@@ -200,8 +201,8 @@ class MappingUtils extends CounterUtils
 						// specific year/day row
 						oldColNames = counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT)
 						oldColNames.each {oldColName ->
-							gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
-							ocrk = counterRowKey(whereKeys, gKeys, oldObj)
+							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
+							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 						}
 					}
@@ -211,7 +212,7 @@ class MappingUtils extends CounterUtils
 			if (thisObj) {
 				def colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 				def gKeys = groupKeys
-				def crk = counterRowKey(whereKeys, gKeys, thisObj)
+				def crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 				if (colNames && crk) {
 
 
@@ -223,8 +224,8 @@ class MappingUtils extends CounterUtils
 					// all days row
 					colNames = counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT)
 					colNames.each {colName ->
-						gKeys = makeGroupKeyList(groupKeys, "yyyy-MM-dd")
-						crk = counterRowKey(whereKeys, gKeys, thisObj)
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd")
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 					}
 
@@ -232,8 +233,8 @@ class MappingUtils extends CounterUtils
 					// all month row
 					colNames = counterColumnNames(groupKeys, thisObj, UTC_MONTH_FORMAT)
 					colNames.each {colName ->
-						gKeys = makeGroupKeyList(groupKeys, "yyyy-MM")
-						crk = counterRowKey(whereKeys, gKeys, thisObj)
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM")
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 					}
 
@@ -242,8 +243,8 @@ class MappingUtils extends CounterUtils
 						// specific year/hour row (currently not used)
 						colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 						colNames.each {colName ->
-							gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0]))+"THH")
-							crk = counterRowKey(whereKeys, gKeys, thisObj)
+							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0]))+"THH")
+							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 						}
 
@@ -251,8 +252,8 @@ class MappingUtils extends CounterUtils
 						// specific month/hour row
 						colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 						colNames.each {colName ->
-							gKeys = makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
-							crk = counterRowKey(whereKeys, gKeys, thisObj)
+							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 						}
 
@@ -260,8 +261,8 @@ class MappingUtils extends CounterUtils
 						// specific year/day row
 						colNames = counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT)
 						colNames.each {colName ->
-							gKeys = makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
-							crk = counterRowKey(whereKeys, gKeys, thisObj)
+							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
+							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 							cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 						}
 					}
@@ -272,7 +273,7 @@ class MappingUtils extends CounterUtils
 			if (oldObj) {
 				def oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 				oldColNames.each {oldColName ->
-					def ocrk = counterRowKey(whereKeys, groupKeys, oldObj)
+					def ocrk = KeyHelper.counterRowKey(whereKeys, groupKeys, oldObj)
 					if (oldColName && ocrk) {
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1)
 					}
@@ -281,7 +282,7 @@ class MappingUtils extends CounterUtils
 			if (thisObj) {
 				def colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 				colNames.each {colName ->
-					def crk = counterRowKey(whereKeys, groupKeys, thisObj)
+					def crk = KeyHelper.counterRowKey(whereKeys, groupKeys, thisObj)
 					if (colName && crk) {
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 					}
@@ -294,11 +295,11 @@ class MappingUtils extends CounterUtils
 	{
 		// the row itself
 		def columnFamily = itemClass.indexColumnFamily
-		def rowKey = joinRowKey(objClass, itemClass, propName, object)
+		def rowKey = KeyHelper.joinRowKey(objClass, itemClass, propName, object)
 		persistence.putColumn(m, columnFamily, rowKey, item.id, '')
 
 		// the back pointer
-		def backIndexRowKey = manyBackIndexRowKey(item.id)
+		def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
 		persistence.putColumn(m, columnFamily, backIndexRowKey, rowKey, '')
 	}
 
@@ -306,11 +307,11 @@ class MappingUtils extends CounterUtils
 	{
 		// the row itself
 		def columnFamily = itemClass.indexColumnFamily
-		def rowKey = joinRowKey(objClass, itemClass, propName, object)
+		def rowKey = KeyHelper.joinRowKey(objClass, itemClass, propName, object)
 		persistence.deleteColumn(m, columnFamily, rowKey, item.id)
 
 		// the back pointer
-		def backIndexRowKey = manyBackIndexRowKey(item.id)
+		def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
 		persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
 	}
 
@@ -318,12 +319,12 @@ class MappingUtils extends CounterUtils
 	{
 		// the row itself
 		def columnFamily = itemClass.indexColumnFamily
-		def rowKey = joinRowKey(objClass, itemClass, propName, object)
+		def rowKey = KeyHelper.joinRowKey(objClass, itemClass, propName, object)
 		persistence.deleteRow(m, columnFamily, rowKey)
 
 		// the back pointer
 		items.each{item ->
-			def backIndexRowKey = manyBackIndexRowKey(item.id)
+			def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
 			persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
 		}
 	}
@@ -546,7 +547,7 @@ class MappingUtils extends CounterUtils
 	static queryByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
-		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -554,13 +555,13 @@ class MappingUtils extends CounterUtils
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def columns = []
 			filterList.each {filter ->
-				def rowKey = objectIndexRowKey(index, filter)
+				def rowKey = KeyHelper.objectIndexRowKey(index, filter)
 				def cols = persistence.getColumnRange(
 						ks,
 						indexCf,
 						rowKey,
 						start,
-						nullablePrimaryRowKey(options.finish),
+						KeyHelper.nullablePrimaryRowKey(options.finish),
 						options.reversed,
 						max,
 						opts.consistencyLevel)
@@ -588,20 +589,20 @@ class MappingUtils extends CounterUtils
 	static countByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
-		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def total = 0
 			filterList.each {filter ->
-				def rowKey = objectIndexRowKey(index, filter)
+				def rowKey = KeyHelper.objectIndexRowKey(index, filter)
 				def count = persistence.countColumnRange(
 						ks,
 						indexCf,
 						rowKey,
 						start,
-						nullablePrimaryRowKey(options.finish),
+						KeyHelper.nullablePrimaryRowKey(options.finish),
 						opts.consistencyLevel)
 
 				total += count
@@ -617,7 +618,7 @@ class MappingUtils extends CounterUtils
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def properties = [:]
 			propertyMap.each {k, v ->
-				properties[k] = primaryRowKey(v)
+				properties[k] = KeyHelper.primaryRowKey(v)
 			}
 			def rows = clazz.cassandra.persistence.getRowsWithEqualityIndex(ks, clazz.columnFamily, properties, options.max, opts.consistencyLevel)
 			OrmHelper.checkForDefaultRowsInsufficient(opts.max, rows.size())
@@ -631,7 +632,7 @@ class MappingUtils extends CounterUtils
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def properties = [:]
 			propertyMap.each {k, v ->
-				properties[k] = primaryRowKey(v)
+				properties[k] = KeyHelper.primaryRowKey(v)
 			}
 			return clazz.cassandra.persistence.countRowsWithEqualityIndex(ks, clazz.columnFamily, properties, opts.consistencyLevel)
 		}
@@ -673,7 +674,7 @@ class MappingUtils extends CounterUtils
 		values.each {value, i ->
 			result << strings[i]
 			result << "'"
-			result << primaryRowKey(value)
+			result << KeyHelper.primaryRowKey(value)
 			result << "'"
 		}
 		result << strings[-1]
@@ -694,8 +695,8 @@ class MappingUtils extends CounterUtils
 	{
 		def result = []
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS, thisObj.getProperty(CLUSTER_PROP))
-		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
-		def finish = nullablePrimaryRowKey(options.finish)
+		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def finish = KeyHelper.nullablePrimaryRowKey(options.finish)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def itemColumnFamily = itemClass.columnFamily
 		def persistence = thisObj.cassandra.persistence
@@ -703,7 +704,7 @@ class MappingUtils extends CounterUtils
 
 		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 			def indexCF = itemClass.indexColumnFamily
-			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
+			def indexKey = KeyHelper.joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
 			def keys = persistence.getColumnRange(ks, indexCF, indexKey, start, finish, options.reversed, max, opts.consistencyLevel)
 					.collect{persistence.name(it)}
@@ -731,14 +732,14 @@ class MappingUtils extends CounterUtils
 	{
 		def result = []
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS, thisClass.cassandraCluster)
-		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
-		def finish = nullablePrimaryRowKey(options.finish)
+		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def finish = KeyHelper.nullablePrimaryRowKey(options.finish)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def persistence = thisClass.cassandra.persistence
 
 		thisClass.cassandra.withKeyspace(thisClass.keySpace, thisClass.cassandraCluster) {ks ->
 			def indexCF = itemClass.indexColumnFamily
-			def indexKey = joinRowKeyFromId(thisClass, itemClass, propName, thisId)
+			def indexKey = KeyHelper.joinRowKeyFromId(thisClass, itemClass, propName, thisId)
 
 			result = persistence.getColumnRange(ks, indexCF, indexKey, start, finish, options.reversed, max, opts.consistencyLevel)
 					.collect{persistence.name(it)}
@@ -751,11 +752,11 @@ class MappingUtils extends CounterUtils
 		def result = []
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 		def persistence = thisObj.cassandra.persistence
-		def start = nullablePrimaryRowKey(options.startAfter ?: options.start)
-		def finish = nullablePrimaryRowKey(options.finish)
+		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def finish = KeyHelper.nullablePrimaryRowKey(options.finish)
 		thisObj.cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 			def indexCF = itemClass.indexColumnFamily
-			def indexKey = joinRowKey(thisObj.class, itemClass, propName, thisObj)
+			def indexKey = KeyHelper.joinRowKey(thisObj.class, itemClass, propName, thisObj)
 
 			result = persistence.countColumnRange(ks, indexCF, indexKey, start, finish, opts.consistencyLevel)
 		}

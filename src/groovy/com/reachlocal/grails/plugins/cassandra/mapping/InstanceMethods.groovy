@@ -21,6 +21,7 @@ import org.apache.commons.beanutils.PropertyUtils
 import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 
 /**
  * @author: Bob Florian
@@ -84,9 +85,9 @@ class InstanceMethods extends MappingUtils
 			def names = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 			def values = names.collect {
 				def value = thisObj.getProperty(it)
-				primaryRowKey(value)
+				KeyHelper.primaryRowKey(value)
 			}
-			def result = makeComposite(values)
+			def result = KeyHelper.makeComposite(values)
 
 			return result
 		}
@@ -152,16 +153,16 @@ class InstanceMethods extends MappingUtils
 
 							// back links
 							if (!(dValue instanceof Boolean)) {
-								def backLinkRowKey = oneBackIndexRowKey(dValue.id)
-								def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
+								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
 								persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 							}
 						}
 					}
 					else {
 						// back links
-						def backLinkRowKey = oneBackIndexRowKey(pValue.id)
-						def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
+						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
 						persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 
 						// cascade?
@@ -184,20 +185,20 @@ class InstanceMethods extends MappingUtils
 
 				// primary key index
 				if (cassandraMapping.primaryKey) {
-					indexRows[primaryKeyIndexRowKey()] = [(thisObj.id):'']
+					indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(thisObj.id):'']
 				}
 
 				// explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
 					if (oldObj) {
 
-						def oldIndexRowKeys = objectIndexRowKeys(propName, oldObj)
+						def oldIndexRowKeys = KeyHelper.objectIndexRowKeys(propName, oldObj)
 						oldIndexRowKeys.each {oldIndexRowKey ->
 							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
 						}
 					}
 
-					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+					def indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
 					indexRowKeys.each {indexRowKey ->
 						indexRows[indexRowKey] = [(thisObj.id):'']
 					}
@@ -332,16 +333,16 @@ class InstanceMethods extends MappingUtils
 
 							// back links
 							if (!(dValue instanceof Boolean)) {
-								def backLinkRowKey = oneBackIndexRowKey(dValue.id)
-								def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
+								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
 								persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 							}
 						}
 					}
 					else {
 						// back links
-						def backLinkRowKey = oneBackIndexRowKey(pValue.id)
-						def backLinkColName = oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
+						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
 						persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 
 						// cascade?
@@ -374,7 +375,7 @@ class InstanceMethods extends MappingUtils
 
 				// primary key index
 				if (cassandraMapping.primaryKey) {
-					indexRows[primaryKeyIndexRowKey()] = [(thisObj.id):'']
+					indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(thisObj.id):'']
 				}
 
 				// TIMER
@@ -387,13 +388,13 @@ class InstanceMethods extends MappingUtils
 				cassandraMapping.explicitIndexes?.each {propName ->
 					if (oldObj) {
 
-						def oldIndexRowKeys = objectIndexRowKeys(propName, oldObj)
+						def oldIndexRowKeys = KeyHelper.objectIndexRowKeys(propName, oldObj)
 						oldIndexRowKeys.each {oldIndexRowKey ->
 							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
 						}
 					}
 
-					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+					def indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
 					indexRowKeys.each {indexRowKey ->
 						indexRows[indexRowKey] = [(thisObj.id):'']
 					}
@@ -507,7 +508,7 @@ class InstanceMethods extends MappingUtils
 				cassandraMapping.explicitIndexes?.each {propName ->
 					def names = OrmHelper.collection(propName)
 					if (!Collections.disjoint(propertyNames, names)) {
-						def oldIndexRowKeys = objectIndexRowKeys(propName, thisObj)
+						def oldIndexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
 						oldIndexRowKeys.each {oldIndexRowKey ->
 							oldIndexRows[oldIndexRowKey] = [(thisObj.id):'']
 						}
@@ -529,7 +530,7 @@ class InstanceMethods extends MappingUtils
 				cassandraMapping.explicitIndexes?.each {propName ->
 					def names = OrmHelper.collection(propName)
 					if (!Collections.disjoint(propertyNames, names)) {
-						def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+						def indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
 						indexRowKeys.each {indexRowKey ->
 							indexRows[indexRowKey] = [(thisObj.id):'']
 						}
@@ -647,19 +648,19 @@ class InstanceMethods extends MappingUtils
 
 				// primary index
 				if (cassandraMapping.primaryKey) {
-					persistence.deleteColumn(m, indexColumnFamily, primaryKeyIndexRowKey(), thisObjId)
+					persistence.deleteColumn(m, indexColumnFamily, KeyHelper.primaryKeyIndexRowKey(), thisObjId)
 				}
 
 				// explicit indexes
 				cassandraMapping.explicitIndexes?.each {propName ->
-					def indexRowKeys = objectIndexRowKeys(propName, thisObj)
+					def indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
 					indexRowKeys.each {indexRowKey ->
 						persistence.deleteColumn(m, indexColumnFamily, indexRowKey, thisObjId)
 					}
 				}
 
 				// hasMany indexes
-				def hasManyKey = manyBackIndexRowKey(thisObjId)
+				def hasManyKey = KeyHelper.manyBackIndexRowKey(thisObjId)
 				def manyBackLinkRow = persistence.getRow(ks, indexColumnFamily, hasManyKey, args?.consistencyLevel)
 				manyBackLinkRow.each {col ->
 					def manyIndexRowKey = persistence.name(col)
@@ -670,10 +671,10 @@ class InstanceMethods extends MappingUtils
 				persistence.deleteRow(m, indexColumnFamily, hasManyKey)
 
 				// hasOne properties
-				def oneBackLinkKey = oneBackIndexRowKey(thisObjId)
+				def oneBackLinkKey = KeyHelper.oneBackIndexRowKey(thisObjId)
 				def oneBackLinkRow = persistence.getRow(ks, indexColumnFamily, oneBackLinkKey, args?.consistencyLevel)
 				oneBackLinkRow.each {col ->
-					def oneIndexArgs = oneBackIndexColumnValues(persistence.name(col))
+					def oneIndexArgs = KeyHelper.oneBackIndexColumnValues(persistence.name(col))
 					def objectRowKey = oneIndexArgs[2]
 					def objectColumnFamily = oneIndexArgs[0]
 					def objectPropName = "${oneIndexArgs[1]}Id".toString()

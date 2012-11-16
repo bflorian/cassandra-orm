@@ -136,6 +136,19 @@ class KeyHelperTests
 
 	}
 
+	// public static String objectIndexRowKey(List propNames, Map map) throws IOException
+	@Test
+	void test_objectIndexRowKey_ListMap_Empty()
+	{
+		def result = KeyHelper.objectIndexRowKey([], [color: "Blue", charm: "Yes", spin: "Up&Left", foo: "Bar"])
+		println result
+		assertEquals "this", result
+
+		// TODO - temporary
+		assertEquals KeyHelper.objectIndexRowKey([], [color: "Blue", charm: "Yes", spin: "Up&Left", foo: "Bar"]), result
+
+	}
+
 	// public static String objectIndexRowKey(String propName, GroovyObject bean) throws IOException
 	@Test
 	void test_objectIndexRowKey_NameBean()
