@@ -66,6 +66,28 @@ public class OrmHelper
 		}
 	}
 
+	public static List<String> stringList(Object value)
+	{
+		// TODO handle arrays?
+		// Do we want one that assumes a collection of strings?
+		List<String> list;
+		if (value instanceof Collection) {
+			Collection c = (Collection)value;
+			list = new ArrayList<String>((c).size());
+			for (Object it: c) {
+				list.add(String.valueOf(it));
+			}
+		}
+		else if (value != null) {
+			list = new ArrayList<String>(1);
+			list.add(String.valueOf(value));
+		}
+		else {
+			list = new ArrayList<String>();
+		}
+		return list;
+	}
+
 	public static boolean containsElement(Collection col1, Collection col2)
 	{
 		for (Object obj: col1) {
@@ -176,9 +198,10 @@ public class OrmHelper
 		return sorted;
 	}
 
-	public static List<List<Object>> expandNestedArray(List params)
+	public static List<List<String>> expandNestedArray(List params)
 	{
-		List<List<Object>> result = new ArrayList<List<Object>>(params.size());
+		List<List<String>> result = new ArrayList<List<String>>(params.size());
+
 		Integer len = 1;
 		List<Integer> lengths = new ArrayList<Integer>(params.size());
 
@@ -193,7 +216,7 @@ public class OrmHelper
 		}
 
 		for (int i=0; i < len; i++) {
-			result.add(new ArrayList<Object>());
+			result.add(new ArrayList<String>());
 		}
 
 		int pindex = 0;
@@ -201,22 +224,22 @@ public class OrmHelper
 			if (value instanceof List) {
 				List valueList = (List)value;
 				int index = 0;
-				for (List<Object> item: result) {
+				for (List<String> item: result) {
 					int i = (index * lengths.get(pindex) / len) % valueList.size();
-					item.add(valueList.get(i));
+					item.add(String.valueOf(valueList.get(i)));
 				}
 			}
 			else if (value != null && value.getClass().isArray()) {
 				String[] valueList = (String[])value;
 				int index = 0;
-				for (List<Object> item: result) {
+				for (List<String> item: result) {
 					int i = (index * lengths.get(pindex) / len) % valueList.length;
 					item.add(valueList[i]);
 				}
 			}
 			else {
-				for (List<Object> item: result) {
-					item.add(value);
+				for (List<String> item: result) {
+					item.add(String.valueOf(value));
 				}
 			}
 			pindex++;

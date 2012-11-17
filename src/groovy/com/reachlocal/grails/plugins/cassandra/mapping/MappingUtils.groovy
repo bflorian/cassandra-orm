@@ -19,6 +19,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
+import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
 
 /**
  * @author: Bob Florian
@@ -141,6 +142,13 @@ class MappingUtils extends CounterUtils
 		return cols.total()
 	}
 
+	static updateCounterColumns_New(Class clazz, Map counterDef, Object m, GroovyObject oldObj, GroovyObject thisObj)
+	{
+		def counterColumnFamily = clazz.counterColumnFamily
+		def cassandra = clazz.cassandra
+		CounterHelper.updateCounterColumns(cassandra.persistence, counterColumnFamily, counterDef, m, oldObj, thisObj);
+	}
+
 	static updateCounterColumns(Class clazz, Map counterDef, m, oldObj, thisObj)
 	{
 		def whereKeys = counterDef.findBy
@@ -150,7 +158,7 @@ class MappingUtils extends CounterUtils
 
 		if (counterDef.isDateIndex) {
 			if (oldObj) {
-				def oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
+				def oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 				def gKeys = groupKeys
 				def ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
 				if (oldColNames && ocrk) {
@@ -162,7 +170,7 @@ class MappingUtils extends CounterUtils
 					}
 
 					// all days row
-					oldColNames = counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT)
+					oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT)
 					oldColNames.each {oldColName ->
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd")
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
@@ -171,7 +179,7 @@ class MappingUtils extends CounterUtils
 
 					/** COMMON TO ALL**/
 					// all months row
-					oldColNames = counterColumnNames(groupKeys, oldObj, UTC_MONTH_FORMAT)
+					oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_MONTH_FORMAT)
 					oldColNames.each {oldColName ->
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM")
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
@@ -181,7 +189,7 @@ class MappingUtils extends CounterUtils
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
+						oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 						oldColNames.each {oldColName ->
 							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0]))+"THH")
 							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
@@ -190,7 +198,7 @@ class MappingUtils extends CounterUtils
 
 						/** ALTERNATE THREE (current) **/
 						// specific month/hour row
-						oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
+						oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 						oldColNames.each {oldColName ->
 							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys[0])))
 							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
@@ -199,7 +207,7 @@ class MappingUtils extends CounterUtils
 
 						/** COMMON TO TWO AND THREE **/
 						// specific year/day row
-						oldColNames = counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT)
+						oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT)
 						oldColNames.each {oldColName ->
 							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys[0])))
 							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj)
@@ -210,7 +218,7 @@ class MappingUtils extends CounterUtils
 			}
 
 			if (thisObj) {
-				def colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
+				def colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 				def gKeys = groupKeys
 				def crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
 				if (colNames && crk) {
@@ -222,7 +230,7 @@ class MappingUtils extends CounterUtils
 						cassandra.persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName)
 					}
 					// all days row
-					colNames = counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT)
+					colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT)
 					colNames.each {colName ->
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd")
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
@@ -231,7 +239,7 @@ class MappingUtils extends CounterUtils
 
 					/** COMMON TO ALL**/
 					// all month row
-					colNames = counterColumnNames(groupKeys, thisObj, UTC_MONTH_FORMAT)
+					colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_MONTH_FORMAT)
 					colNames.each {colName ->
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM")
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
@@ -241,7 +249,7 @@ class MappingUtils extends CounterUtils
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
+						colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 						colNames.each {colName ->
 							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0]))+"THH")
 							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
@@ -250,7 +258,7 @@ class MappingUtils extends CounterUtils
 
 						/** ALTERNATE THREE (current) **/
 						// specific month/hour row
-						colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
+						colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 						colNames.each {colName ->
 							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys[0])))
 							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
@@ -259,7 +267,7 @@ class MappingUtils extends CounterUtils
 
 						/** COMMON TO TWO AND THREE **/
 						// specific year/day row
-						colNames = counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT)
+						colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT)
 						colNames.each {colName ->
 							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys[0])))
 							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj)
@@ -271,7 +279,7 @@ class MappingUtils extends CounterUtils
 		}
 		else {
 			if (oldObj) {
-				def oldColNames = counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
+				def oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT)
 				oldColNames.each {oldColName ->
 					def ocrk = KeyHelper.counterRowKey(whereKeys, groupKeys, oldObj)
 					if (oldColName && ocrk) {
@@ -280,7 +288,7 @@ class MappingUtils extends CounterUtils
 				}
 			}
 			if (thisObj) {
-				def colNames = counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
+				def colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT)
 				colNames.each {colName ->
 					def crk = KeyHelper.counterRowKey(whereKeys, groupKeys, thisObj)
 					if (colName && crk) {

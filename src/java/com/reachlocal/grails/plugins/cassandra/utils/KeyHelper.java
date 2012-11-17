@@ -181,7 +181,7 @@ public class KeyHelper
 				valueList.add(bean.getProperty(it));
 			}
 			List<String> result = new ArrayList<String>(valueList.size());
-			List<List<Object>> v2 = OrmHelper.expandNestedArray(valueList);
+			List<List<String>> v2 = OrmHelper.expandNestedArray(valueList);
 			for (List values: v2) {
 				List<List<Object>> pairs = new ArrayList<List<Object>>();
 				int index = 0;

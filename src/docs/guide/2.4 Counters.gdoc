@@ -120,7 +120,7 @@ producing the following using the @\[findBy: 'siteName', groupBy: \['occurTime'\
 You can also get a site's monthly visits grouped by referrerType:
 
 {code}
-Visit.getCountsBySiteNameGroupByOccurTimeAndReferrerType('www.siteone.com', 'Search', [grain: Calendar.MONTH])
+Visit.getCountsBySiteNameGroupByOccurTimeAndReferrerType('www.siteone.com', [grain: Calendar.MONTH])
 {code}
 
 producing:
@@ -132,7 +132,7 @@ producing:
 and referrerName:
 
 {code}
-Visit.getCountsBySiteNameGroupByOccurTimeAndReferrerName('www.siteone.com', 'Google', [grain: Calendar.MONTH])
+Visit.getCountsBySiteNameGroupByOccurTimeAndReferrerName('www.siteone.com', [grain: Calendar.MONTH])
 {code}
 
 producing:
