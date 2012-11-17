@@ -206,7 +206,7 @@ class CounterUtilsTests extends OrmTestCase
 	}
 
 	@Test
-	void testGetCountersMultiWherGroupByOneRowTwoColumnsWithDate()
+	void testGetCountersMultiWhereGroupByOneRowTwoColumnsWithDate()
 	{
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,
@@ -218,7 +218,7 @@ class CounterUtilsTests extends OrmTestCase
 	}
 
 	@Test
-	void testGetCountersMultiWherGroupByOneRowTwoColumnsWithDateAndGrain()
+	void testGetCountersMultiWhereGroupByOneRowTwoColumnsWithDateAndGrain()
 	{
 		def cols = MappingUtils.getCounters(User,
 				User.cassandraMapping.counters,

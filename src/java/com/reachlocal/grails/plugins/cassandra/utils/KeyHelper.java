@@ -193,7 +193,7 @@ public class KeyHelper
 					index++;
 				}
 				String key = indexRowKey(pairs);
-				if (key != null) {
+				if (key != null && key.length() > 0) {
 					result.add(key);
 				}
 			}
@@ -266,7 +266,13 @@ public class KeyHelper
 			throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
 		}
 		else if (obj instanceof String) {
-			return (String)obj; // TODO -- escape delimiters???
+			String str = (String)obj; // TODO -- escape delimiters???
+            if (str.length() == 0) {
+                throw new CassandraMappingNullIndexException("Counter column keys cannot bean null or blank");
+            }
+            else {
+                return str;
+            }
 		}
 		else if (obj instanceof Date) {
 			return dateFormat.format((Date) obj);
@@ -297,7 +303,13 @@ public class KeyHelper
 	public static String primaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
 	{
 		if (obj instanceof String) {
-			return (String)obj;
+			String str = (String)obj;
+            if (str.length() == 0) {
+                throw new CassandraMappingNullIndexException("Primary keys and indexed properties cannot have null values");
+            }
+            else {
+                return str;
+            }
 		}
 		else if (obj instanceof UUID) {
 			UUID id = (UUID)obj;
