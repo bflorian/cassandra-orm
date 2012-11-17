@@ -102,16 +102,21 @@ public class OrmHelper
 		return clazz.metaClass.hasMetaProperty("cassandraMapping")
 	}
 */
-	public static boolean isMappedObject(GroovyObject object) {
+	public static boolean isMappedObject(Object object) {
 		// TODO - doesn't test for static!
 		//return object ? object.getClass().metaClass.hasMetaProperty("cassandraMapping") : false
-		try {
-			Object value = object.getProperty("cassandraMapping");
-			return value != null && value instanceof Map;
-		}
-		catch (MissingPropertyException e) {
-			return false;
-		}
+        if (object instanceof GroovyObject) {
+            try {
+                Object value = ((GroovyObject)object).getProperty("cassandraMapping");
+                return value != null && value instanceof Map;
+            }
+            catch (MissingPropertyException e) {
+                return false;
+            }
+        }
+        else {
+            return false;
+        }
 	}
 /*
 	public static boolean isMappedProperty(Class clazz, String name) {

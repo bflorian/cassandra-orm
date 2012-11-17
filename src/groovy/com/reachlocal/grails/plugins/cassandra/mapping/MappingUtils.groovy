@@ -28,7 +28,29 @@ class MappingUtils extends CounterUtils
 {
 	static final Boolean WRITE_ALTERNATES = false
 
-	static getCounters(
+    static boolean isMappedClass(clazz) {
+        return clazz.metaClass.hasMetaProperty("cassandraMapping")
+    }
+
+    static boolean isMappedProperty(Class clazz, String name) {
+        try {
+            def propClass = clazz.getDeclaredField(name)?.type // TODO - support superclasses?
+            return propClass ? isMappedClass(propClass) : false
+        }
+        catch (NoSuchFieldException e) {
+            return false
+        }
+    }
+
+    static safeGetStaticProperty(clazz, name)
+    {
+        if (clazz.metaClass.hasMetaProperty(name)) {
+            return clazz.metaClass.getMetaProperty(name).getProperty()
+        }
+        return null
+    }
+
+    static getCounters(
 			Class clazz,
 			List counterDefs,
 			Map whereFilter,

@@ -6,7 +6,6 @@ import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
-import com.reachlocal.grails.plugins.cassandra.mapping.KeyUtils
 import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 import com.reachlocal.grails.plugins.cassandra.test.orm.Color
 import java.text.SimpleDateFormat
@@ -22,10 +21,6 @@ class KeyHelperTests
 		assertEquals "01234", KeyHelper.makeComposite(["01234"])
 		assertEquals "01234__5678", KeyHelper.makeComposite(["01234","5678"])
 		assertEquals "01234__5678__abcd", KeyHelper.makeComposite(["01234","5678","abcd"])
-
-		// TODO - temporary
-		assertEquals KeyUtils.makeComposite(["01234","5678","abcd"]),
-				KeyHelper.makeComposite(["01234","5678","abcd"])
 	}
 
 	@Test
@@ -35,10 +30,6 @@ class KeyHelperTests
 		assertEquals "01234", KeyHelper.parseComposite("01234__5678")[0]
 		assertEquals "5678", KeyHelper.parseComposite("01234__5678")[1]
 		assertEquals "abcd", KeyHelper.parseComposite("01234__5678__abcd")[2]
-
-		// TODO - temporary
-		assertEquals KeyUtils.parseComposite("01234__5678__abcd"),
-				KeyHelper.parseComposite("01234__5678__abcd") as List
 	}
 
 	@Test
@@ -46,20 +37,12 @@ class KeyHelperTests
 	{
 		def mockUserGroup = new Expando(id: "UG_0001")
 		assertEquals "UserGroup?meetings=UG_0001", KeyHelper.joinRowKey(UserGroup, UserGroupMeeting, "meetings", mockUserGroup)
-
-		// TODO - temporary
-		assertEquals KeyUtils.joinRowKey(UserGroup, UserGroupMeeting, "meetings", mockUserGroup),
-				KeyHelper.joinRowKey(UserGroup, UserGroupMeeting, "meetings", mockUserGroup)
 	}
 
 	@Test
 	void test_joinRowKeyFromId()
 	{
 		assertEquals "UserGroup?users=00001", KeyHelper.joinRowKeyFromId(UserGroup, User, "users", "00001")
-
-		// TODO - temporary
-		assertEquals KeyUtils.joinRowKeyFromId(UserGroup, User, "users", "00001"),
-				KeyHelper.joinRowKeyFromId(UserGroup, User, "users", "00001")
 	}
 
 	@Test
@@ -74,10 +57,6 @@ class KeyHelperTests
 	{
 		assertEquals "this?siteId=SITE01#refType__refName__refKeyword",
 				KeyHelper.counterRowKey(["siteId"], ["refType","refName","refKeyword"], [siteId:"SITE01"])
-
-		// TODO - temporary
-		assertEquals KeyUtils.counterRowKey(["siteId"], ["refType","refName","refKeyword"], [siteId:"SITE01"]),
-				KeyHelper.counterRowKey(["siteId"], ["refType","refName","refKeyword"], [siteId:"SITE01"])
 	}
 
 	// public static String counterRowKey(List whereKeys, List<String> groupKeys, GroovyObject bean) throws IOException
@@ -86,10 +65,6 @@ class KeyHelperTests
 	{
 		def mockObject = new Expando(siteId: "SITE_0001")
 		assertEquals "this?siteId=SITE_0001#refType__refName__refKeyword",
-				KeyHelper.counterRowKey(["siteId"], ["refType","refName","refKeyword"], mockObject)
-
-		// TODO - temporary
-		assertEquals KeyUtils.counterRowKey(["siteId"], ["refType","refName","refKeyword"], mockObject),
 				KeyHelper.counterRowKey(["siteId"], ["refType","refName","refKeyword"], mockObject)
 
 	}
@@ -104,11 +79,6 @@ class KeyHelperTests
 		assertEquals "occurTime[yyyy-MM-dd]", result[0]
 		assertEquals "refType", result[1]
 		assertEquals "refName", result[2]
-
-		// TODO - temporary
-		assertEquals KeyUtils.makeGroupKeyList(["occurTime","refType","refName"], "yyyy-MM-dd")[0].toString(),
-				KeyHelper.makeGroupKeyList(["occurTime","refType","refName"], "yyyy-MM-dd")[0].toString()
-
 	}
 
 	// public static String objectIndexRowKey(String propName, Map map) throws IOException
@@ -118,9 +88,6 @@ class KeyHelperTests
 		def result = KeyHelper.objectIndexRowKey("color", [color: "Blue"])
 		println result
 		assertEquals "this?color=Blue", result
-
-		// TODO - temporary
-		assertEquals KeyHelper.objectIndexRowKey("color", [color: "Blue"]), result
 	}
 
 	// public static String objectIndexRowKey(List propNames, Map map) throws IOException
@@ -130,10 +97,6 @@ class KeyHelperTests
 		def result = KeyHelper.objectIndexRowKey(["color","charm","spin"], [color: "Blue", charm: "Yes", spin: "Up&Left", foo: "Bar"])
 		println result
 		assertEquals "this?color=Blue&charm=Yes&spin=Up%26Left", result
-
-		// TODO - temporary
-		assertEquals KeyHelper.objectIndexRowKey(["color","charm","spin"], [color: "Blue", charm: "Yes", spin: "Up&Left", foo: "Bar"]), result
-
 	}
 
 	// public static String objectIndexRowKey(List propNames, Map map) throws IOException
@@ -143,10 +106,6 @@ class KeyHelperTests
 		def result = KeyHelper.objectIndexRowKey([], [color: "Blue", charm: "Yes", spin: "Up&Left", foo: "Bar"])
 		println result
 		assertEquals "this", result
-
-		// TODO - temporary
-		assertEquals KeyHelper.objectIndexRowKey([], [color: "Blue", charm: "Yes", spin: "Up&Left", foo: "Bar"]), result
-
 	}
 
 	// public static String objectIndexRowKey(String propName, GroovyObject bean) throws IOException
@@ -158,10 +117,6 @@ class KeyHelperTests
 		def result = KeyHelper.objectIndexRowKey("color", mockObject)
 		println result
 		assertEquals "this?color=Blue%2FGreen", result
-
-		// TODO - temporary
-		assertEquals KeyHelper.objectIndexRowKey("color", mockObject), result
-
 	}
 
 	// public static String objectIndexRowKey(List<String> propNames, GroovyObject bean) throws IOException
@@ -173,10 +128,6 @@ class KeyHelperTests
 		def result = KeyHelper.objectIndexRowKey(["color","charm","spin"], mockObject)
 		println result
 		assertEquals "this?color=Blue&charm=Yes&spin=Up%26Left", result
-
-		// TODO - temporary
-		assertEquals KeyHelper.objectIndexRowKey(["color","charm","spin"], mockObject), result
-
 	}
 
 
@@ -190,10 +141,6 @@ class KeyHelperTests
 		println result
 		assertEquals 1, result.size()
 		assertEquals "this?color=Blue%2FGreen", result[0]
-
-		// TODO - temporary
-		assertEquals KeyHelper.objectIndexRowKeys("color", mockObject)[0], result[0]
-
 	}
 
 	// public static Collection<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
@@ -206,11 +153,6 @@ class KeyHelperTests
 		println result
 		assertEquals 1, result.size()
 		assertEquals "this?color=Blue&charm=Yes&spin=Up%26Left", result[0]
-
-		// TODO - temporary
-		def old = KeyUtils.objectIndexRowKeys(["color","charm","spin"], mockObject)
-		assertEquals old[0], result[0]
-
 	}
 
 	// public static String indexRowKey(String name, Object value) throws CassandraMappingNullIndexException, IOException
@@ -223,11 +165,6 @@ class KeyHelperTests
 		assertEquals "this?age=35", KeyHelper.indexRowKey("age", 35)
 		assertEquals "this?date=2012-11-15T12%3A00%3A00.000Z", KeyHelper.indexRowKey("date", Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT"))
 		assertEquals "this?name=Joe", KeyHelper.indexRowKey("name", "Joe")
-
-		// TODO - temporary
-		assertEquals "this?age=35", KeyUtils.indexRowKey("age", 35)
-		assertEquals "this?date=2012-11-15T12%3A00%3A00.000Z", KeyUtils.indexRowKey("date", Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT"))
-		assertEquals "this?name=Joe", KeyUtils.indexRowKey("name", "Joe")
 	}
 
 	// public static String manyBackIndexRowKey(String objectId)
@@ -251,9 +188,6 @@ class KeyHelperTests
 		def result = KeyHelper.oneBackIndexColumnName("Visit", "refType", "001352980800000_fb3969b0-2f1b-11e2-816c-001c42000009")
 		println result
 		assertEquals "001352980800000_fb3969b0-2f1b-11e2-816c-001c42000009\u00ffrefType\u00ffVisit", result
-
-		//TODO - temporary
-		assertEquals KeyUtils.oneBackIndexColumnName("Visit", "refType", "001352980800000_fb3969b0-2f1b-11e2-816c-001c42000009"), result
 	}
 
 	// public static List<String> oneBackIndexColumnValues(String name)
@@ -267,12 +201,6 @@ class KeyHelperTests
 		assertEquals "Visit", result[0]
 		assertEquals "refType", result[1]
 		assertEquals "001352980800000_fb3969b0-2f1b-11e2-816c-001c42000009", result[2]
-
-		//TODO - temporary
-		def old = KeyUtils.oneBackIndexColumnValues("001352980800000_fb3969b0-2f1b-11e2-816c-001c42000009\u00ffrefType\u00ffVisit")
-		assertEquals old[0], result[0]
-		assertEquals old[1], result[1]
-		assertEquals old[2], result[2]
 	}
 
 	// public static String indexRowKey(List<List<Object>> pairs) throws CassandraMappingNullIndexException, IOException
@@ -282,9 +210,6 @@ class KeyHelperTests
 		def result = KeyHelper.indexRowKey([["name","Joe"],["rank","Captain"],["serialNumber",1000001]])
 		println result
 		assertEquals "this?name=Joe&rank=Captain&serialNumber=1000001", result
-
-		// TODO - temporary
-		assertEquals KeyUtils.indexRowKey([["name","Joe"],["rank","Captain"],["serialNumber",1000001]]), result
 	}
 
 	// public static String counterColumnKey(List items, DateFormat dateFormat) throws CassandraMappingNullIndexException, IOException
@@ -297,9 +222,6 @@ class KeyHelperTests
 		def result = KeyHelper.counterColumnKey([date, "Search", "Google"], dateFormat)
 		println result
 		assertEquals "2012-11-15__Search__Google", result
-
-		//TODO - temporary
-		assertEquals KeyUtils.counterColumnKey([date, "Search", "Google"], dateFormat), result
 	}
 
 	// public static String counterColumnKey(Date date, DateFormat dateFormat) throws CassandraMappingNullIndexException
@@ -312,9 +234,6 @@ class KeyHelperTests
 		def result = KeyHelper.counterColumnKey(date, dateFormat)
 		println result
 		assertEquals "2012-11-15", result
-
-		//TODO - temporary
-		assertEquals KeyUtils.counterColumnKey(date, dateFormat), result
 	}
 
 	// public static String counterColumnKey(String str, DateFormat dateFormat) throws CassandraMappingNullIndexException
@@ -323,9 +242,6 @@ class KeyHelperTests
 	{
 		def dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 		assertEquals "SomeString", KeyHelper.counterColumnKey("SomeString", dateFormat)
-
-		//TODO - temporary
-		assertEquals KeyUtils.counterColumnKey("SomeString", dateFormat), KeyHelper.counterColumnKey("SomeString", dateFormat)
 	}
 
 	// public static String counterColumnKey(Object obj, DateFormat dateFormat) throws CassandraMappingNullIndexException, IOException
@@ -359,11 +275,5 @@ class KeyHelperTests
 		assertEquals "RED", KeyHelper.primaryRowKey(Color.RED)
 		assertEquals "X15", KeyHelper.primaryRowKey(mockObject)
 		assertEquals "SITE01__false__001352980800000_${uuid}__2000__X15__PURPLE".toString(), KeyHelper.primaryRowKey(["SITE01", false, uuid, 2000, mockObject, Color.PURPLE])
-
-		//TODO - temporary
-		assertEquals KeyUtils.primaryRowKey(10000), KeyHelper.primaryRowKey(10000)
-		assertEquals KeyUtils.primaryRowKey(true), KeyHelper.primaryRowKey(true)
-		assertEquals KeyUtils.primaryRowKey("SomeString"), KeyHelper.primaryRowKey("SomeString")
-		assertEquals KeyUtils.primaryRowKey(Color.GREEN), KeyHelper.primaryRowKey(Color.GREEN)
 	}
 }

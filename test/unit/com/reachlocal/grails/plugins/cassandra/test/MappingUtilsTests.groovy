@@ -29,34 +29,6 @@ import static org.junit.Assert.*
 class MappingUtilsTests extends GrailsUnitTestCase
 {
 	@Test
-	void testMethodForPropertyName()
-	{
-		assertEquals "getSomeOtherProperty", MappingUtils.methodForPropertyName("get", "someOtherProperty")
-		assertEquals "setX", MappingUtils.methodForPropertyName("set", "x")
-	}
-
-	@Test
-	void testPropertyListFromMethodName()
-	{
-		assertEquals "name", MappingUtils.propertyListFromMethodName("Name")[0]
-		assertEquals "name", MappingUtils.propertyListFromMethodName("NameAndRank")[0]
-		assertEquals "rank", MappingUtils.propertyListFromMethodName("NameAndRank")[1]
-	}
-
-	@Test
-	void testCollection()
-	{
-		assertEquals "name", MappingUtils.collection("name")[0]
-		assertEquals "rank", MappingUtils.collection(["rank"])[0]
-	}
-
-	@Test
-	void testMakeComposite()
-	{
-		assertEquals "one__two", MappingUtils.makeComposite(["one","two"])
-	}
-
-	@Test
 	void testRollUpCounterDates()
 	{
 		def hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
@@ -324,72 +296,6 @@ class MappingUtilsTests extends GrailsUnitTestCase
 		assertEquals 2, days.size()
 		assertEquals 23, days['2012-02-04']
 		assertEquals 6, days['2012-02-05']
-	}
-
-	@Test
-	void testPrimaryKeyRowKey()
-	{
-		assertEquals "this", MappingUtils.primaryKeyIndexRowKey()
-	}
-
-	@Test
-	void testObjectIndexRowKey_Map()
-	{
-		assertEquals "this?name=Joe", MappingUtils.objectIndexRowKey("name", [name:"Joe", color:"blue", zip:"20832", gender:"F"])
-		assertEquals "this?name=Joe&color=blue", MappingUtils.objectIndexRowKey(["name","color"], [name:"Joe", color:"blue", zip:"20832", gender:"F"])
-	}
-
-
-/*  HashCounter no longer defined in this plugin
-	void testExpandFilters()
-	{
-		def filters = MappingUtils.expandFilters([eventType:'Radar', subType: 'Review'])
-		assertEquals 1, filters.size()
-		assertEquals 'Radar', filters[0].eventType
-		assertEquals 'Review', filters[0].subType
-
-		def subTypeCnt = new HashCounter()
-		filters = MappingUtils.expandFilters([eventType:'Radar', subType: ['Review','Mention']])
-		assertEquals 2, filters.size()
-		filters.each {f ->
-			assertEquals 'Radar', f.eventType
-			assertTrue (['Review','Mention'].contains(f.subType))
-			subTypeCnt.increment(f.subType)
-		}
-		assertEquals 1, subTypeCnt.Review
-		assertEquals 1, subTypeCnt.Mention
-
-		subTypeCnt = new HashCounter()
-		def sourceCnt = new HashCounter()
-		filters = MappingUtils.expandFilters([eventType:'Radar', subType: ['Review','Mention'], source:['Yelp','Google','TripAdvisor']])
-		assertEquals 6, filters.size()
-		filters.each {f ->
-			assertEquals 'Radar', f.eventType
-			assertTrue (['Review','Mention'].contains(f.subType))
-			assertTrue (['Yelp','Google','TripAdvisor'].contains(f.source))
-			subTypeCnt.increment(f.subType)
-			sourceCnt.increment(f.source)
-		}
-		assertEquals 3, subTypeCnt.Review
-		assertEquals 3, subTypeCnt.Mention
-		assertEquals 2, sourceCnt.Yelp
-		assertEquals 2, sourceCnt.Google
-		assertEquals 2, sourceCnt.TripAdvisor
-	}
-*/
-	@Test
-	void testExpandCounterKeys()
-	{
-		def key1 = MappingUtils.expandNestedArray(["one","two","three"])
-		println key1
-		assertEquals 1, key1.size()
-
-		def key2 = MappingUtils.expandNestedArray(["one",["twoA","twoB"],"three"])
-		println key2
-		assertEquals 2, key2.size()
-
-		def key3 = MappingUtils.expandNestedArray(["one",["twoA","twoB"],["threeX","threeY"]])
-		assertEquals 4, key3.size()
 	}
 
 	@Test

@@ -64,7 +64,7 @@ class TraverserNode
 		def lastClass = traverser.object.getClass()
 		segments.collect {node ->
 			node.clazz = lastClass
-			lastClass = BaseUtils.safeGetStaticProperty(lastClass, 'hasMany')?.get(node.name)
+			lastClass = MappingUtils.safeGetStaticProperty(lastClass, 'hasMany')?.get(node.name)
 			node.itemClass = lastClass
 			if (!lastClass) {
 				throw new InvalidObjectException("Could not find hasMany property ${node.name} in class ${lastClass.name}")
@@ -87,7 +87,7 @@ class TraverserNode
 		}
 
 		def result = []
-		def options = OrmHelper.addOptionDefaults(opts, BaseUtils.MAX_ROWS)
+		def options = OrmHelper.addOptionDefaults(opts, OrmHelper.MAX_ROWS)
 		def cassandra = traverser.object.cassandra
 		def persistence = cassandra.persistence
 		def names = MappingUtils.columnNames(options)

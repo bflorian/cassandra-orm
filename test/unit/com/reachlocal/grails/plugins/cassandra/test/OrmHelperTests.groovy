@@ -6,7 +6,6 @@ import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
-import com.reachlocal.grails.plugins.cassandra.mapping.BaseUtils
 
 /**
  * @author: Bob Florian
@@ -90,18 +89,5 @@ class OrmHelperTests
 		println key3
 		assertEquals 4, key3.size()
 
-		def t0 = System.currentTimeMillis()
-		for (i in 1..1000) {
-			key3 = MappingUtils.expandNestedArray(["one",["twoA","twoB"],["threeX","threeY"]])
-		}
-		def elapsed = System.currentTimeMillis() - t0
-		println "$elapsed msec (OLD)"
-
-		t0 = System.currentTimeMillis()
-		for (i in 1..1000) {
-			key3 = OrmHelper.expandNestedArray(["one",["twoA","twoB"],["threeX","threeY"]])
-		}
-		elapsed = System.currentTimeMillis() - t0
-		println "$elapsed msec (NEW)"
 	}
 }

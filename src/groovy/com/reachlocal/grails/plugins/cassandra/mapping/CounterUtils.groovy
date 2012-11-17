@@ -8,11 +8,12 @@ import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
+import org.codehaus.jackson.map.ObjectMapper
 
 /**
  * @author: Bob Florian
  */
-class CounterUtils extends KeyUtils
+class CounterUtils
 {
 	static protected final int MAX_COUNTER_COLUMNS = Integer.MAX_VALUE
 	static protected final UTC_YEAR_FORMAT = new SimpleDateFormat("yyyy")
@@ -20,7 +21,7 @@ class CounterUtils extends KeyUtils
 	static protected final UTC_DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
 	static protected final UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 	static protected final UTC_HOUR_ONLY_FORMAT = new SimpleDateFormat("HH")
-	static protected final UTC = TimeZone.getTimeZone("GMT") //.getDefault() //getTimeZone("GMT")
+	static protected final UTC = TimeZone.getTimeZone("GMT")
 
 	static {
 		UTC_YEAR_FORMAT.setTimeZone(UTC)
@@ -30,87 +31,6 @@ class CounterUtils extends KeyUtils
 		UTC_HOUR_ONLY_FORMAT.setTimeZone(UTC)
 	}
 
-	static toDateFormat(Integer grain, TimeZone timeZone, dateFormatArg)
-	{
-		if (dateFormatArg) {
-			def result = new SimpleDateFormat(dateFormatArg)
-			if (timeZone) {
-				result.setTimeZone(timeZone);
-			}
-			return result
-		}
-		else {
-			return dateFormat(grain, timeZone)
-		}
-	}
-
-	static toDateFormat(Integer grain, TimeZone timeZone, DateFormat dateFormatArg)
-	{
-		// we ignore the grain if there is a date format
-		if (timeZone) {
-			def result = new SimpleDateFormat(dateFormatArg.toPattern())
-			result.setTimeZone(timeZone);
-			return result
-		}
-		else {
-			return dateFormatArg
-		}
-	}
-
-	static dateFormat(int grain, TimeZone timeZone)
-	{
-		def result = dateFormat(grain)
-		if (timeZone) {
-			result = new SimpleDateFormat(result.toPattern())
-			result.setTimeZone(timeZone);
-		}
-		return result
-	}
-
-	static dateFormat(int grain)
-	{
-		switch(grain) {
-			case Calendar.YEAR:
-				return UTC_YEAR_FORMAT
-			case Calendar.MONTH:
-				return UTC_MONTH_FORMAT
-			case Calendar.DAY_OF_MONTH:
-				return UTC_DAY_FORMAT
-			default:
-				return UTC_HOUR_FORMAT
-		}
-	}
-
-	static counterColumnName(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
-	{
-		try {
-			return KeyHelper.makeComposite(
-					groupKeys.collect{
-						KeyHelper.counterColumnKey(bean.getProperty(it), dateFormat)
-					}
-			)
-		}
-		catch (CassandraMappingNullIndexException e) {
-			return null
-		}
-	}
-
-	static List counterColumnNames(List groupKeys, Object bean, DateFormat dateFormat = UTC_HOUR_FORMAT)
-	{
-		try {
-			def result = []
-			def keys = groupKeys.collect{
-				KeyHelper.counterColumnKey(bean.getProperty(it), dateFormat)
-			}
-			OrmHelper.expandNestedArray(keys).each {
-				result << KeyHelper.makeComposite(it)
-			}
-			return result
-		}
-		catch (CassandraMappingNullIndexException e) {
-			return []
-		}
-	}
 
 	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, clusterName)
 	{
@@ -446,8 +366,21 @@ class CounterUtils extends KeyUtils
 
 	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone, toFormatArg)
 	{
-		def toFormat = toDateFormat(grain, timeZone, toFormatArg)
+		def toFormat = CounterHelper.toDateFormat(grain, timeZone, toFormatArg)
 		def result = DateHelper.rollUpCounterDates(map, fromFormat, toFormat)
 		return result
 	}
+
+    static protected final END_CHAR = "\u00ff"
+    static protected final int MAX_ROWS = 5000
+    static protected final CLASS_NAME_KEY = '_class_name_'
+    static protected final KEY_SUFFIX = "Id"
+    static protected final DIRTY_SUFFIX = "_dirty"
+    static protected final CLUSTER_PROP = "_cassandra_cluster_"
+
+    static mapper = new ObjectMapper()
+    static protected ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    static {
+        ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"))
+    }
 }

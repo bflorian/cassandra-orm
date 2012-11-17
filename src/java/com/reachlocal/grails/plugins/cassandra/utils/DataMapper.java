@@ -2,23 +2,13 @@ package com.reachlocal.grails.plugins.cassandra.utils;
 
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import com.reachlocal.grails.plugins.cassandra.mapping.KeyUtils;
-import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils;
 import groovy.lang.GroovyObject;
-import groovy.lang.MetaBeanProperty;
-import groovy.lang.MetaMethod;
 import groovy.lang.MetaProperty;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
 public class DataMapper
@@ -54,7 +44,7 @@ public class DataMapper
 			if (!transients.contains(name) && !GLOBAL_TRANSIENTS.contains(name) && hasMany.get(name) == null) {
 				Object prop = data.getProperty(name);
 				if (prop != null) {
-					if (MappingUtils.isMappedObject(prop)) {   // TODO new is mapped
+					if (OrmHelper.isMappedObject(prop)) {   // TODO new is mapped
 						GroovyObject g = (GroovyObject)prop;
 						String idName = name + "Id";
 						map.put(idName, g.getProperty("id"));
