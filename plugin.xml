@@ -1,4 +1,4 @@
-<plugin name='cassandra-orm' version='0.2.7' grailsVersion='2.0.0 &gt; *'>
+<plugin name='cassandra-orm' version='0.3.0' grailsVersion='2.0.0 &gt; *'>
   <author>Bob Florian</author>
   <authorEmail>bob.florian@reachlocal.com</authorEmail>
   <title>Cassandra Object Persistence Framework</title>

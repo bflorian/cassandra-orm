@@ -1,6 +1,3 @@
-import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
-import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
-
 /*
  * Copyright 2012 ReachLocal Inc.
  *
@@ -17,10 +14,13 @@ import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
  * limitations under the License.
  */
 
+import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
+import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
+
 class CassandraOrmGrailsPlugin
 {
 	// the plugin version
-	def version = "0.2.7"
+	def version = "0.3.0"
 
 	// the version or versions of Grails the plugin is designed for
 	def grailsVersion = "2.0.0 > *"
