@@ -138,7 +138,15 @@ class InstanceMethodTests extends OrmTestCase
 		persistence.printClear()
 
 		println "\n--- userGroup.insert(name: JUG2) ---"
-		userGroup.insert(name: 'JUG2')
+		userGroup.insert(name: 'JUG1')
+		persistence.printClear()
+
+		println "\n--- userGroup.insert(name: null) ---"
+		userGroup.insert(color: null)
+		persistence.printClear()
+
+		println "\n--- userGroup.insert(color: 'Blue') ---"
+		userGroup.insert(name: 'JUG2', color: 'Blue')
 		persistence.printClear()
 
 		println "\n--- userGroup.insert(name: JUG2) ---"

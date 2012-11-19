@@ -33,6 +33,7 @@ public class DataMapper
 	{
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 		for (Map.Entry<String, Object> entry: data.entrySet()) {
+			Object value = entry.getValue();
 			map.put(entry.getKey(), dataProperty(entry.getValue()));
 		}
 		return map;
@@ -42,7 +43,8 @@ public class DataMapper
 			GroovyObject data,
 			List<String> transients,
 			Map<String, Class> hasMany,
-			String expandoMapName
+			String expandoMapName,
+			Collection mappedProperties
 	)
 			throws IOException
 	{
@@ -53,23 +55,29 @@ public class DataMapper
 		}
 
 		map.put(CLASS_NAME_KEY, clazz.getName());
-
 		for (PropertyDescriptor pd: PropertyUtils.getPropertyDescriptors(data)) {
 		//for (MetaProperty pd: data.getMetaClass().getProperties()) {
 			String name = pd.getName();
 			if (!transients.contains(name) && !GLOBAL_TRANSIENTS.contains(name) && hasMany.get(name) == null) {
 				Object prop = data.getProperty(name);
-				if (prop != null) {
-					if (OrmHelper.isMappedObject(prop)) {   // TODO new is mapped
+				if (prop == null) {
+				    if (mappedProperties.contains(name)) {
+						map.put(name + "Id", null);
+					}
+					else {
+						map.put(name, null);
+					}
+				}
+				else {
+					//if (OrmHelper.isMappedObject(prop)) {   // TODO new is mapped
+					if (mappedProperties.contains(name)) {
 						GroovyObject g = (GroovyObject)prop;
 						String idName = name + "Id";
 						map.put(idName, g.getProperty("id"));
 					}
 					else {
 						Object value = dataProperty(prop);
-						if (value != null) {
-							map.put(name, value);
-						}
+						map.put(name, value);
 					}
 				}
 			}
@@ -79,9 +87,7 @@ public class DataMapper
 			Map<String, Object> expandoMap = (Map<String, Object>)data.getProperty(expandoMapName);
 			if (expandoMap != null) {
 				for (Map.Entry<String, Object> entry: expandoMap.entrySet()) {
-					if (entry.getValue() != null) {
-						map.put(entry.getKey(), entry.getValue());
-					}
+					map.put(entry.getKey(), entry.getValue());
 				}
 			}
 		}

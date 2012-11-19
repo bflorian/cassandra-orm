@@ -79,6 +79,9 @@ class InstanceMethods extends MappingUtils
 			delegate.ident()
 		}
 
+		// mapped property name cache
+		clazz.cassandraMapping.mappedProperties = new LinkedHashSet()
+
 		// cassandra row key
 		clazz.metaClass.ident = {
 			def thisObj = delegate
@@ -482,13 +485,20 @@ class InstanceMethods extends MappingUtils
 				def keyDeleted = false
 				properties.each {name, value ->
 					if (value == null) {
-						def prop = PropertyUtils.getProperty(thisObj, name)
-						if (prop != null && isMappedObject(prop)) {
-							def cName = "${pName}${KEY_SUFFIX}".toString()
-							persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
-							keyDeleted = true
+						try {
+							def prop = PropertyUtils.getProperty(thisObj, name)
+							if (prop != null && OrmHelper.isMappedObject(prop)) {
+								def cName = "${pName}${KEY_SUFFIX}".toString()
+								persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
+								keyDeleted = true
+							}
 						}
-
+						catch (NoSuchMethodException e) {
+							// Skip it, if there is an expando
+							if (!cassandraMapping.expandoMap) {
+								throw e;
+							}
+						}
 					}
 				}
 
@@ -823,6 +833,9 @@ class InstanceMethods extends MappingUtils
 				def propName = property.name
 				def getterName = GrailsClassUtils.getGetterName(propName)
 				def setterName = GrailsClassUtils.getSetterName(propName)
+
+				// save set of mapped properties.
+				clazz.cassandraMapping.mappedProperties << propName
 
 				// dirty bit
 				clazz.metaClass."${propName}${DIRTY_SUFFIX}" = null

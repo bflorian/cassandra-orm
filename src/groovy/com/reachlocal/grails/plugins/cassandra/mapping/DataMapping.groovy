@@ -32,10 +32,12 @@ class DataMapping extends MappingUtils
 			return DataMapper.dataProperties((Map<String, Object>)data);
 		}
 		else {
+			def cassandraMapping = data.getClass().cassandraMapping
 			List<String> transients = (List<String>)OrmHelper.safeGetProperty(data, 'transients', List, [])
 			Map<String, Class> hasMany = (Map<String, Class>)OrmHelper.safeGetProperty(data, 'hasMany', Map, [:])
-			String expandoMapName = data.getClass().cassandraMapping.expandoMap
-			return DataMapper.dataProperties(data, transients, hasMany, expandoMapName);
+			String expandoMapName = cassandraMapping.expandoMap
+			Collection<String> mappedProperties = cassandraMapping.mappedProperties
+			return DataMapper.dataProperties(data, transients, hasMany, expandoMapName, mappedProperties);
 		}
 	}
 
