@@ -22,6 +22,7 @@ import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
+import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
 
 /**
  * @author: Bob Florian
@@ -231,9 +232,7 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// counters
-				cassandraMapping.counters?.each {ctr ->
-					updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
-				}
+				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, oldObj, thisObj)
 
 				persistence.execute(m)
 			}
@@ -454,9 +453,11 @@ class InstanceMethods extends MappingUtils
 				t0 = t1
 
 				// counters
-				cassandraMapping.counters?.each {ctr ->
-					updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
-				}
+				//cassandraMapping.counters?.each {ctr ->
+					//updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
+				//	CounterHelper.updateCounterColumns(persistence, counterColumnFamily, ctr, m, oldObj, thisObj)
+				//}
+				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, oldObj, thisObj)
 
 				// TIMER
 				t1 = System.currentTimeMillis()
