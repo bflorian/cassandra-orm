@@ -23,6 +23,8 @@ import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
+import java.text.DecimalFormat
+import com.reachlocal.grails.plugins.cassandra.utils.IndexHelper
 
 /**
  * @author: Bob Florian
@@ -34,14 +36,16 @@ class InstanceMethods extends MappingUtils
 	static void dumpProfiler()
 	{
 		def total = 0L
+		def m = 1000000L
+		def nf = new DecimalFormat("#,##0.0")
 		println "PROFILER, ${profiler.Iterations} ITERATIONS (msec):"
 		profiler.each {name, value ->
 			if (name != "Iterations") {
-				println "$name: \t$value"
+				println "$name: \t${nf.format(value/m)}"
 				total += value
 			}
 		}
-		println "TOTAL: \t$total \t${total/profiler.Iterations} \t${profiler.Iterations/(total/1000.0)}\trec/sec"
+		println "TOTAL: \t${nf.format(total/m)} \t${total/(profiler.Iterations*m)} \t${nf.format(1000L * m * profiler.Iterations/total)}\trec/sec"
 	}
 
 	static void clearProfiler()
@@ -77,7 +81,7 @@ class InstanceMethods extends MappingUtils
 
 		// cassandra row key (alternative)
 		clazz.metaClass.getId = {
-			delegate.ident()
+			return KeyHelper.identKey(delegate, cassandraMapping)
 		}
 
 		// mapped property name cache
@@ -85,15 +89,7 @@ class InstanceMethods extends MappingUtils
 
 		// cassandra row key
 		clazz.metaClass.ident = {
-			def thisObj = delegate
-			def names = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
-			def values = names.collect {
-				def value = thisObj.getProperty(it)
-				KeyHelper.primaryRowKey(value)
-			}
-			def result = KeyHelper.makeComposite(values)
-
-			return result
+			return KeyHelper.identKey(delegate, cassandraMapping)
 		}
 
 		// traverseRelationships
@@ -189,25 +185,14 @@ class InstanceMethods extends MappingUtils
 
 				// primary key index
 				if (cassandraMapping.primaryKey) {
-					indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(thisObj.id):'']
+					//indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(thisObj.id):'']
+					indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(id):'']
 				}
 
 				// explicit indexes
-				cassandraMapping.explicitIndexes?.each {propName ->
-					if (oldObj) {
+				IndexHelper.updateAllExplicitIndexes(oldObj, thisObj, cassandraMapping, oldIndexRows, indexRows)
 
-						def oldIndexRowKeys = KeyHelper.objectIndexRowKeys(propName, oldObj)
-						oldIndexRowKeys.each {oldIndexRowKey ->
-							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
-						}
-					}
-
-					def indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
-					indexRowKeys.each {indexRowKey ->
-						indexRows[indexRowKey] = [(thisObj.id):'']
-					}
-				}
-
+				//TODO - put this into the above?
 				oldIndexRows.each {rowKey, col ->
 					col.each {colKey, v ->
 						persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
@@ -243,7 +228,7 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.saveTimed = {args ->
 			profiler.increment("Iterations", 1)
 
-			def t0 = System.currentTimeMillis()
+			def t0 = System.nanoTime()
 
 			def thisObj = delegate
 			def ttl = args?.ttl ?: cassandraMapping.timeToLive
@@ -254,7 +239,7 @@ class InstanceMethods extends MappingUtils
 			def persistence = cassandra.persistence
 
 			// TIMER
-			def t1 = System.currentTimeMillis()
+			def t1 = System.nanoTime()
 			profiler.increment("Save - Header", t1-t0)
 			t0 = t1
 
@@ -262,33 +247,38 @@ class InstanceMethods extends MappingUtils
 				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Prepare Mutation", t1-t0)
 				t0 = t1
 
 				// get the primary row key
 				def id
 				try {
-					id = thisObj.id
+					id = thisObj.ident()
 
-					t1 = System.currentTimeMillis()
-					profiler.increment("Save - Primary Key", t1-t0)
+					t1 = System.nanoTime()
+					profiler.increment("Save - Primary Key 1", t1-t0)
 					t0 = t1
 				}
 				catch (CassandraMappingNullIndexException e) {
 					// if primary key is a UUID and its null, set it
+
+					t1 = System.nanoTime()
+					profiler.increment("Save - Primary Key 2", t1-t0)
+					t0 = t1
+
 					def keyNames = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 					def keyClass = keyNames.size() == 1 ? clazz.getDeclaredField(keyNames[0]).type : null
 
-					t1 = System.currentTimeMillis()
-					profiler.increment("Save - Primary Key 1", t1-t0)
+					t1 = System.nanoTime()
+					profiler.increment("Save - Primary Key 2/Check Class", t1-t0)
 					t0 = t1
 
 					if (keyClass == UUID) {
 						def uuid = UUID.timeUUID()
 
-						t1 = System.currentTimeMillis()
-						profiler.increment("Save - Primary Key UUID", t1-t0)
+						t1 = System.nanoTime()
+						profiler.increment("Save - Primary Key 2/UUID", t1-t0)
 						t0 = t1
 
 						thisObj.setProperty(keyNames[0], uuid)
@@ -297,21 +287,16 @@ class InstanceMethods extends MappingUtils
 					else {
 						throw e
 					}
-					t1 = System.currentTimeMillis()
-					profiler.increment("Save - Primary Key 2", t1-t0)
+					t1 = System.nanoTime()
+					profiler.increment("Save - Primary Key 2/Remainder", t1-t0)
 					t0 = t1
 				}
-
-				// TIMER
-				t1 = System.currentTimeMillis()
-				profiler.increment("Save - Primary Key", t1-t0)
-				t0 = t1
 
 				// see if it exists
 				def oldObj = args?.nocheck ? null : clazz.get(id, [cluster:cluster])
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Old Object", t1-t0)
 				t0 = t1
 
@@ -355,7 +340,7 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - 1:1 Relationships", t1-t0)
 				t0 = t1
 
@@ -366,7 +351,7 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Delete Old Keys", t1-t0)
 				t0 = t1
 
@@ -377,31 +362,20 @@ class InstanceMethods extends MappingUtils
 
 				// primary key index
 				if (cassandraMapping.primaryKey) {
-					indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(thisObj.id):'']
+					//indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(thisObj.id):'']
+					indexRows[KeyHelper.primaryKeyIndexRowKey()] = [(id):'']
 				}
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Primary Key Index", t1-t0)
 				t0 = t1
 
 
 				// explicit indexes
-				cassandraMapping.explicitIndexes?.each {propName ->
-					if (oldObj) {
+				IndexHelper.updateAllExplicitIndexes(oldObj, thisObj, cassandraMapping, oldIndexRows, indexRows)
 
-						def oldIndexRowKeys = KeyHelper.objectIndexRowKeys(propName, oldObj)
-						oldIndexRowKeys.each {oldIndexRowKey ->
-							oldIndexRows[oldIndexRowKey] = [(oldObj.id):'']
-						}
-					}
-
-					def indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj)
-					indexRowKeys.each {indexRowKey ->
-						indexRows[indexRowKey] = [(thisObj.id):'']
-					}
-				}
-
+				//TODO - put this into the above?
 				oldIndexRows.each {rowKey, col ->
 					col.each {colKey, v ->
 						persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
@@ -409,7 +383,7 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Explicit Index Generation", t1-t0)
 				t0 = t1
 
@@ -421,21 +395,21 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Explicit Delete Old", t1-t0)
 				t0 = t1
 
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(thisObj)
 
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Convert Properties", t1-t0)
 				t0 = t1
 
 				persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Save Object", t1-t0)
 				t0 = t1
 
@@ -448,26 +422,22 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Explicit Index Setup", t1-t0)
 				t0 = t1
 
 				// counters
-				//cassandraMapping.counters?.each {ctr ->
-					//updateCounterColumns(clazz, ctr, m, oldObj, thisObj)
-				//	CounterHelper.updateCounterColumns(persistence, counterColumnFamily, ctr, m, oldObj, thisObj)
-				//}
 				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, oldObj, thisObj)
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Counter Setup", t1-t0)
 				t0 = t1
 
 				persistence.execute(m)
 
 				// TIMER
-				t1 = System.currentTimeMillis()
+				t1 = System.nanoTime()
 				profiler.increment("Save - Cassandra Save", t1-t0)
 				t0 = t1
 			}
@@ -528,9 +498,7 @@ class InstanceMethods extends MappingUtils
 
 				// decrement old counters
 				// TODO - filter out those not in properties?
-				cassandraMapping.counters?.each {ctr ->
-					updateCounterColumns(clazz, ctr, m, thisObj, null)
-				}
+				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, thisObj, null)
 
 				// set the new properties
 				properties.each {name, value ->
@@ -574,9 +542,8 @@ class InstanceMethods extends MappingUtils
 
 				// increment new counters
 				// TODO - filter out those not in properties?
-				cassandraMapping.counters?.each {ctr ->
-					updateCounterColumns(clazz, ctr, m, null, thisObj)
-				}
+				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, null, thisObj)
+
 
 				persistence.execute(m)
 			}
@@ -696,9 +663,7 @@ class InstanceMethods extends MappingUtils
 				persistence.deleteRow(m, indexColumnFamily, oneBackLinkKey)
 
 				// decrement counters
-				cassandraMapping.counters?.each {ctr ->
-					updateCounterColumns(clazz, ctr, m, thisObj, null)
-				}
+				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, thisObj, null)
 
 				persistence.execute(m)
 			}

@@ -37,6 +37,21 @@ import java.util.*;
  */
 public class KeyHelper
 {
+	public static String identKey(GroovyObject thisObj, Map<String, Object>cassandraMapping) throws IOException, CassandraMappingNullIndexException
+	{
+		Object primaryKey = cassandraMapping.get("primaryKey");
+		if (primaryKey == null) {
+			primaryKey = cassandraMapping.get("unindexedPrimaryKey");
+		}
+		List<String> names = OrmHelper.stringList(primaryKey);
+		List<String> values = new ArrayList<String>(names.size());
+		for (String it: names) {
+			Object value = thisObj.getProperty(it);
+			values.add(KeyHelper.primaryRowKey(value));
+		}
+		return KeyHelper.makeComposite(values);
+	}
+
 	public static String makeComposite(List<String> list)
 	{
 		int len = list.size();
@@ -162,8 +177,17 @@ public class KeyHelper
 		}
 	}
 
+	public static List<String> objectIndexRowKeys(Object propName, GroovyObject bean) throws IOException
+	{
+		if (propName instanceof List) {
+			return objectIndexRowKeys((List<String>)propName, bean);
+		}
+		else {
+			return objectIndexRowKeys(String.valueOf(propName), bean);
+		}
+	}
 
-	public static Collection objectIndexRowKeys(String propName, GroovyObject bean) throws IOException
+	public static List<String> objectIndexRowKeys(String propName, GroovyObject bean) throws IOException
 	{
 		try {
 			Object value = bean.getProperty(propName);
@@ -189,7 +213,7 @@ public class KeyHelper
 		}
 	}
 
-	public static Collection<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
+	public static List<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
 	{
 		try {
 			List<Object> valueList = new ArrayList<Object>(propNames.size());

@@ -56,7 +56,6 @@ public class CounterHelper
 		}
 	}
 
-
 	public static void updateCounterColumns(PersistenceProvider persistence, Object counterColumnFamily, Map counterDef, Object m, GroovyObject oldObj, GroovyObject thisObj) throws IOException
 	{
 		List<String> whereKeys = OrmHelper.stringList(counterDef.get("findBy"));
@@ -66,142 +65,116 @@ public class CounterHelper
 
 		if ((Boolean)counterDef.get("isDateIndex")) {
 			if (oldObj != null) {
-				List<String> oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT);
+				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
 				List<String> gKeys = groupKeys;
 				String ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-				if (oldColNames != null && ocrk != null) {
+				if (oldColName != null && ocrk != null) {
 
 					/** ALTERNATE ONE **/
-					// all hours row (currently not used)
-					for(String oldColName: oldColNames) {
-						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-					}
+					// all hours row
+					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 					// all days row
-					oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT);
-					for(String oldColName: oldColNames) {
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
-						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-					}
+					oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT);
+					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
+					ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
+
 
 					/** COMMON TO ALL**/
 					// all months row
-					oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_MONTH_FORMAT);
-					for(String oldColName: oldColNames) {
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
-						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-					}
+					oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_MONTH_FORMAT);
+					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
+					ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT);
-						for(String oldColName: oldColNames) {
-							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys.get(0)))+"THH");
-							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-							persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-						}
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys.get(0)))+"THH");
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 						/** ALTERNATE THREE (current) **/
 						// specific month/hour row
-						oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT);
-						for(String oldColName: oldColNames) {
-							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys.get(0))));
-							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-							persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-						}
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys.get(0))));
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 						/** COMMON TO TWO AND THREE **/
 						// specific year/day row
-						oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_DAY_FORMAT);
-						for(String oldColName: oldColNames) {
-							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys.get(0))));
-							ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-							persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-						}
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys.get(0))));
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 					}
 				}
 			}
 
 			if (thisObj != null) {
-				List<String> colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT);
+				String colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
 				List<String> gKeys = groupKeys;
 				String crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-				if (colNames != null && crk != null) {
+				if (colName != null && crk != null) {
 
 
 					/** ALTERNATE ONE **/
 					// all hours row (currently not used)
-					for (String colName: colNames) {
-						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-					}
+					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
+
 					// all days row
-					colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT);
-					for (String colName: colNames) {
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
-						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-					}
+					colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT);
+					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
+					crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 					/** COMMON TO ALL**/
 					// all month row
-					colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_MONTH_FORMAT);
-					for (String colName: colNames) {
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
-						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-					}
+					colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT);
+					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
+					crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT);
-						for (String colName: colNames) {
-							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys.get(0)))+"THH");
-							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-							persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-						}
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys.get(0)))+"THH");
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 						/** ALTERNATE THREE (current) **/
 						// specific month/hour row
-						colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT);
-						for (String colName: colNames) {
-							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys.get(0))));
-							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-							persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-						}
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys.get(0))));
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 						/** COMMON TO TWO AND THREE **/
 						// specific year/day row
-						colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_DAY_FORMAT);
-						for (String colName: colNames) {
-							gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys.get(0))));
-							crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-							persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-						}
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys.get(0))));
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 					}
 				}
 			}
 		}
 		else {
 			if (oldObj != null) {
-				List<String> oldColNames = CounterHelper.counterColumnNames(groupKeys, oldObj, UTC_HOUR_FORMAT);
-				for(String oldColName: oldColNames) {
-					String ocrk = KeyHelper.counterRowKey(whereKeys, groupKeys, oldObj);
-					if (oldColName != null && ocrk != null) {
-						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
-					}
+				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
+				String ocrk = KeyHelper.counterRowKey(whereKeys, groupKeys, oldObj);
+				if (oldColName != null && ocrk != null) {
+					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 				}
 			}
 			if (thisObj != null) {
-				List<String> colNames = CounterHelper.counterColumnNames(groupKeys, thisObj, UTC_HOUR_FORMAT);
-				for (String colName: colNames) {
-					String crk = KeyHelper.counterRowKey(whereKeys, groupKeys, thisObj);
-					if (colName != null && crk != null) {
-						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
-					}
+				String colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
+				String crk = KeyHelper.counterRowKey(whereKeys, groupKeys, thisObj);
+				if (colName != null && crk != null) {
+					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 				}
 			}
 		}
@@ -258,11 +231,6 @@ public class CounterHelper
 		}
 	}
 
-	public static String counterColumnName(List<String> groupKeys, GroovyObject bean)  throws IOException
-	{
-		return counterColumnName(groupKeys, bean, UTC_HOUR_FORMAT);
-	}
-
 	public static String counterColumnName(List<String> groupKeys, GroovyObject bean, DateFormat dateFormat) throws IOException
 	{
 		try {
@@ -275,31 +243,6 @@ public class CounterHelper
 		catch (CassandraMappingNullIndexException e) {
 			return null;
 		}
-	}
-
-	public static List<String> counterColumnNames(List<String> groupKeys, GroovyObject bean) throws IOException
-	{
-		return counterColumnNames(groupKeys, bean, UTC_HOUR_FORMAT);
-	}
-
-	public static List<String> counterColumnNames(List<String> groupKeys, GroovyObject bean, DateFormat dateFormat) throws IOException
-	{
-		List<String> result = new ArrayList<String>();
-		try {
-			List<Object> keys = new ArrayList<Object>();
-			for (String it: groupKeys) {
-				keys.add(KeyHelper.counterColumnKey(bean.getProperty(it), dateFormat));
-			}
-
-			List<List<String>> items = OrmHelper.expandNestedArray(keys);
-			for (List<String> it: items) {
-				result.add(KeyHelper.makeComposite(it));
-			}
-		}
-		catch (CassandraMappingNullIndexException e) {
-			// OK
-		}
-		return result;
 	}
 
 	/*

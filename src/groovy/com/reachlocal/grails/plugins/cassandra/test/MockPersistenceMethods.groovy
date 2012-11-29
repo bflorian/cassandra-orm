@@ -24,6 +24,7 @@ import com.reachlocal.grails.plugins.cassandra.mapping.PersistenceProvider
  */
 class MockPersistenceMethods implements PersistenceProvider
 {
+	Boolean dumpMutations = false
 	MockPersistenceDataStructure data = new MockPersistenceDataStructure()
 
 	void setCluster(cluster)
@@ -141,7 +142,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "prepareMutationBatch", consistencyLevel
 		"mutation"
 
-		mutationBatch = []
+		if (dumpMutations) {
+			mutationBatch = []
+		}
 	}
 
 	void deleteColumn(mutationBatch, columnFamily, rowKey, columnName)
@@ -149,7 +152,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "deleteColumn", columnFamily, rowKey, columnName
 		data.deleteColumn(columnFamily, rowKey, columnName)
 
-		// mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').deleteColumn('$columnName')"
+		if (dumpMutations) {
+			mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').deleteColumn('$columnName')"
+		}
 	}
 
 	void putColumn(mutationBatch, columnFamily, rowKey, name, value)
@@ -157,7 +162,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "putColumn", columnFamily, rowKey, name, value
 		data.putColumn(columnFamily, rowKey, name, value)
 
-		// mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').putColumn('$name', '$value')"
+		if (dumpMutations) {
+			mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').putColumn('$name', '$value')"
+		}
 	}
 
 	void putColumn(mutationBatch, columnFamily, rowKey, name, value, ttl)
@@ -165,7 +172,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "putColumn", columnFamily, rowKey, name, value, ttl
 		data.putColumn(columnFamily, rowKey, name, value, ttl)
 
-		// mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').putColumn('$name', '$value', $ttl)"
+		if (dumpMutations) {
+			mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').putColumn('$name', '$value', $ttl)"
+		}
 	}
 
 	void putColumns(mutationBatch, columnFamily, rowKey, columnMap)
@@ -173,11 +182,18 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "putColumns", columnFamily, rowKey, columnMap
 		data.putColumns(columnFamily, rowKey, columnMap)
 
-		def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
-		columnMap.each {k,v ->
-			sb << "\n      .putColumn('$k', '$v')"
+		if (dumpMutations) {
+			def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
+			columnMap.each {k,v ->
+				if (v != null) {
+					sb << "\n      .putColumn('$k', '$v')"
+				}
+				else {
+					sb << "\n      .deleteColumn('$k')"
+				}
+			}
+			mutationBatch << sb.toString()
 		}
-		// mutationBatch << sb.toString()
 	}
 
 	void putColumns(mutationBatch, columnFamily, rowKey, columnMap, ttlMap)
@@ -185,18 +201,30 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "putColumns", columnFamily, rowKey, columnMap, ttlMap
 		data.putColumns(columnFamily, rowKey, columnMap, ttlMap)
 
-		def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
-		if (ttlMap instanceof Number) {
-			columnMap.each {k, v ->
-				sb << "\n      .putColumn('$k', '$v', $ttlMap)"
+		if (dumpMutations) {
+			def sb = new StringBuilder("mutationBatch.withRow('$columnFamily', '$rowKey')")
+			if (ttlMap instanceof Number) {
+				columnMap.each {k, v ->
+					if (v != null) {
+						sb << "\n      .putColumn('$k', '$v', $ttlMap)"
+					}
+					else {
+						sb << "\n      .deleteColumn('$k')"
+					}
+				}
 			}
-		}
-		else {
-			columnMap.each {k, v ->
-				sb << "\n      .putColumn('$k', '$v', ${ttlMap[k]})"
+			else {
+				columnMap.each {k, v ->
+					if (v != null) {
+						sb << "\n      .putColumn('$k', '$v', ${ttlMap[k]})"
+					}
+					else {
+						sb << "\n      .deleteColumn('$k')"
+					}
+				}
 			}
+			mutationBatch << sb.toString()
 		}
-		// mutationBatch << sb.toString()
 	}
 
 	void incrementCounterColumn(Object mutationBatch, Object columnFamily, Object rowKey, Object name)
@@ -209,7 +237,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		logOp "incrementCounterColumn", columnFamily, rowKey, name, value
 		data.incrementCounterColumn(columnFamily, rowKey, name, value)
 
-		// mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').incrementCounterColumn('$name', $value)"
+		if (dumpMutations) {
+			mutationBatch << "mutationBatch.withRow('$columnFamily', '$rowKey').incrementCounterColumn('$name', $value)"
+		}
 	}
 
 	void incrementCounterColumns(mutationBatch, columnFamily, rowKey, columnMap)
@@ -221,7 +251,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		columnMap.each {k,v ->
 			sb << "\n      .incrementCounterColumn('$k', $v)"
 		}
-		// mutationBatch << sb.toString()
+		if (dumpMutations) {
+			mutationBatch << sb.toString()
+		}
 	}
 
 	void deleteRow(mutationBatch, columnFamily, rowKey)
@@ -234,13 +266,14 @@ class MockPersistenceMethods implements PersistenceProvider
 	{
 		logOp "execute"
 
-		/*
-		println "def mutationBatch = ks.prepareMutationBatch()"
-		mutationBatch.each {
-			println it
+		if (dumpMutations) {
+			println "def mutationBatch = ks.prepareMutationBatch()"
+			mutationBatch.each {
+				println it
+			}
+			println "mutationBatch.execute()"
 		}
-		println "mutationBatch.execute()"
-		*/
+
 	}
 
 	def getRow(rows, key)

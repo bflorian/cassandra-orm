@@ -40,12 +40,15 @@ class InsertPerformanceTests extends OrmTestCase
 				visitorId:  visitorId,
 				occurTime: new Date(),
 				refClass:  "Organic",
-				refType: "Search",
+				refType: "Social",
 				refName: "Google",
 				refKeyword: "Super duper",
 				refUrl: "http://www.reachlocal.com",
+				refPage: "http://www.reachlocal.com",
 				pageUrl: "http://docs.mongodb.org/manual/faq/developers/",
-				userAgent: "Chrome"
+				pageTitle: "Developers",
+				userAgent: "Chrome",
+				newVisitor: true
 		)
 		v.save(nocheck: true)
 	}
@@ -133,7 +136,7 @@ class InsertPerformanceTests extends OrmTestCase
 
 		InstanceMethods.dumpProfiler()
 	}
-*/
+
 	@Test
 	void testWebsiteVisit()
 	{
@@ -174,4 +177,5 @@ class InsertPerformanceTests extends OrmTestCase
 
 		InstanceMethods.dumpProfiler()
 	}
+	*/
 }

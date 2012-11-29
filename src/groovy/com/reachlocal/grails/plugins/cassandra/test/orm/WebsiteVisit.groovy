@@ -55,6 +55,7 @@ class WebsiteVisit
 			expandoMap: 'props',
 
 			unindexedPrimaryKey:
+			//primaryKey:
 					'visitId',
 
 			explicitIndexes: [
