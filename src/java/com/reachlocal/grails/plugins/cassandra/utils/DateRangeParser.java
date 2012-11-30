@@ -48,7 +48,7 @@ public class DateRangeParser
 		if (finish == null) {
 			this.finish.setTime(new Date());
 			this.finish.add(Calendar.MONTH, 1);
-			this.finish.set(Calendar.DAY_OF_MONTH, 0);
+			this.finish.set(Calendar.DAY_OF_MONTH, 1);
 			this.finish.set(Calendar.HOUR_OF_DAY, 0);
 			this.finish.set(Calendar.MINUTE, 0);
 			this.finish.set(Calendar.SECOND, 0);
