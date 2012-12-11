@@ -64,9 +64,9 @@ public interface PersistenceProvider
 	void execute(mutationBatch);
 
 	Object getRow(rows, key);
-
-	Object getColumns(row);
-
+    */
+	Iterable getColumns(Object row);
+	/*
 	Object getColumn(row, name);
 
 	Object getColumnByIndex(row, index);

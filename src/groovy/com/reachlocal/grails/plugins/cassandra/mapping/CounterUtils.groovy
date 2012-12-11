@@ -231,7 +231,7 @@ class CounterUtils
 		def groupKeys = KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM')
 		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 
-		columnsList(persistence.getColumnRange(
+		CounterHelper.columnsList(persistence.getColumnRange(
 				ks,
 				cf,
 				rowKey,
@@ -247,7 +247,7 @@ class CounterUtils
 		def groupKeys = KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM-dd')
 		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 
-		columnsList(persistence.getColumnRange(
+		CounterHelper.columnsList(persistence.getColumnRange(
 				ks,
 				cf,
 				rowKey,
@@ -263,7 +263,7 @@ class CounterUtils
 		def groupKeys = groupBy //makeGroupKeyList(groupBy, "yyyy-MM-dd'T'HH")
 		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 
-		columnsList(persistence.getColumnRange(
+		CounterHelper.columnsList(persistence.getColumnRange(
 				ks,
 				cf,
 				rowKey,
@@ -293,7 +293,7 @@ class CounterUtils
 			cal.add(Calendar.YEAR, 1)
 		}
 
-		columnsListFromRowList(persistence.getRowsColumnRange(
+		CounterHelper.columnsListFromRowList(persistence.getRowsColumnRange(
 				ks,
 				cf,
 				rowKeys,
@@ -322,7 +322,7 @@ class CounterUtils
 			cal.add(Calendar.MONTH, 1)
 		}
 
-		columnsListFromRowList(persistence.getRowsColumnRange(
+		CounterHelper.columnsListFromRowList(persistence.getRowsColumnRange(
 				ks,
 				cf,
 				rowKeys,
@@ -340,28 +340,6 @@ class CounterUtils
 		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1, consistencyLevel)
 		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
-	}
-
-	static columnsList(columnsIterator)
-	{
-		// TODO - performance!
-		def cols = []
-		columnsIterator.each {
-			cols << it
-		}
-		cols
-	}
-
-	static columnsListFromRowList(rowList, persistence)
-	{
-		// TODO - performance!
-		def cols = []
-		rowList.each {row ->
-			persistence.getColumns(row).each {
-				cols << it
-			}
-		}
-		cols
 	}
 
 	static rollUpCounterDates(Map map, DateFormat fromFormat, grain, timeZone, toFormatArg)

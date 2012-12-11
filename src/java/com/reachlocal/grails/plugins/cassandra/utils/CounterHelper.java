@@ -676,4 +676,25 @@ public class CounterHelper
 			return columnKeys;
 		}
 	}
+
+	static public List columnsList(Iterable columnsIterator)
+	{
+		List<Object> cols = new ArrayList<Object>();
+		for (Object it: columnsIterator) {
+			cols.add(it);
+		}
+		return cols;
+	}
+
+	static public List columnsListFromRowList(Iterable rowList, PersistenceProvider persistence)
+	{
+		// TODO - performance!
+		List<Object> cols = new ArrayList<Object>();
+		for (Object row: rowList) {
+			for (Object it: persistence.getColumns(row)) {
+				cols.add(it);
+			}
+		}
+		return cols;
+	}
 }
