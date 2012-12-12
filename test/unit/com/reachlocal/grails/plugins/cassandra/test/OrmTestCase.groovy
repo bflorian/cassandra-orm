@@ -54,12 +54,12 @@ class OrmTestCase
 
 		ctx = new Expando(getBean: {name -> client})
 
+        UuidDynamicMethods.addAll()
 		OrmUtility.addDynamicMethods(User, ctx)
 		OrmUtility.addDynamicMethods(UserGroup, ctx)
 		OrmUtility.addDynamicMethods(UserGroupMeeting, ctx)
 		OrmUtility.addDynamicMethods(UserGroupPost, ctx)
 		OrmUtility.addDynamicMethods(Visit, ctx)
 		OrmUtility.addDynamicMethods(WebsiteVisit, ctx)
-		UuidDynamicMethods.addAll()
 	}
 }

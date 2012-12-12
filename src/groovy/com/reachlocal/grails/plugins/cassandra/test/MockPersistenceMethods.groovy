@@ -281,7 +281,7 @@ class MockPersistenceMethods implements PersistenceProvider
 		rows[key]
 	}
 
-	def getColumns(row)
+    Iterable getColumns(row)
 	{
 		row.value
 	}
