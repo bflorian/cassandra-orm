@@ -2,3 +2,5 @@ The Cassandra ORM Plugin provides GORM-like dynamic methods for persisting Groov
 does not implement the GORM API but generally follows the same syntax.  It also includes additional methods and options
 that are specifically suited to Cassandra. In addition to the dynamic persistence methods, the plugin extends java.util.UUID
 with methods to generate and use TimeUUIDs, which often server as primary keys in Cassandra.
+
+See the [user guide](http://www.florian.org/grails/cassandra-orm/docs/guide/single.html) for more documentation.
