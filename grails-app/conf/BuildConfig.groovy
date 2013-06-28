@@ -46,14 +46,17 @@ grails.project.dependency.resolution = {
 		runtime 'com.github.stephenc.eaio-uuid:uuid:3.2.0'
 
 		// runtime 'mysql:mysql-connector-java:5.1.13'
+
+		test "org.spockframework:spock-grails-support:0.7-groovy-2.0"
     }
 
 	plugins {
 		build (":svn:1.0.2") {
 			export = false
 		}
-		test (":spock:0.6") {
+		test (":spock:0.7") {
 			export = false
+			exclude "spock-grails-support"
 		}
 	}
 }
