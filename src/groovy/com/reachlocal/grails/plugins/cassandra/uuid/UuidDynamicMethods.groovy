@@ -84,6 +84,12 @@ class UuidDynamicMethods
 		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
+	static UUID timeUUID(Date date)
+	{
+		long t = UuidHelper.createTimeFromMicros((date.time * 1000L) + rand.nextInt(1000) as long)
+		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+	}
+
 	static UUID reverseTimeUUID()
 	{
 		long t = UuidHelper.createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
