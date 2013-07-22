@@ -179,7 +179,7 @@ class KeyHelperTests
 
 	    assertEquals "this?uuid=001352980800000_${uuid}".toString(), KeyHelper.indexRowKey("uuid", uuid)
 		assertEquals "this?age=35", KeyHelper.indexRowKey("age", 35)
-		assertEquals "this?date=2012-11-15T12%3A00%3A00.000Z", KeyHelper.indexRowKey("date", Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT"))
+		assertEquals "this?date=001352980800000", KeyHelper.indexRowKey("date", Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT"))
 		assertEquals "this?name=Joe", KeyHelper.indexRowKey("name", "Joe")
 	}
 

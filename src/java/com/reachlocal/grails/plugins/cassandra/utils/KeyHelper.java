@@ -216,25 +216,39 @@ public class KeyHelper
 	public static List<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
 	{
 		try {
+			boolean hasNull = false;
 			List<Object> valueList = new ArrayList<Object>(propNames.size());
 			for (String it: propNames) {
-				valueList.add(bean.getProperty(it));
-			}
-			List<String> result = new ArrayList<String>(valueList.size());
-			List<List<String>> v2 = OrmHelper.expandNestedArray(valueList);
-			for (List values: v2) {
-				List<List<Object>> pairs = new ArrayList<List<Object>>();
-				int index = 0;
-				for (String name: propNames) {
-					List<Object> tuple = new ArrayList<Object>(2);
-					tuple.add(name);
-					tuple.add(values.get(index));
-					pairs.add(tuple);
-					index++;
+				Object value = bean.getProperty(it);
+				if (value != null) {
+					valueList.add(value);
 				}
-				String key = indexRowKey(pairs);
-				if (key != null && key.length() > 0) {
-					result.add(key);
+				else {
+					hasNull = true;
+					break;
+				}
+			}
+			List<String> result;
+			if (hasNull) {
+				result = new ArrayList<String>();
+			}
+			else {
+				result = new ArrayList<String>(valueList.size());
+				List<List<String>> v2 = OrmHelper.expandNestedArray(valueList);
+				for (List values: v2) {
+					List<List<Object>> pairs = new ArrayList<List<Object>>();
+					int index = 0;
+					for (String name: propNames) {
+						List<Object> tuple = new ArrayList<Object>(2);
+						tuple.add(name);
+						tuple.add(values.get(index));
+						pairs.add(tuple);
+						index++;
+					}
+					String key = indexRowKey(pairs);
+					if (key != null && key.length() > 0) {
+						result.add(key);
+					}
 				}
 			}
 			return result;
@@ -355,13 +369,15 @@ public class KeyHelper
 			UUID id = (UUID)obj;
 			if (id.version() == 1) {
 				long time = UuidDynamicMethods.time(id);
-				String ts = time < 0L  ? INT_KEY_FMT2.format(time) : INT_KEY_FMT1.format(time);
-				return ts + "_" + id.toString();
+				return timePrefix(time) + "_" + id.toString();
 			}
 			else {
 				return id.toString();
 			}
 
+		}
+		else if (obj instanceof Date) {
+			return timePrefix(((Date)obj).getTime());
 		}
 		else if (obj instanceof GroovyObject) {
 			GroovyObject g = (GroovyObject)obj;
@@ -391,6 +407,10 @@ public class KeyHelper
 			// TODO - why do we get this for enums in counters and not in simple properties?
 			return obj.toString();
 		}
+	}
+
+	public static String timePrefix(long time) {
+		return (time < 0L  ? INT_KEY_FMT2.format(time) : INT_KEY_FMT1.format(time));
 	}
 
 	public static final String ENC = "UTF-8";

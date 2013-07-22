@@ -20,11 +20,16 @@ public class IndexHelper
 		Object explicitIndexes = cassandraMapping.get("explicitIndexes");
 		if (explicitIndexes instanceof List) {
 
+			Object thisObjectId = thisObj.getProperty("id");
+			Object oldObjectId = null;
+			if (oldObj != null) {
+				oldObjectId = oldObj.getProperty("id");
+			}
 			List explicitIndexList = (List)explicitIndexes;
 			for (Object propName: explicitIndexList) {
 				if (oldObj != null) {
 					Map<Object,Object> oldIndexCol = new LinkedHashMap<Object,Object>();
-					oldIndexCol.put(oldObj.getProperty("id"), "");
+					oldIndexCol.put(oldObjectId, "");
 					List<String> oldIndexRowKeys = KeyHelper.objectIndexRowKeys(propName, oldObj);
 					for (String oldIndexRowKey: oldIndexRowKeys) {
 						oldIndexRows.put(oldIndexRowKey, oldIndexCol);
@@ -32,20 +37,12 @@ public class IndexHelper
 				}
 
 				Map<Object,Object> indexCol = new LinkedHashMap<Object,Object>();
-				indexCol.put(thisObj.getProperty("id"), "");
+				indexCol.put(thisObjectId, "");
 				List<String> indexRowKeys = KeyHelper.objectIndexRowKeys(propName, thisObj);
 				for (String indexRowKey: indexRowKeys) {
 					indexRows.put(indexRowKey, indexCol);
 				}
 			}
 		}
-		/*
-		//oldIndexRows.each {rowKey, col ->
-		for (Map.Entry entry: oldIndexRows.entrySet()) {
-			//col.each {colKey, v ->
-			for (Map.Entry col: entry.value) {
-				persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
-			}
-		}*/
 	}
 }
