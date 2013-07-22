@@ -357,8 +357,10 @@ class CounterUtils
     static protected final CLUSTER_PROP = "_cassandra_cluster_"
 
     static mapper = new ObjectMapper()
-    static protected ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-    static {
-        ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"))
-    }
+
+	static isoFormatter() {
+		def f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+		f.setTimeZone(TimeZone.getTimeZone("GMT"))
+		f
+	}
 }

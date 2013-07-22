@@ -152,7 +152,7 @@ class DataMapping extends MappingUtils
 			case Boolean:
 				return column.booleanValue
 			case Date:
-				return ISO_TS.parse(persistence.stringValue(column))
+				return isoFormatter().parse(persistence.stringValue(column))
 			case String:
 				return persistence.stringValue(column)
 			case UUID:
