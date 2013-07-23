@@ -1,4 +1,4 @@
-<plugin name='cassandra-orm' version='0.3.3' grailsVersion='2.0.0 &gt; *'>
+<plugin name='cassandra-orm' version='0.4.0' grailsVersion='2.0.0 &gt; *'>
   <author>Bob Florian</author>
   <authorEmail>bob.florian@reachlocal.com</authorEmail>
   <title>Cassandra Object Persistence Framework</title>
@@ -14,10 +14,12 @@ Must me used in concert with the cassandra-astyanax plugin.
   </resources>
   <repositories>
     <repository name='grailsCentral' url='http://grails.org/plugins' />
-    <repository name='http://repo.grails.org/grails/core' url='http://repo.grails.org/grails/core/' />
     <repository name='mavenCentral' url='http://repo1.maven.org/maven2/' />
   </repositories>
   <dependencies>
+    <test>
+      <dependency group='org.spockframework' name='spock-grails-support' version='0.7-groovy-2.0' />
+    </test>
     <compile>
       <dependency group='org.codehaus.jackson' name='jackson-mapper-asl' version='1.9.7' />
       <dependency group='org.codehaus.jackson' name='jackson-core-asl' version='1.9.7' />
