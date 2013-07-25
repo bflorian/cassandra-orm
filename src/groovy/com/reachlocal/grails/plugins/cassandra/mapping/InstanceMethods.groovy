@@ -819,6 +819,7 @@ class InstanceMethods extends MappingUtils
 					if (value == null) {
 						def persistence = cassandra.persistence
 						def thisObj = delegate
+						def itemClass = property.type
 						def cf = property.type.columnFamily
 
 						// TODO - need to find a way to store this in the object!
@@ -832,7 +833,7 @@ class InstanceMethods extends MappingUtils
 							if (col) {
 								def pid = persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
-							    value = cassandra.mapping.newObject(data, delegate.getProperty(CLUSTER_PROP))
+							    value = cassandra.mapping.newObject(data, itemClass, delegate.getProperty(CLUSTER_PROP))
 							}
 						}
 					}

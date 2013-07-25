@@ -33,7 +33,7 @@ public class OrmHelper
 {
 	public static final String END_CHAR = "\u00ff";
 	public static final int MAX_ROWS = 5000;
-	public static final String CLASS_NAME_KEY = "_class_name_";
+	//public static final String CLASS_NAME_KEY = "_class_name_";
 	public static final String KEY_SUFFIX = "Id";
 	public static final String DIRTY_SUFFIX = "_dirty";
 	public static final String CLUSTER_PROP = "_cassandra_cluster_";

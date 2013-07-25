@@ -98,11 +98,11 @@ class TraverserNode
 		cassandra.withKeyspace(traverser.object.keySpace, traverser.object.cassandraCluster) {ks ->
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names, options.consistencyLevel)
-				result = cassandra.mapping.makeResult(keys, rows, options, oClass)
+				result = cassandra.mapping.makeResult(keys, rows, options, iClass, oClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys, options.consistencyLevel)
-				result = cassandra.mapping.makeResult(keys, rows, options, oClass)
+				result = cassandra.mapping.makeResult(keys, rows, options, iClass, oClass)
 			}
 		}
 		return result

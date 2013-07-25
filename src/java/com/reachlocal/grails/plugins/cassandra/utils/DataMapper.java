@@ -54,9 +54,11 @@ public class DataMapper
 			transients.add(expandoMapName);
 		}
 
-		map.put(CLASS_NAME_KEY, clazz.getName());
+		// Unneeded since we now get the class from the method signatures
+		// Might be needed again if we ever support subclasses
+		//map.put(CLASS_NAME_KEY, clazz.getName());
+
 		for (PropertyDescriptor pd: PropertyUtils.getPropertyDescriptors(data)) {
-		//for (MetaProperty pd: data.getMetaClass().getProperties()) {
 			String name = pd.getName();
 			if (!transients.contains(name) && !GLOBAL_TRANSIENTS.contains(name) && hasMany.get(name) == null) {
 				Object prop = data.getProperty(name);
@@ -122,9 +124,7 @@ public class DataMapper
 		if (value == null) {
 			return null;
 		}
-
-		Class clazz = value.getClass();
-		if (value instanceof String) {
+		else if (value instanceof String) {
 			return value;
 		}
 		else if (value instanceof Collection || value instanceof Map) {
@@ -141,11 +141,13 @@ public class DataMapper
 		}
 	}
 
-	static final String DIRTY_SUFFIX = "_dirty";
-	static final String CLUSTER_PROP = "_cassandra_cluster_";
-	static final String CLASS_NAME_KEY = "_class_name_";
+	// Unused now except for backward compatibility since we now get the class from the method signatures
+	// Might be needed again if we ever support subclasses
+	public static final String CLASS_NAME_KEY = "_class_name_";
+
+	public static final String DIRTY_SUFFIX = "_dirty";
+	public static final String CLUSTER_PROP = "_cassandra_cluster_";
 	static HashSet<String> GLOBAL_TRANSIENTS = new LinkedHashSet<String>();
-	//["class","id","cassandra","indexColumnFamily","columnFamily","counterColumnFamily","metaClass","keySpace","cassandraCluster",DIRTY_SUFFIX,CLUSTER_PROP] as Set
 	static DateFormat ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	static {
 		ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -161,6 +163,5 @@ public class DataMapper
 		GLOBAL_TRANSIENTS.add("cassandraCluster");
 		GLOBAL_TRANSIENTS.add(DIRTY_SUFFIX);
 		GLOBAL_TRANSIENTS.add(CLUSTER_PROP);
-
 	}
 }

@@ -41,9 +41,9 @@ class DataMapping extends MappingUtils
 		}
 	}
 
-	def makeResult(rows, Map options, Class clazz=LinkedHashSet)
+	def makeResult(rows, Map options, Class clazz, Class collectionClass=LinkedHashSet)
 	{
-		def result = clazz.newInstance()
+		def result = collectionClass.newInstance()
 		if (options.columns) {
 			rows.each{result << newColumnMap(it.columns, options.columns)}
 		}
@@ -51,14 +51,14 @@ class DataMapping extends MappingUtils
 			rows.each{result << it.columns.getColumnByName(options.column)}
 		}
 		else {
-			rows.each{result << newObject(it.columns, options.cluster)}
+			rows.each{result << newObject(it.columns, clazz, options.cluster)}
 		}
 		return result
 	}
 
-	def makeResult(keys, Object rows, Map options, Class clazz=LinkedHashSet)
+	def makeResult(keys, Object rows, Map options, Class clazz, Class collectionClass=LinkedHashSet)
 	{
-		def result = clazz.newInstance()
+		def result = collectionClass.newInstance()
 		if (options.columns) {
 			keys.each{result << newColumnMap(persistence.getRow(rows, it), options.columns)}
 		}
@@ -72,7 +72,7 @@ class DataMapping extends MappingUtils
 			keys.each{result << persistence.byteArrayValue(persistence.getColumn(persistence.getRow(rows, it), options.rawColumn))}
 		}
 		else {
-			keys.each{result << newObject(persistence.getRow(rows, it), options.cluster)}
+			keys.each{result << newObject(persistence.getRow(rows, it), clazz, options.cluster)}
 		}
 		return result
 	}
@@ -95,12 +95,15 @@ class DataMapping extends MappingUtils
 		return map
 	}
 
-	def newObject(cols, cluster=null)
+	def newObject(cols, asClass, cluster=null)
 	{
 		def obj = null
 		if (cols) {
-			def className = persistence.stringValue(persistence.getColumn(cols, CLASS_NAME_KEY))
-			def asClass = Class.forName(className, false, DataMapping.class.classLoader)
+
+			// Unneeded since we now get the class from the method signatures
+			// Might be needed again if we ever support subclasses
+			//def className = persistence.stringValue(persistence.getColumn(cols, CLASS_NAME_KEY))
+			//def asClass = Class.forName(className, false, DataMapping.class.classLoader)
 			obj = asClass.newInstance()
 
 			def expandoMapName = asClass.cassandraMapping.expandoMap
@@ -169,4 +172,6 @@ class DataMapping extends MappingUtils
 				}
 		}
 	}
+
+	static protected final CLASS_NAME_KEY = DataMapper.CLASS_NAME_KEY
 }

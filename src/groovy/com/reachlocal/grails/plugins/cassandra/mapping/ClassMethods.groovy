@@ -136,7 +136,7 @@ class ClassMethods extends MappingUtils
 			def cluster = opts.cluster ?: cassandraCluster
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
-				result = cassandra.mapping.newObject(data, opts.cluster)
+				result = cassandra.mapping.newObject(data, clazz, opts.cluster)
 			}
 			return result
 		}
@@ -151,11 +151,11 @@ class ClassMethods extends MappingUtils
 				def names = columnNames(options)
 				if (names) {
 					def rows = cassandra.persistence.getRowsColumnSlice(ks, clazz.columnFamily, rowKeys, names, opts.consistencyLevel)
-					result = cassandra.mapping.makeResult(rowKeys, rows, options)
+					result = cassandra.mapping.makeResult(rowKeys, rows, options, clazz)
 				}
 				else {
 					def rows = cassandra.persistence.getRows(ks, clazz.columnFamily, rowKeys, opts.consistencyLevel)
-					result = cassandra.mapping.makeResult(rowKeys, rows, options)
+					result = cassandra.mapping.makeResult(rowKeys, rows, options, clazz)
 				}
 			}
 			return result
@@ -217,7 +217,7 @@ class ClassMethods extends MappingUtils
 				OrmHelper.checkForDefaultRowsInsufficient(opts.max, keys.size())
 
 				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
-				def result = cassandra.mapping.makeResult(keys, rows, options, LinkedList)
+				def result = cassandra.mapping.makeResult(keys, rows, options, clazz, LinkedList)
 				return options.startAfter && result ? result[1..-1] : result
 			}
 		}

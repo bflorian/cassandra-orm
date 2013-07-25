@@ -449,11 +449,11 @@ class MappingUtils extends CounterUtils
 			def resultClass = options.startAfter ? LinkedList : LinkedHashSet
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, clazz.columnFamily, keys, names, opts.consistencyLevel)
-				result = clazz.cassandra.mapping.makeResult(keys, rows, options, resultClass)
+				result = clazz.cassandra.mapping.makeResult(keys, rows, options, clazz, resultClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, clazz.columnFamily, keys, opts.consistencyLevel)
-				result = clazz.cassandra.mapping.makeResult(keys, rows, options, resultClass)
+				result = clazz.cassandra.mapping.makeResult(keys, rows, options, clazz, resultClass)
 			}
 			return options.startAfter && result ? result[1..-1] : result
 		}
@@ -495,7 +495,7 @@ class MappingUtils extends CounterUtils
 			}
 			def rows = clazz.cassandra.persistence.getRowsWithEqualityIndex(ks, clazz.columnFamily, properties, options.max, opts.consistencyLevel)
 			OrmHelper.checkForDefaultRowsInsufficient(opts.max, rows.size())
-			return clazz.cassandra.mapping.makeResult(rows, options)
+			return clazz.cassandra.mapping.makeResult(rows, options, clazz)
 		}
 	}
 
@@ -518,15 +518,15 @@ class MappingUtils extends CounterUtils
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			if (options.columns) {
 				def rows = clazz.cassandra.persistence.getRowsColumnSliceWithCqlWhereClause(ks, clazz.columnFamily, options.where, options.max, options.columns, opts.consistencyLevel)
-				return clazz.cassandra.mapping.makeResult(rows, options)
+				return clazz.cassandra.mapping.makeResult(rows, options, clazz)
 			}
 			else if (options.column) {
 				def rows = clazz.cassandra.persistence.getRowsColumnSliceWithCqlWhereClause(ks, clazz.columnFamily, options.where, options.max, [options.column], opts.consistencyLevel)
-				return clazz.cassandra.mapping.makeResult(rows, options)
+				return clazz.cassandra.mapping.makeResult(rows, options, clazz)
 			}
 			else {
 				def rows = clazz.cassandra.persistence.getRowsWithCqlWhereClause(ks, clazz.columnFamily, options.where, options.max, opts.consistencyLevel)
-				return clazz.cassandra.mapping.makeResult(rows, options)
+				return clazz.cassandra.mapping.makeResult(rows, options, clazz)
 			}
 		}
 	}
@@ -586,11 +586,11 @@ class MappingUtils extends CounterUtils
 			def resultClass = options.startAfter ? LinkedList : listClass
 			if (names) {
 				def rows = persistence.getRowsColumnSlice(ks, itemColumnFamily, keys, names, opts.consistencyLevel)
-				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, resultClass)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, itemClass, resultClass)
 			}
 			else {
 				def rows = persistence.getRows(ks, itemColumnFamily, keys, opts.consistencyLevel)
-				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, resultClass)
+				result = thisObj.cassandra.mapping.makeResult(keys, rows, options, itemClass, resultClass)
 				if (belongsToPropName) {
 					result.each {
 						it.setProperty(belongsToPropName, thisObj)

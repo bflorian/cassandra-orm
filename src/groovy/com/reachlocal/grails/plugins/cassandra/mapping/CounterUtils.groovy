@@ -351,7 +351,6 @@ class CounterUtils
 
     static protected final END_CHAR = "\u00ff"
     static protected final int MAX_ROWS = 5000
-    static protected final CLASS_NAME_KEY = '_class_name_'
     static protected final KEY_SUFFIX = "Id"
     static protected final DIRTY_SUFFIX = "_dirty"
     static protected final CLUSTER_PROP = "_cassandra_cluster_"
