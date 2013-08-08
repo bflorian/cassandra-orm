@@ -29,7 +29,7 @@ class DataMapping extends MappingUtils
 	def dataProperties(data)
 	{
 		if (data instanceof Map) {
-			return DataMapper.dataProperties((Map<String, Object>)data);
+			return DataMapper.dataProperties((Map<String, Object>)data)
 		}
 		else {
 			def cassandraMapping = data.getClass().cassandraMapping
@@ -37,7 +37,7 @@ class DataMapping extends MappingUtils
 			Map<String, Class> hasMany = (Map<String, Class>)OrmHelper.safeGetProperty(data, 'hasMany', Map, [:])
 			String expandoMapName = cassandraMapping.expandoMap
 			Collection<String> mappedProperties = cassandraMapping.mappedProperties
-			return DataMapper.dataProperties(data, transients, hasMany, expandoMapName, mappedProperties);
+			return DataMapper.dataProperties(data, transients, hasMany, expandoMapName, mappedProperties)
 		}
 	}
 

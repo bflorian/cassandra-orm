@@ -19,11 +19,11 @@ package com.reachlocal.grails.plugins.cassandra.test.orm
 /**
  * @author: Bob Florian
  */
-class UserGroup 
+class UserGroup
 {
 	String uuid
 	String name
-	
+
 	Set users
 	List meetings
 

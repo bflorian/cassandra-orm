@@ -16,15 +16,17 @@
 
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import org.codehaus.groovy.grails.commons.GrailsClassUtils
+import java.text.DecimalFormat
+
 import org.apache.commons.beanutils.PropertyUtils
+import org.codehaus.groovy.grails.commons.GrailsClassUtils
+
+import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
 import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
+import com.reachlocal.grails.plugins.cassandra.utils.IndexHelper
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
-import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
-import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
-import java.text.DecimalFormat
-import com.reachlocal.grails.plugins.cassandra.utils.IndexHelper
 
 /**
  * @author: Bob Florian
@@ -467,7 +469,7 @@ class InstanceMethods extends MappingUtils
 						catch (NoSuchMethodException e) {
 							// Skip it, if there is an expando
 							if (!cassandraMapping.expandoMap) {
-								throw e;
+								throw e
 							}
 						}
 					}

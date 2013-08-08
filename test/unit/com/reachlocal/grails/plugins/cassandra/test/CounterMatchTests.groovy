@@ -16,9 +16,9 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
+import org.junit.Test
+
 import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
-import org.junit.Test;
-import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian

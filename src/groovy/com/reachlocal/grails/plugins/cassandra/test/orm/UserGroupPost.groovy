@@ -19,7 +19,7 @@ package com.reachlocal.grails.plugins.cassandra.test.orm
 /**
  * @author: Bob Florian
  */
-class UserGroupPost 
+class UserGroupPost
 {
 	UUID uuid = UUID.timeUUID()
 	String text

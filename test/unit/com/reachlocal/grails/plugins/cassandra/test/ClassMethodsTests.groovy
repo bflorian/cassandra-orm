@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.reachlocal.grails.plugins.cassandra.test;
+package com.reachlocal.grails.plugins.cassandra.test
 
+import java.text.SimpleDateFormat
+
+import org.junit.Test
+
+import com.reachlocal.grails.plugins.cassandra.test.orm.Color
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
-import java.text.SimpleDateFormat
-import com.reachlocal.grails.plugins.cassandra.test.orm.Color
-import org.junit.Test;
-import static org.junit.Assert.*
 import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
 
 /**

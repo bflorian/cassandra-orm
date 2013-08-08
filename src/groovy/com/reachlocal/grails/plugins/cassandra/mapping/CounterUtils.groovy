@@ -1,14 +1,16 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
-import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
-import java.text.SimpleDateFormat
 import java.text.DateFormat
-import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
-import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
-import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
-import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
+import java.text.SimpleDateFormat
+
 import org.codehaus.jackson.map.ObjectMapper
+
+import com.reachlocal.grails.plugins.cassandra.utils.CounterHelper
+import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
+import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
+import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
@@ -140,10 +142,10 @@ class CounterUtils
 				}
 			}
 			if (sortResult) {
-				OrmHelper.sort(result);
+				OrmHelper.sort(result)
 			}
 			else {
-				return result;
+				return result
 			}
 		}
 	}

@@ -21,12 +21,12 @@ package com.reachlocal.grails.plugins.cassandra.mapping
  */
 class CassandraMappingException extends Exception
 {
-	public CassandraMappingException()
+	CassandraMappingException()
 	{
 		super()
 	}
 
-	public CassandraMappingException(String message)
+	CassandraMappingException(String message)
 	{
 		super(message)
 	}

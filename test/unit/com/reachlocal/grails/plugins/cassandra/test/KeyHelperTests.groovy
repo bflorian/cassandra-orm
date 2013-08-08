@@ -16,20 +16,21 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import org.junit.Test
-import static org.junit.Assert.*
-import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
-import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
-import com.reachlocal.grails.plugins.cassandra.test.orm.User
-import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
-import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
-import com.reachlocal.grails.plugins.cassandra.test.orm.Color
 import java.text.SimpleDateFormat
+
+import org.junit.Test
+
+import com.reachlocal.grails.plugins.cassandra.test.orm.Color
+import com.reachlocal.grails.plugins.cassandra.test.orm.User
+import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
+import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
+import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 
 /**
  * @author: Bob Florian
  */
-class KeyHelperTests 
+class KeyHelperTests
 {
 	@Test
 	void test_makeComposite()

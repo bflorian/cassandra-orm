@@ -3,7 +3,7 @@ package com.reachlocal.grails.plugins.cassandra.test.orm
 /**
  * @author: Bob Florian
  */
-class WebsiteVisit 
+class WebsiteVisit
 {
 	// Set by client
 	//
@@ -44,7 +44,7 @@ class WebsiteVisit
 	// Session properties (set after visit event insertion)
 	//
 	Boolean bounced = true   // True if no subsequent page views occured within session timeout
-	Long timeOnSite = 0L     // Occur time of last action during this visit site during that session
+	Long timeOnSite = 0      // Occur time of last action during this visit site during that session
 	Integer totalActions = 1 // Total number of page views and posts for the visit
 
 	Map props

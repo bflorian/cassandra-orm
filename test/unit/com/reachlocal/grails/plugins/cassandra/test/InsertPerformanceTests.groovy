@@ -16,12 +16,9 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import org.junit.Test;
-import static org.junit.Assert.*
-import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
+import org.junit.Test
+
 import com.reachlocal.grails.plugins.cassandra.test.orm.WebsiteVisit
-import com.reachlocal.grails.plugins.cassandra.mapping.DataMapping
-import com.reachlocal.grails.plugins.cassandra.mapping.InstanceMethods
 
 class InsertPerformanceTests extends OrmTestCase
 {

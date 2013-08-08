@@ -17,9 +17,10 @@
 package com.reachlocal.grails.plugins.cassandra.test
 
 import java.text.SimpleDateFormat
+
+import org.junit.Test
+
 import com.reachlocal.grails.plugins.cassandra.utils.DateRangeParser
-import org.junit.Test;
-import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
