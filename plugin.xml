@@ -1,4 +1,4 @@
-<plugin name='cassandra-orm' version='0.4.1' grailsVersion='2.0.0 &gt; *'>
+<plugin name='cassandra-orm' version='0.4.2' grailsVersion='2.0.0 &gt; *'>
   <author>Bob Florian</author>
   <authorEmail>bob.florian@reachlocal.com</authorEmail>
   <title>Cassandra Object Persistence Framework</title>
@@ -21,8 +21,8 @@ Must me used in concert with the cassandra-astyanax plugin.
       <dependency group='org.spockframework' name='spock-grails-support' version='0.7-groovy-2.0' />
     </test>
     <compile>
-      <dependency group='org.codehaus.jackson' name='jackson-mapper-asl' version='1.9.7' />
       <dependency group='org.codehaus.jackson' name='jackson-core-asl' version='1.9.7' />
+      <dependency group='org.codehaus.jackson' name='jackson-mapper-asl' version='1.9.7' />
     </compile>
     <runtime>
       <dependency group='com.github.stephenc.eaio-uuid' name='uuid' version='3.2.0' />
