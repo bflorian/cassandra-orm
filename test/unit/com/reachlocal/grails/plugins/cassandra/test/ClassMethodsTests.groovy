@@ -262,6 +262,12 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 2, r.size()
 
+		println "\n--- list(startAfter: 'x5', max: 10) ---"
+		r = User.list(startAfter: 'x5', max: 10)
+		persistence.printClear()
+		println r
+		assertEquals 0, r.size()
+
 		println "\n--- list(start: 'x4z', finish: 'x3z', reversed: true) ---"
 		r = User.list(start: 'x4z', finish: 'x3z', reversed:  true) as List
 		persistence.printClear()

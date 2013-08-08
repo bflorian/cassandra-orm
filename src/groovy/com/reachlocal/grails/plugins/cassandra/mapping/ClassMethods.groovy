@@ -218,7 +218,16 @@ class ClassMethods extends MappingUtils
 
 				def rows = cassandra.persistence.getRows(ks, columnFamily, keys, opts.consistencyLevel)
 				def result = cassandra.mapping.makeResult(keys, rows, options, clazz, LinkedList)
-				return options.startAfter && result ? result[1..-1] : result
+
+                if (options.startAfter && result) {
+                    if (result.size() <= 1) {
+                            return []
+                    } else {
+                        return result[1..-1]
+                    }
+                } else {
+                    return result
+                }
 			}
 		}
 
