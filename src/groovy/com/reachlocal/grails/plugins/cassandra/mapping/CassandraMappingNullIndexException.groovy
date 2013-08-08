@@ -21,12 +21,12 @@ package com.reachlocal.grails.plugins.cassandra.mapping
  */
 class CassandraMappingNullIndexException extends CassandraMappingException
 {
-	public CassandraMappingNullIndexException()
+	CassandraMappingNullIndexException()
 	{
 		super()
 	}
 
-	public CassandraMappingNullIndexException(String message)
+	CassandraMappingNullIndexException(String message)
 	{
 		super(message)
 	}

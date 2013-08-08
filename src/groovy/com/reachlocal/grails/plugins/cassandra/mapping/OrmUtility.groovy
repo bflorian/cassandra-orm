@@ -19,7 +19,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 /**
  * @author: Bob Florian
  */
-class OrmUtility 
+class OrmUtility
 {
 	static void addDynamicMethods(clazz, ctx)
 	{

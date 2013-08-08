@@ -17,11 +17,13 @@
 package com.reachlocal.grails.plugins.cassandra.test
 
 import grails.test.GrailsUnitTestCase
-import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
+
 import java.text.SimpleDateFormat
-import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
+
 import org.junit.Test
-import static org.junit.Assert.*
+
+import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
+import com.reachlocal.grails.plugins.cassandra.utils.NestedHashMap
 
 /**
  * @author: Bob Florian
@@ -459,7 +461,7 @@ class MappingUtilsTests extends GrailsUnitTestCase
 
 		def t0 = System.currentTimeMillis()
 		def days = MappingUtils.rollUpCounterDates(hours, hf, Calendar.DAY_OF_MONTH, TimeZone.getDefault(), null)
-		def elapsed = System.currentTimeMillis() - t0;
+		def elapsed = System.currentTimeMillis() - t0
 		//println days
 		println "${hours.size()} items in $elapsed msec."
 

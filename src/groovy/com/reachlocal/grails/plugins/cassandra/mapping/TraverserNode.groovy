@@ -1,12 +1,11 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
-import org.apache.commons.beanutils.PropertyUtils
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
  */
-class TraverserNode 
+class TraverserNode
 {
 	Traverser traverser
 	TraverserNode parent

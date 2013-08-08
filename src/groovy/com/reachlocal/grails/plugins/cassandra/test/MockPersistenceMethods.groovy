@@ -136,7 +136,7 @@ class MockPersistenceMethods implements PersistenceProvider
 		def list = data.getColumnSlice(columnFamily, rowKey, [columnName])
 		list ? list[0] : null
 	}
-	
+
 	def prepareMutationBatch(client, Object consistencyLevel)
 	{
 		logOp "prepareMutationBatch", consistencyLevel
@@ -328,7 +328,7 @@ class MockPersistenceMethods implements PersistenceProvider
 		def s = "$method(${argStr})"
 		calls << [method: method, args: args, message: s]
 	}
-	
+
 	void print(out=System.out)
 	{
 		calls.eachWithIndex {it, index ->
@@ -342,9 +342,9 @@ class MockPersistenceMethods implements PersistenceProvider
 		data.print(out)
 		clear()
 	}
-	
+
 	def calls = []
-	
+
 	void clear()
 	{
 		calls = []

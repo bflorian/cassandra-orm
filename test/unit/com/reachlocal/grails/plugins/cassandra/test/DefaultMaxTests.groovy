@@ -16,11 +16,10 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import com.reachlocal.grails.plugins.cassandra.test.orm.User
-import com.reachlocal.grails.plugins.cassandra.test.orm.Color
 import org.junit.Test
-import static org.junit.Assert.*
+
 import com.reachlocal.grails.plugins.cassandra.mapping.CassandraMappingException
+import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 
 /**

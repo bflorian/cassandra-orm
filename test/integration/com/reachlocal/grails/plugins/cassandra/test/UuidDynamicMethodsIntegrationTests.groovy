@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-
-
-
-
 package com.reachlocal.grails.plugins.cassandra.test
 
-import static org.junit.Assert.*
-import org.apache.commons.codec.binary.Base64
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNotNull
+import static org.junit.Assert.assertTrue
+
 import java.text.SimpleDateFormat
+
 import org.junit.Test
 
 /**
@@ -35,7 +34,7 @@ class UuidDynamicMethodsIntegrationTests
 	{
 		def bytes = Integer.MAX_VALUE.bytes
 		println bytes
-		
+
 		assertEquals 4, bytes.size()
 		assertEquals(127, bytes[0])
 		assertEquals(-1, bytes[1])
@@ -66,7 +65,7 @@ class UuidDynamicMethodsIntegrationTests
 		def u1 = UUID.timeUUID()
 		Thread.sleep(10)
 		def u2 = UUID.timeUUID()
-		
+
 		assertNotNull u1
 		assertNotNull u2
 		assertTrue u2.time > u1.time
@@ -87,7 +86,7 @@ class UuidDynamicMethodsIntegrationTests
 	@Test
 	void testFromBytes()
 	{
-		def list = (Long.MAX_VALUE.bytes as List) + (Long.MAX_VALUE.bytes as List) 
+		def list = (Long.MAX_VALUE.bytes as List) + (Long.MAX_VALUE.bytes as List)
 		def uuid = UUID.fromBytes(list as byte[])
 		println uuid
 		assertEquals "7fffffff-ffff-ffff-7fff-ffffffffffff", uuid.toString()

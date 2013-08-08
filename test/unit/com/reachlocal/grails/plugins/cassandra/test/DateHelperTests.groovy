@@ -17,9 +17,10 @@
 package com.reachlocal.grails.plugins.cassandra.test
 
 import java.text.SimpleDateFormat
+
+import org.junit.Test
+
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
-import org.junit.Test;
-import static org.junit.Assert.*
 
 /**
  * @author: Bob Florian
@@ -316,7 +317,7 @@ class DateHelperTests extends GroovyTestCase
 
 		def t0 = System.currentTimeMillis()
 		def days = DateHelper.rollUpCounterDates(hours, hf, df)
-		def elapsed = System.currentTimeMillis() - t0;
+		def elapsed = System.currentTimeMillis() - t0
 		//println days
 		println "${hours.size()} items in $elapsed msec."
 

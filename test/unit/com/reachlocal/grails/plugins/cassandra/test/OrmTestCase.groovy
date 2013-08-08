@@ -16,16 +16,16 @@
 
 package com.reachlocal.grails.plugins.cassandra.test
 
-import com.reachlocal.grails.plugins.cassandra.orm.CassandraOrmService
 import com.reachlocal.grails.plugins.cassandra.mapping.DataMapping
+import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
+import com.reachlocal.grails.plugins.cassandra.orm.CassandraOrmService
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroup
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupMeeting
-import com.reachlocal.grails.plugins.cassandra.mapping.OrmUtility
 import com.reachlocal.grails.plugins.cassandra.test.orm.UserGroupPost
 import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
-import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 import com.reachlocal.grails.plugins.cassandra.test.orm.WebsiteVisit
+import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 
 /**
  * @author: Bob Florian

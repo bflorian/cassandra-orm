@@ -16,12 +16,10 @@
 
 package com.reachlocal.grails.plugins.cassandra.test.orm
 
-import org.apache.commons.codec.binary.Base64
-
 /**
  * @author: Bob Florian
  */
-class UserGroupMeeting 
+class UserGroupMeeting
 {
 	String uuid = UUID.timeUUID()
 	Date date

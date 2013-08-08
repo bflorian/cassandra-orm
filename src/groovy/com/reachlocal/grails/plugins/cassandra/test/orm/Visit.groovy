@@ -9,10 +9,10 @@ class Visit
 	String siteName
 	String referrerType
 	String referrerName
-    String referrerUrl
-    String referrerKeyword
-    String pageUrl
-    String userAgent
+	String referrerUrl
+	String referrerKeyword
+	String pageUrl
+	String userAgent
 	Date occurTime
 
 	static transients = ["ageInDays"]

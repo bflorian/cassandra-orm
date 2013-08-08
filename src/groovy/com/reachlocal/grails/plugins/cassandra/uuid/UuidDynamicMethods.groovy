@@ -23,7 +23,7 @@ import com.reachlocal.grails.plugins.cassandra.utils.UuidHelper
 /**
  * @author: Bob Florian
  */
-class UuidDynamicMethods 
+class UuidDynamicMethods
 {
 	static void addAll()
 	{
@@ -75,25 +75,25 @@ class UuidDynamicMethods
 
 	static UUID timeUUID()
 	{
-		return new java.util.UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode())
+		return new UUID(UUIDGen.newTime(), UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID timeUUID(long msec)
 	{
 		long t = UuidHelper.createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
-		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID timeUUID(Date date)
 	{
 		long t = UuidHelper.createTimeFromMicros((date.time * 1000L) + rand.nextInt(1000) as long)
-		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID reverseTimeUUID()
 	{
 		long t = UuidHelper.createTimeFromMicros(((Long.MAX_VALUE - UUIDGen.newTime()) / 10L) as long)
-		return new java.util.UUID(t, UUIDGen.getClockSeqAndNode())
+		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static rand = new Random()

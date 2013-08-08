@@ -16,12 +16,10 @@
 
 package com.reachlocal.grails.plugins.cassandra.test.orm
 
-import java.text.SimpleDateFormat
-
 /**
  * @author: Bob Florian
  */
-class User 
+class User
 {
 	String uuid
 	String email
@@ -39,8 +37,6 @@ class User
 	UserGroup userGroup
 
 	static belongsTo = [userGroup: UserGroup]
-
-	static hf = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 
 	static cassandraMapping = [
 			keySpace: 'mock',

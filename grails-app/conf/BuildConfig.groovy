@@ -1,6 +1,3 @@
-grails.project.class.dir = "target/classes"
-grails.project.test.class.dir = "target/test-classes"
-grails.project.test.reports.dir = "target/test-reports"
 /*
  * Copyright 2012 ReachLocal Inc.
  *
@@ -17,43 +14,31 @@ grails.project.test.reports.dir = "target/test-reports"
  * limitations under the License.
  */
 
-//grails.project.war.file = "target/${appName}-${appVersion}.war"
-grails.project.dependency.resolution = {
-    // inherit Grails' default dependencies
-    inherits("global") {
-        // uncomment to disable ehcache
-        // excludes 'ehcache'
-    }
-    log "warn" // log level of Ivy resolver, either 'error', 'warn', 'info', 'debug' or 'verbose'
-    repositories {
-        grailsPlugins()
-        grailsHome()
-        grailsCentral()
+grails.project.work.dir = 'target'
 
-        // uncomment the below to enable remote dependency resolution
-        // from public Maven repositories
-        //mavenLocal()
-        mavenCentral()
-        //mavenRepo "http://snapshots.repository.codehaus.org"
-        //mavenRepo "http://repository.codehaus.org"
-        //mavenRepo "http://download.java.net/maven/2/"
-        //mavenRepo "http://repository.jboss.com/maven2/"
-    }
-    dependencies {
-        // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
+grails.project.dependency.resolution = {
+
+	inherits 'global'
+	log 'warn'
+
+	repositories {
+		grailsCentral()
+		mavenLocal()
+		mavenCentral()
+	}
+
+	dependencies {
 		compile 'org.codehaus.jackson:jackson-core-asl:1.9.7'
 		compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.7'
 		runtime 'com.github.stephenc.eaio-uuid:uuid:3.2.0'
-
-		// runtime 'mysql:mysql-connector-java:5.1.13'
-
 		test "org.spockframework:spock-grails-support:0.7-groovy-2.0"
-    }
+	}
 
 	plugins {
-		build (":svn:1.0.2", ":release:2.2.1") {
+		build ':release:2.2.1', ':rest-client-builder:1.0.3', {
 			export = false
 		}
+
 		test (":spock:0.7") {
 			export = false
 			exclude "spock-grails-support"

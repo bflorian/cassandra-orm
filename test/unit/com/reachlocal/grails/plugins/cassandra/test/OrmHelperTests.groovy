@@ -17,16 +17,15 @@
 package com.reachlocal.grails.plugins.cassandra.test
 
 import org.junit.Test
-import static org.junit.Assert.*
-import com.reachlocal.grails.plugins.cassandra.mapping.MappingUtils
-import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
-import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
+
 import com.reachlocal.grails.plugins.cassandra.test.orm.User
+import com.reachlocal.grails.plugins.cassandra.test.orm.Visit
+import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
  * @author: Bob Florian
  */
-class OrmHelperTests 
+class OrmHelperTests
 {
 
 	@Test
@@ -104,6 +103,5 @@ class OrmHelperTests
 		def key3 = OrmHelper.expandNestedArray(["one",["twoA","twoB"],["threeX","threeY"]])
 		println key3
 		assertEquals 4, key3.size()
-
 	}
 }
