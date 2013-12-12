@@ -66,7 +66,7 @@ public class CounterHelper
 		if ((Boolean)counterDef.get("isDateIndex")) {
 			if (oldObj != null) {
 				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
-				List<String> gKeys = groupKeys;
+				List gKeys = groupKeys;
 				String ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 				if (oldColName != null && ocrk != null) {
 
@@ -234,11 +234,11 @@ public class CounterHelper
 	public static String counterColumnName(List<String> groupKeys, GroovyObject bean, DateFormat dateFormat) throws IOException
 	{
 		try {
-			List<String> items = new ArrayList<String>(groupKeys.size());
+			List items = new ArrayList(groupKeys.size());
 			for (String it: groupKeys) {
 				items.add(KeyHelper.counterColumnKey(bean.getProperty(it), dateFormat));
 			}
-			return KeyHelper.makeComposite(items);
+			return KeyHelper.makeComposite(items).toString();
 		}
 		catch (CassandraMappingNullIndexException e) {
 			return null;
@@ -679,7 +679,7 @@ public class CounterHelper
 
 	static public List columnsList(Iterable columnsIterator)
 	{
-		List<Object> cols = new ArrayList<Object>();
+		List cols = new ArrayList();
 		for (Object it: columnsIterator) {
 			cols.add(it);
 		}
@@ -689,7 +689,7 @@ public class CounterHelper
 	static public List columnsListFromRowList(Iterable rowList, PersistenceProvider persistence)
 	{
 		// TODO - performance!
-		List<Object> cols = new ArrayList<Object>();
+		List cols = new ArrayList();
 		for (Object row: rowList) {
 			for (Object it: persistence.getColumns(row)) {
 				cols.add(it);

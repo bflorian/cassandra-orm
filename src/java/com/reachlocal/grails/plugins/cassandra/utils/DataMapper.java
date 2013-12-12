@@ -127,6 +127,9 @@ public class DataMapper
 		else if (value instanceof String) {
 			return value;
 		}
+		else if (value instanceof UUID) {
+			return value;
+		}
 		else if (value instanceof Collection || value instanceof Map) {
 			return new ObjectMapper().writeValueAsString(value);
 		}

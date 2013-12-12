@@ -57,9 +57,10 @@ class ClassMethods extends MappingUtils
 		if (!clazz.cassandraMapping.columnFamily) {
 			clazz.cassandraMapping.columnFamily = clazz.simpleName
 		}
-		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.persistence.columnFamily(clazz.cassandraMapping.columnFamily)
-		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.persistence.columnFamily("${clazz.cassandraMapping.columnFamily}_IDX".toString())
-		clazz.cassandraMapping.counterColumnFamily_object = clazz.cassandra.persistence.columnFamily("${clazz.cassandraMapping.columnFamily}_CTR".toString())
+		//TODO - handle time versus not
+		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.persistence.objectColumnFamily(clazz.cassandraMapping.columnFamily)
+		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.persistence.indexColumnFamily("${clazz.cassandraMapping.columnFamily}_IDX".toString())
+		clazz.cassandraMapping.counterColumnFamily_object = clazz.cassandra.persistence.counterColumnFamily("${clazz.cassandraMapping.columnFamily}_CTR".toString())
 
 		// initialize counter types
 		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->

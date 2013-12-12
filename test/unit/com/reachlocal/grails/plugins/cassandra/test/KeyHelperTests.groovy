@@ -178,7 +178,7 @@ class KeyHelperTests
 	{
 		def uuid = UuidDynamicMethods.timeUUID(Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT").time)
 
-	    assertEquals "this?uuid=001352980800000_${uuid}".toString(), KeyHelper.indexRowKey("uuid", uuid)
+	    assertEquals "this?uuid=${uuid}".toString(), KeyHelper.indexRowKey("uuid", uuid)
 		assertEquals "this?age=35", KeyHelper.indexRowKey("age", 35)
 		assertEquals "this?date=001352980800000", KeyHelper.indexRowKey("date", Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT"))
 		assertEquals "this?name=Joe", KeyHelper.indexRowKey("name", "Joe")
@@ -267,7 +267,7 @@ class KeyHelperTests
 	{
 		def dateFormat = new SimpleDateFormat("yyyy-MM-dd")
 		def uuid = UuidDynamicMethods.timeUUID(Date.parse("yyyy-MM-dd HH:mm z","2012-11-15 12:00 GMT").time)
-		assertEquals "001352980800000_${uuid}".toString(), KeyHelper.counterColumnKey(uuid, dateFormat)
+		assertEquals "${uuid}".toString(), KeyHelper.counterColumnKey(uuid, dateFormat)
 	}
 
 	// public static String nullablePrimaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
@@ -288,9 +288,9 @@ class KeyHelperTests
 		assertEquals "10000", KeyHelper.primaryRowKey(10000)
 		assertEquals "true", KeyHelper.primaryRowKey(true)
 		assertEquals "SomeString", KeyHelper.primaryRowKey("SomeString")
-		assertEquals "001352980800000_$uuid".toString(), KeyHelper.primaryRowKey(uuid)
+		assertEquals uuid, KeyHelper.primaryRowKey(uuid)
 		assertEquals "RED", KeyHelper.primaryRowKey(Color.RED)
 		assertEquals "X15", KeyHelper.primaryRowKey(mockObject)
-		assertEquals "SITE01__false__001352980800000_${uuid}__2000__X15__PURPLE".toString(), KeyHelper.primaryRowKey(["SITE01", false, uuid, 2000, mockObject, Color.PURPLE])
+		assertEquals "SITE01__false__${uuid}__2000__X15__PURPLE".toString(), KeyHelper.primaryRowKey(["SITE01", false, uuid, 2000, mockObject, Color.PURPLE])
 	}
 }

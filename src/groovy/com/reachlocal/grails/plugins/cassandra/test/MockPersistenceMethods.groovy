@@ -32,7 +32,19 @@ class MockPersistenceMethods implements PersistenceProvider
 		data.currentCluster = cluster
 	}
 
-	def columnFamily(String name)
+	def objectColumnFamily(String name)
+	{
+		logOp "columnFamily", name
+		"${name}_CFO".toString()
+	}
+
+	def indexColumnFamily(String name)
+	{
+		logOp "columnFamily", name
+		"${name}_CFO".toString()
+	}
+
+	def counterColumnFamily(String name)
 	{
 		logOp "columnFamily", name
 		"${name}_CFO".toString()
