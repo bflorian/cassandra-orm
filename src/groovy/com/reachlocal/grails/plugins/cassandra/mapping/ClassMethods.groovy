@@ -44,6 +44,16 @@ class ClassMethods extends MappingUtils
 			clazz.cassandra.client
 		}
 
+		// cassandraCluster
+		clazz.metaClass.'static'.getCassandraCluster = {
+			return cassandraMapping.cluster
+		}
+
+		// keySpace
+		clazz.metaClass.'static'.getKeySpace = {
+			return cassandraMapping.keySpace
+		}
+
 		// set options mapping properties
 		if (!clazz.cassandraMapping.timeToLive) {
 			clazz.cassandraMapping.timeToLive = [:]
@@ -58,9 +68,10 @@ class ClassMethods extends MappingUtils
 			clazz.cassandraMapping.columnFamily = clazz.simpleName
 		}
 		//TODO - handle time versus not
-		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.persistence.objectColumnFamily(clazz.cassandraMapping.columnFamily)
-		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.persistence.indexColumnFamily("${clazz.cassandraMapping.columnFamily}_IDX".toString())
-		clazz.cassandraMapping.counterColumnFamily_object = clazz.cassandra.persistence.counterColumnFamily("${clazz.cassandraMapping.columnFamily}_CTR".toString())
+		clazz.cassandraMapping.columnFamily_columnTypes = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnTypes(ks, clazz.cassandraMapping.columnFamily)}
+		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnFamily(ks, clazz.cassandraMapping.columnFamily)}
+		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnFamily(ks, "${clazz.cassandraMapping.columnFamily}_IDX".toString())}
+		clazz.cassandraMapping.counterColumnFamily_object = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnFamily(ks, "${clazz.cassandraMapping.columnFamily}_CTR".toString())}
 
 		// initialize counter types
 		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->
@@ -80,16 +91,6 @@ class ClassMethods extends MappingUtils
 			else {
 				throw new CassandraMappingException("The groupBy property is missing from counter ${index+1}")
 			}
-		}
-
-		// cassandraCluster
-		clazz.metaClass.'static'.getCassandraCluster = {
-			return cassandraMapping.cluster
-		}
-
-		// keySpace
-		clazz.metaClass.'static'.getKeySpace = {
-			return cassandraMapping.keySpace
 		}
 
 		// columnFamilyName
