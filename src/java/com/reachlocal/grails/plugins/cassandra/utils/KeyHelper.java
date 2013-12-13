@@ -78,13 +78,17 @@ public class KeyHelper
 	{
 		//def fromClassName = fromClass.name.split("\\.")[-1]
 		//"${fromClassName}?${propName}=${URLEncoder.encode(object.id)}".toString()
-		return joinRowKeyFromId(fromClass, toClass, propName, (String)object.getProperty("id"));
+
+		// TODO - UUID - will this handle UUID?
+		Object prop = object.getProperty("id");
+		return joinRowKeyFromId(fromClass, toClass, propName, prop.toString());
 	}
 
-	public static String joinRowKeyFromId(Class fromClass, Class toClass, String propName, String objectId) throws UnsupportedEncodingException
+	public static String joinRowKeyFromId(Class fromClass, Class toClass, String propName, Object objectId) throws UnsupportedEncodingException
 	{
+		// TODO - UUID - will this handle UUID?
 		String fromClassName = fromClass.getSimpleName();
-		return fromClassName + "?" + propName + "=" + URLEncoder.encode(objectId, ENC);
+		return fromClassName + "?" + propName + "=" + URLEncoder.encode(objectId.toString(), ENC);
 	}
 
 	public static String primaryKeyIndexRowKey()

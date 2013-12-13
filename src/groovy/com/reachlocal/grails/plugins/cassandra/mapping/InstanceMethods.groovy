@@ -154,18 +154,20 @@ class InstanceMethods extends MappingUtils
 							keyDeleted = true
 
 							// back links
-							if (!(dValue instanceof Boolean)) {
-								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
-								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-								persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
-							}
+							// TODO - UUID - move to separate column family
+							//if (!(dValue instanceof Boolean)) {
+							//	def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
+							//	def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+							//	persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+							//}
 						}
 					}
 					else {
 						// back links
-						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
-						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-						persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+						// TODO - UUID -
+						//def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
+						//def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						//persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 
 						// cascade?
 						if (args?.cascade) {
@@ -321,18 +323,20 @@ class InstanceMethods extends MappingUtils
 							keyDeleted = true
 
 							// back links
-							if (!(dValue instanceof Boolean)) {
-								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
-								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-								persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
-							}
+							// TODO - UUID - move to separate column family
+							//if (!(dValue instanceof Boolean)) {
+							//	def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
+							//	def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+							//	persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+							//}
 						}
 					}
 					else {
 						// back links
-						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
-						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-						persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+						// TODO - UUID - move to separate column family
+						//def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
+						//def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						//persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
 
 						// cascade?
 						if (args?.cascade) {
@@ -833,7 +837,9 @@ class InstanceMethods extends MappingUtils
 							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName], consistencyLevel)
 							def col = persistence.getColumn(cols, colName)
 							if (col) {
-								def pid = persistence.stringValue(col)
+								// TODO - UUID - needs to accomodate UUID values
+								def pType = columnFamilyDataType(colName)
+								def pid = pType == "UUID" ? persistence.uuidValue(col) : persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
 							    value = cassandra.mapping.newObject(data, itemClass, delegate.getProperty(CLUSTER_PROP))
 							}

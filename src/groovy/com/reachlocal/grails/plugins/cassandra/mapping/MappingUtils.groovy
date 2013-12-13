@@ -171,8 +171,9 @@ class MappingUtils extends CounterUtils
 		persistence.putColumn(m, columnFamily, rowKey, item.id, '')
 
 		// the back pointer
-		def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
-		persistence.putColumn(m, columnFamily, backIndexRowKey, rowKey, '')
+		// TODO - UUID - move to a separate column family
+		//def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
+		//persistence.putColumn(m, columnFamily, backIndexRowKey, rowKey, '')
 	}
 
 	static void removeJoinRow(persistence, m, objClass, object, itemClass, item, propName)
@@ -183,8 +184,9 @@ class MappingUtils extends CounterUtils
 		persistence.deleteColumn(m, columnFamily, rowKey, item.id)
 
 		// the back pointer
-		def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
-		persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
+		// TODO - UUID - move to a separate column family
+		//def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
+		//persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
 	}
 
 	static void removeAllJoins(persistence, m, objClass, object, itemClass, items, propName)
@@ -195,10 +197,11 @@ class MappingUtils extends CounterUtils
 		persistence.deleteRow(m, columnFamily, rowKey)
 
 		// the back pointer
-		items.each{item ->
-			def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
-			persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
-		}
+		// TODO - UUID -
+		//items.each{item ->
+		//	def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
+		//	persistence.deleteColumn(m, columnFamily, backIndexRowKey, rowKey)
+		//}
 	}
 
 	static getFromHasMany(thisObj, propName, options=[:], clazz=LinkedHashSet)

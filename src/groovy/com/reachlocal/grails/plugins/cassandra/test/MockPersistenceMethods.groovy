@@ -311,6 +311,11 @@ class MockPersistenceMethods implements PersistenceProvider
 		column.value
 	}
 
+	UUID uuidValue(column)
+	{
+		column.value
+	}
+
 	Long longValue(column)
 	{
 		column.value as Long

@@ -68,10 +68,10 @@ class ClassMethods extends MappingUtils
 			clazz.cassandraMapping.columnFamily = clazz.simpleName
 		}
 		//TODO - handle time versus not
-		clazz.cassandraMapping.columnFamily_columnTypes = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnTypes(ks, clazz.cassandraMapping.columnFamily)}
-		clazz.cassandraMapping.columnFamily_object = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnFamily(ks, clazz.cassandraMapping.columnFamily)}
-		clazz.cassandraMapping.indexColumnFamily_object = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnFamily(ks, "${clazz.cassandraMapping.columnFamily}_IDX".toString())}
-		clazz.cassandraMapping.counterColumnFamily_object = clazz.cassandra.withKeyspace(clazz.keySpace, clazz.cassandraCluster) {ks -> clazz.cassandra.persistence.columnFamily(ks, "${clazz.cassandraMapping.columnFamily}_CTR".toString())}
+		clazz.cassandraMapping.columnFamily_columnTypes = null
+		clazz.cassandraMapping.columnFamily_object = null
+		clazz.cassandraMapping.indexColumnFamily_object = null
+		clazz.cassandraMapping.counterColumnFamily_object = null
 
 		// initialize counter types
 		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->
@@ -100,17 +100,42 @@ class ClassMethods extends MappingUtils
 
 		// columnFamily
 		clazz.metaClass.'static'.getColumnFamily = {
+			if (cassandraMapping.columnFamily_object == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.columnFamily_object = cassandra.persistence.columnFamily(ks, cassandraMapping.columnFamily)
+				}
+			}
 			return cassandraMapping.columnFamily_object
 		}
 
 		// indexColumnFamily
 		clazz.metaClass.'static'.getIndexColumnFamily = {
+			if (cassandraMapping.indexColumnFamily_object == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.indexColumnFamily_object = cassandra.persistence.columnFamily(ks, "${cassandraMapping.columnFamily}_IDX".toString())
+				}
+			}
 			return cassandraMapping.indexColumnFamily_object
 		}
 
 		// counterColumnFamily
 		clazz.metaClass.'static'.getCounterColumnFamily = {
+			if (cassandraMapping.counterColumnFamily_object == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.counterColumnFamily_object = cassandra.persistence.columnFamily(ks, "${cassandraMapping.columnFamily}_CTR".toString())
+				}
+			}
 			return cassandraMapping.counterColumnFamily_object
+		}
+
+		// column data type
+		clazz.metaClass.'static'.columnFamilyDataType = { name ->
+			if (cassandraMapping.columnFamily_columnTypes == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.columnFamily_columnTypes = cassandra.persistence.columnTypes(ks, cassandraMapping.columnFamily)
+				}
+			}
+			return cassandraMapping.columnFamily_columnTypes[name]
 		}
 
 		// belongsToClass(clazz2)

@@ -159,7 +159,8 @@ class DataMapping extends MappingUtils
 			case String:
 				return persistence.stringValue(column)
 			case UUID:
-				return UUID.fromString(persistence.stringValue(column))
+				//return UUID.fromString(persistence.stringValue(column))
+				return persistence.uuidValue(column)
 			case byte[]:
 				return persistence.byteArrayValue(column)
 			default:
