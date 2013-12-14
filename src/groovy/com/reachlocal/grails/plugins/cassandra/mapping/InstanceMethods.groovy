@@ -839,7 +839,7 @@ class InstanceMethods extends MappingUtils
 							if (col) {
 								// TODO - UUID - needs to accomodate UUID values
 								def pType = columnFamilyDataType(colName)
-								def pid = pType == "UUID" ? persistence.uuidValue(col) : persistence.stringValue(col)
+								def pid = pType in ["UUID","TimeUUID"] ? persistence.uuidValue(col) : persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
 							    value = cassandra.mapping.newObject(data, itemClass, delegate.getProperty(CLUSTER_PROP))
 							}
