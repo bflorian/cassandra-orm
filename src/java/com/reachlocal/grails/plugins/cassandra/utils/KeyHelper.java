@@ -382,10 +382,11 @@ public class KeyHelper
 			//}
 		}
 		else if (obj instanceof Date) {
-			return timePrefix(((Date)obj).getTime());
-			//Date date = (Date)obj;
-			//long t = UuidHelper.createTimeFromMicros((date.getTime() * 1000L) + (long)rand.nextInt(1000));
-			//return new UUID(t, UUIDGen.getClockSeqAndNode());
+			//return timePrefix(((Date)obj).getTime());
+
+			Date date = (Date)obj;
+			long t = UuidHelper.createTimeFromMicros((date.getTime() * 1000L) + (long)rand.nextInt(1000));
+			return new UUID(t, UUIDGen.getClockSeqAndNode());
 		}
 		else if (obj instanceof GroovyObject) {
 			GroovyObject g = (GroovyObject)obj;

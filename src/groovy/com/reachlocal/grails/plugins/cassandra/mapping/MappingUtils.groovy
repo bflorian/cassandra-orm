@@ -397,6 +397,28 @@ class MappingUtils extends CounterUtils
 		return bestTotalMatch
 	}
 
+	static mergeUuidKeys(List<List<UUID>> keys, Integer max, Boolean reverse=false)
+	{
+		if (keys.size() == 1) {
+			def last = Math.min(keys[0].size(), max)-1
+			def result =  keys[0]
+			return result ? result[0..last] : []
+		}
+		else {
+			def treeSet = new TreeSet(new TimeUUIDComparator())
+			keys.each {list ->
+				treeSet.addAll(list)
+			}
+
+			def result = []
+			def iter = reverse ? treeSet.descendingIterator() : treeSet.iterator()
+			for (int i=0; i < max && iter.hasNext(); i++) {
+				result << iter.next()
+			}
+			return result
+		}
+	}
+
 	static mergeKeys(List<List> keys, Integer max, Boolean reverse=false)
 	{
 		if (keys.size() == 1) {
@@ -422,11 +444,16 @@ class MappingUtils extends CounterUtils
 	static queryByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
+
+		// TODO -- worry about microseconds here and with finish? Key gen is currently randomizing them
 		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
+		def reverseKeysInQuery = options.reversed
+		def reverseKeysInMerge = clazz.columnFamilyHasReversedIndex ? !reverseKeysInQuery : reverseKeysInQuery
+
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def columns = []
 			filterList.each {filter ->
@@ -437,13 +464,16 @@ class MappingUtils extends CounterUtils
 						rowKey,
 						start,
 						KeyHelper.nullablePrimaryRowKey(options.finish),
-						options.reversed,
+						reverseKeysInQuery,
 						max,
 						opts.consistencyLevel)
 
 				columns << cols.collect{persistence.name(it)}
 			}
-			def keys = mergeKeys(columns, max, options.reversed)
+			def keys = clazz.columnFamilyHasTimeUuidIndex ?
+				mergeUuidKeys(columns, max, reverseKeysInMerge) :
+				mergeKeys(columns, max, reverseKeysInMerge)
+
 			OrmHelper.checkForDefaultRowsInsufficient(opts.max, keys.size())
 
 			def result

@@ -71,6 +71,7 @@ class ClassMethods extends MappingUtils
 		clazz.cassandraMapping.columnFamily_columnTypes = null
 		clazz.cassandraMapping.columnFamily_object = null
 		clazz.cassandraMapping.indexColumnFamily_object = null
+		clazz.cassandraMapping.indexColumnFamily_reversed = null
 		clazz.cassandraMapping.counterColumnFamily_object = null
 
 		// initialize counter types
@@ -126,6 +127,21 @@ class ClassMethods extends MappingUtils
 				}
 			}
 			return cassandraMapping.counterColumnFamily_object
+		}
+
+		// Index type
+		clazz.metaClass.'static'.getColumnFamilyHasTimeUuidIndex = {
+			cassandra.persistence.indexIsTimeUuid(indexColumnFamily)
+		}
+
+		// Index reversed
+		clazz.metaClass.'static'.getColumnFamilyHasReversedIndex = {
+			if (cassandraMapping.indexColumnFamily_reversed == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.indexColumnFamily_reversed = cassandra.persistence.columnFamily(ks, "${cassandraMapping.columnFamily}_IDX".toString())
+				}
+			}
+			return cassandraMapping.indexColumnFamily_reversed
 		}
 
 		// column data type
