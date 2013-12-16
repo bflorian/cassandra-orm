@@ -445,14 +445,14 @@ class MappingUtils extends CounterUtils
 	{
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 
-		// TODO -- worry about microseconds here and with finish? Key gen is currently randomizing them
-		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
+		def comparatorReversed = clazz.columnFamilyHasReversedIndex
+		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start, comparatorReversed ? 999 : 0)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
 		def reverseKeysInQuery = options.reversed
-		def reverseKeysInMerge = clazz.columnFamilyHasReversedIndex ? !reverseKeysInQuery : reverseKeysInQuery
+		def reverseKeysInMerge = comparatorReversed ? !reverseKeysInQuery : reverseKeysInQuery
 
 		clazz.cassandra.withKeyspace(clazz.keySpace, cluster) {ks ->
 			def columns = []
@@ -463,7 +463,7 @@ class MappingUtils extends CounterUtils
 						indexCf,
 						rowKey,
 						start,
-						KeyHelper.nullablePrimaryRowKey(options.finish),
+						KeyHelper.nullablePrimaryRowKey(options.finish, comparatorReversed ? 0 : 999),
 						reverseKeysInQuery,
 						max,
 						opts.consistencyLevel)

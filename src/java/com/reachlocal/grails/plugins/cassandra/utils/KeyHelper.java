@@ -356,10 +356,20 @@ public class KeyHelper
 
 	public static Object nullablePrimaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
 	{
-		return obj == null ? null : primaryRowKey(obj);
+		return obj == null ? null : primaryRowKey(obj, (long)rand.nextInt(1000));
+	}
+
+	public static Object nullablePrimaryRowKey(Object obj, Long microseconds) throws CassandraMappingNullIndexException, IOException
+	{
+		return obj == null ? null : primaryRowKey(obj, microseconds);
 	}
 
 	public static Object primaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
+	{
+		 return primaryRowKey(obj, (long)rand.nextInt(1000));
+	}
+
+	public static Object primaryRowKey(Object obj, Long microseconds) throws CassandraMappingNullIndexException, IOException
 	{
 		if (obj instanceof String) {
 			String str = (String)obj;
@@ -371,27 +381,16 @@ public class KeyHelper
             }
 		}
 		else if (obj instanceof UUID) {
-			UUID id = (UUID)obj;
-			return id;
-			//if (id.version() == 1) {
-			//	long time = UuidDynamicMethods.time(id);
-			//	return timePrefix(time) + "_" + id.toString();
-			//}
-			//else {
-			//	return id.toString();
-			//}
+			return (UUID)obj;
 		}
 		else if (obj instanceof Date) {
-			//return timePrefix(((Date)obj).getTime());
-
 			Date date = (Date)obj;
-			long t = UuidHelper.createTimeFromMicros((date.getTime() * 1000L) + (long)rand.nextInt(1000));
+			long t = UuidHelper.createTimeFromMicros((date.getTime() * 1000L) + microseconds);
 			return new UUID(t, UUIDGen.getClockSeqAndNode());
 		}
 		else if (obj instanceof GroovyObject) {
 			GroovyObject g = (GroovyObject)obj;
 			if (OrmHelper.isMappedObject(g)) {
-				//return (String)g.getProperty("id");
 				return g.getProperty("id");
 			}
 		}
