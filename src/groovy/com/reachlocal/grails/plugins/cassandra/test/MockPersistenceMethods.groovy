@@ -37,6 +37,14 @@ class MockPersistenceMethods implements PersistenceProvider
 		[:]
 	}
 
+	def indexIsTimeUuid(indexColumnFamily) {
+		false
+	}
+
+	def indexIsReversed(Object client, String indexColumnFamilyName) {
+		false
+	}
+
 	def columnFamily(Object client, String name)
 	{
 		logOp "columnFamily", name

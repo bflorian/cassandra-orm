@@ -445,8 +445,9 @@ class MappingUtils extends CounterUtils
 	{
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
 
+		def timeUuidIndex = clazz.columnFamilyHasTimeUuidIndex
 		def comparatorReversed = clazz.columnFamilyHasReversedIndex
-		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start, comparatorReversed ? 999 : 0)
+		def start = KeyHelper.startFinishKey(options.startAfter ?: options.start, comparatorReversed ? 999 : 0, timeUuidIndex)
 		def max = options.startAfter ? options.max + 1 : options.max
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
@@ -463,7 +464,7 @@ class MappingUtils extends CounterUtils
 						indexCf,
 						rowKey,
 						start,
-						KeyHelper.nullablePrimaryRowKey(options.finish, comparatorReversed ? 0 : 999),
+						KeyHelper.startFinishKey(options.finish, comparatorReversed ? 0 : 999, timeUuidIndex),
 						reverseKeysInQuery,
 						max,
 						opts.consistencyLevel)
