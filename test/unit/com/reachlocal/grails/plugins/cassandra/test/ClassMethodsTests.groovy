@@ -88,6 +88,8 @@ public class ClassMethodsTests extends OrmTestCase
 				favoriteColor: Color.ORANGE ,
 				birthDate:  DAY_FORMAT.parse('1991-11-12')).save()
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		new User(
 				uuid: "x2xx-xxxx-xxxx-2222",
 				name: "Get Test 2",
@@ -98,6 +100,7 @@ public class ClassMethodsTests extends OrmTestCase
 				city: 'Reston',
 				favoriteColor: Color.RED,
 				birthDate:  DAY_FORMAT.parse('1985-09-14')).save(cluster: "mockCluster2")
+        */
 
 		def v1 = new Visit(
 				siteName : "SITE1",
@@ -169,6 +172,8 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals Color.BLUE, r.favoriteColor
 		assertEquals "mockCluster", r.cassandraCluster
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- get('x2xx-xxxx-xxxx-xxxx', [cluster: 'mockCluster2']) ---"
 		r = User.get("x2xx-xxxx-xxxx-xxxx", [cluster: "mockCluster2"])
 		println r
@@ -179,6 +184,7 @@ public class ClassMethodsTests extends OrmTestCase
 		persistence.printClear()
 		println r
 		assertEquals "mockCluster2", r.cassandraCluster
+        */
 
 		println "\n--- getAll(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx']) ---"
 		r = User.getAll(['x1xx-xxxx-xxxx-xxxx','x2xx-xxxx-xxxx-xxxx','x3xx-xxxx-xxxx-xxxx'])
@@ -205,12 +211,15 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals "Get Test 5", r.name
 		assertEquals "mockCluster", r.cassandraCluster
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n -- findOrCreate([cluster: 'mockCluster2']), existing ---"
 		r = User.findOrCreate("x2xx-xxxx-xxxx-2222",[cluster: 'mockCluster2'])
 		persistence.printClear()
 		assertNotNull r
 		assertEquals "Get Test 2", r.name
 		assertEquals "mockCluster2", r.cassandraCluster
+        */
 
 		println "\n -- findOrCreate(), not existing ---"
 		r = User.findOrCreate("x5xx-xxxx-yyyy-zzzz")
@@ -220,12 +229,15 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals "mockCluster", r.cassandraCluster
 		assertNull User.get("x5xx-xxxx-yyyy-zzzz")
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n -- findOrCreate([cluster: 'mockCluster2']), not existing ---"
 		r = User.findOrCreate("x5xx-xxxx-yyyy-zzzz",[cluster: 'mockCluster2'])
 		assertNotNull r
 		assertEquals "x5xx-xxxx-yyyy-zzzz", r.uuid
 		assertEquals "mockCluster2", r.cassandraCluster
 		assertNull User.get("x5xx-xxxx-yyyy-zzzz")
+        */
 
 		println "\n -- findOrSave(), not existing ---"
 		r = User.findOrSave("aaaa-xxxx-yyyy-zzz1")
@@ -239,11 +251,14 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 6, r.size()
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- list(cluster: 'mockCluster2') ---"
 		r = User.list(cluster: 'mockCluster2')
 		persistence.printClear()
 		println r
 		assertEquals 1, r.size()
+        */
 
 		println "\n--- list(max: 2) ---"
 		r = User.list(max: 2)
@@ -287,11 +302,14 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 3, r.size()
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- findAllWhere(phone: '301-555-1212',[cluster: 'mockCluster2']) [explicit] ---"
 		r = User.findAllWhere(phone: '301-555-1212', [cluster: 'mockCluster2'])
 		persistence.printClear()
 		println r
 		assertEquals 1, r.size()
+        */
 
 		println "\n--- findAllWhere(city: 'Olney', gender: 'Male') [secondary TO BE IMPLEMENTED] ---"
 		r = User.findAllWhere(city: 'Olney', gender: 'Male')
@@ -345,11 +363,14 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 2, r.size()
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- findAllByPhone('301-555-1212',[max: 2, column: 'name', cluster: 'mockCluster2']) [explicit] ---"
 		r = User.findAllByPhone('301-555-1212',[max: 2, column: 'name', cluster: 'mockCluster2'])
 		persistence.printClear()
 		println r
 		assertEquals 1, r.size()
+        */
 
 		println "\n--- findAllByPhone('301-555-1111',[max: 2, rawColumn: 'name']) [explicit] ---"
 		r = User.findAllByPhone('301-555-1111',[max: 2, rawColumn: 'name'])
@@ -382,11 +403,14 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 3, r
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- countByPhone('301-555-1212',[cluster: 'mockCluster2']) [explicit] ---"
 		r = User.countByPhone('301-555-1212',[cluster: 'mockCluster2'])
 		persistence.printClear()
 		println r
 		assertEquals 1, r
+        */
 
 		println "\n--- countByGender('Male') [explicit TO BE IMPLEMENTED] ---"
 		r = User.countByGender('Male')
@@ -405,11 +429,14 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 5, r.size()
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- User.getCounts(groupBy: ['birthDate'], cluster: 'mockCluster2') ---"
 		r = User.getCounts(groupBy: ['birthDate'], cluster: 'mockCluster2')
 		persistence.printClear()
 		println r
 		assertEquals 1, r.size()
+        */
 
 		println "\n--- User.getCounts(by: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31')) ---"
 		r = User.getCounts(groupBy: 'birthDate', start: DAY_FORMAT.parse('1977-01-01'), finish: DAY_FORMAT.parse('1984-12-31'))
@@ -476,11 +503,14 @@ public class ClassMethodsTests extends OrmTestCase
 		println r
 		assertEquals 5, r
 
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- User.getCountsGroupedByBirthDate(cluster: 'mockCluster2') ---"
 		r = User.getCountsGroupByBirthDateAndStateTotal(cluster: 'mockCluster2')
 		persistence.printClear()
 		println r
 		assertEquals 1, r
+        */
 
 		println "\n--- User.getCountsByBirthDateAndCity() ---"
 		r = User.getCountsByGenderGroupByBirthDateAndCity('Female')

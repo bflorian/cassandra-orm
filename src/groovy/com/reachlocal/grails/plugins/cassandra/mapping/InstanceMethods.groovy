@@ -33,26 +33,21 @@ import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
  */
 class InstanceMethods extends MappingUtils
 {
-	static profiler = new NestedHashMap()
+	static profiler = new Profiler()
 
-	static void dumpProfiler()
+	static dumpProfiler()
 	{
-		def total = 0L
-		def m = 1000000L
-		def nf = new DecimalFormat("#,##0.0")
-		println "PROFILER, ${profiler.Iterations} ITERATIONS (msec):"
-		profiler.each {name, value ->
-			if (name != "Iterations") {
-				println "$name: \t${nf.format(value/m)}"
-				total += value
-			}
-		}
-		println "TOTAL: \t${nf.format(total/m)} \t${total/(profiler.Iterations*m)} \t${nf.format(1000L * m * profiler.Iterations/total)}\trec/sec"
+		profiler.data()
+	}
+
+	static dumpProfilerAverages()
+	{
+		profiler.averages()
 	}
 
 	static void clearProfiler()
 	{
-		profiler = new NestedHashMap()
+		profiler.clear()
 	}
 
 	static void addDynamicOrmMethods(clazz, ctx)
@@ -64,7 +59,9 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass.getCassandraClient = { clazz.cassandraClient }
 
 		// cassandraCluster
-		clazz.metaClass.getCassandraCluster = { delegate.getProperty(CLUSTER_PROP) ?: clazz.cassandraCluster }
+		// TODO - this was causing CPU issues after running for a long time -- find out why
+		//clazz.metaClass.getCassandraCluster = { delegate.getProperty(CLUSTER_PROP) ?: clazz.cassandraCluster }
+		clazz.metaClass.getCassandraCluster = { clazz.cassandraCluster }
 
 		// keySpace
 		clazz.metaClass.getKeySpace = { clazz.keySpace }
@@ -230,21 +227,37 @@ class InstanceMethods extends MappingUtils
 
 		// saveTimed()
 		clazz.metaClass.saveTimed = {args ->
-			profiler.increment("Iterations", 1)
+			profiler.increment("Iterations", 1L)
 
+			// TIMER
 			def t0 = System.nanoTime()
 
 			def thisObj = delegate
+			def t1 = System.nanoTime()
+			profiler.increment("Save - Header/Delegate", t1-t0)
+			t0 = t1
+
 			def ttl = args?.ttl ?: cassandraMapping.timeToLive
+			t1 = System.nanoTime()
+			profiler.increment("Save - Header/TTL", t1-t0)
+			t0 = t1
+
+			// TODO - removed ability to pass in cluster because of CPU issues
 			if (args?.cluster) {
 				thisObj.setProperty(CLUSTER_PROP, args.cluster)
 			}
-			def cluster = thisObj.cassandraCluster
-			def persistence = cassandra.persistence
+			t1 = System.nanoTime()
+			profiler.increment("Save - Header/Cluster Set", t1-t0)
+			t0 = t1
 
-			// TIMER
-			def t1 = System.nanoTime()
-			profiler.increment("Save - Header", t1-t0)
+			def cluster = cassandraMapping.cluster
+			t1 = System.nanoTime()
+			profiler.increment("Save - Header/Cluster Get", t1-t0)
+			t0 = t1
+
+			def persistence = cassandra.persistence
+			t1 = System.nanoTime()
+			profiler.increment("Save - Header/Persistence Get", t1-t0)
 			t0 = t1
 
 			cassandra.withKeyspace(thisObj.keySpace, cluster) {ks ->
@@ -447,6 +460,7 @@ class InstanceMethods extends MappingUtils
 				profiler.increment("Save - Cassandra Save", t1-t0)
 				t0 = t1
 			}
+			profiler.increment("Exits", 1L)
 			thisObj
 		}
 
@@ -553,6 +567,7 @@ class InstanceMethods extends MappingUtils
 
 				persistence.execute(m)
 			}
+			profiler.increment("Exits", 1L)
 			thisObj
 		}
 

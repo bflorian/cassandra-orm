@@ -34,9 +34,20 @@ class ClassMethods extends MappingUtils
 			throw new CassandraMappingException("cassandraMapping.primaryKey not specified")
 		}
 
+		// cache these values in the static map
+		clazz.cassandraMapping.columnFamily_columnTypes = null
+		clazz.cassandraMapping.columnFamily_object = null
+		clazz.cassandraMapping.indexColumnFamily_object = null
+		clazz.cassandraMapping.indexColumnFamily_reversed = null
+		clazz.cassandraMapping.counterColumnFamily_object = null
+		clazz.cassandraMapping.cassandraOrmService = null
+
 		// cassandra
 		clazz.metaClass.'static'.getCassandra = {
-			ctx.getBean("cassandraOrmService")
+			if (cassandraMapping.cassandraOrmService == null) {
+				cassandraMapping.cassandraOrmService = ctx.getBean("cassandraOrmService")
+			}
+			cassandraMapping.cassandraOrmService
 		}
 
 		// cassandra client used by ORM
@@ -67,12 +78,6 @@ class ClassMethods extends MappingUtils
 		if (!clazz.cassandraMapping.columnFamily) {
 			clazz.cassandraMapping.columnFamily = clazz.simpleName
 		}
-		//TODO - handle time versus not
-		clazz.cassandraMapping.columnFamily_columnTypes = null
-		clazz.cassandraMapping.columnFamily_object = null
-		clazz.cassandraMapping.indexColumnFamily_object = null
-		clazz.cassandraMapping.indexColumnFamily_reversed = null
-		clazz.cassandraMapping.counterColumnFamily_object = null
 
 		// initialize counter types
 		clazz.cassandraMapping.counters?.eachWithIndex {ctr, index ->

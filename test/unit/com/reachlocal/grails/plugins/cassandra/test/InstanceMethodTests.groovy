@@ -181,7 +181,8 @@ class InstanceMethodTests extends OrmTestCase
 		userGroup.addToUsers(user3)
 		persistence.printClear()
 
-
+		// TODO - cluster parameter support temporarily removed
+		/*
 		println "\n--- userGroup1a.save(cluster: 'mockCluster2') ---"
 		userGroup1a.save(cluster: 'mockCluster2')
 		persistence.printClear()
@@ -195,6 +196,7 @@ class InstanceMethodTests extends OrmTestCase
 		g2 = UserGroup.get("group1-zzzz-2222", [cluster: 'mockCluster2'])
 		assertNotNull g2
 		assertEquals 2, g2.users.size()
+        */
 
 		println "\n--- userGroup2.save() ---"
 		userGroup2.save()
