@@ -33,7 +33,7 @@ import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
  */
 class InstanceMethods extends MappingUtils
 {
-	static profiler = new Profiler()
+	static Profiler profiler = new Profiler()
 
 	static dumpProfiler()
 	{
@@ -43,6 +43,11 @@ class InstanceMethods extends MappingUtils
 	static dumpProfilerAverages()
 	{
 		profiler.averages()
+	}
+
+	static dumpRemainingIds()
+	{
+		profiler.remainingIds()
 	}
 
 	static void clearProfiler()
@@ -314,7 +319,7 @@ class InstanceMethods extends MappingUtils
 
 				// TIMER
 				t1 = System.nanoTime()
-				profiler.increment("Save - Old Object", t1-t0)
+				profiler.initialIncrement("Save - Old Object", t1-t0, id)
 				t0 = t1
 
 				// one-to-one relationships
@@ -457,7 +462,7 @@ class InstanceMethods extends MappingUtils
 
 				// TIMER
 				t1 = System.nanoTime()
-				profiler.increment("Save - Cassandra Save", t1-t0)
+				profiler.finalIncrement("Save - Cassandra Save", t1-t0, id)
 				t0 = t1
 			}
 			profiler.increment("Exits", 1L)
@@ -567,7 +572,6 @@ class InstanceMethods extends MappingUtils
 
 				persistence.execute(m)
 			}
-			profiler.increment("Exits", 1L)
 			thisObj
 		}
 
