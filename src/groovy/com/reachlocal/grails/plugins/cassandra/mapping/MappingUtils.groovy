@@ -495,7 +495,11 @@ class MappingUtils extends CounterUtils
 	static countByExplicitIndex(clazz, filterList, index, opts)
 	{
 		def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
-		def start = KeyHelper.nullablePrimaryRowKey(options.startAfter ?: options.start)
+
+		def timeUuidIndex = clazz.columnFamilyHasTimeUuidIndex
+		def comparatorReversed = clazz.columnFamilyHasReversedIndex
+		def start = KeyHelper.startFinishKey(options.startAfter ?: options.start, comparatorReversed ? 999 : 0, timeUuidIndex)
+
 		def indexCf = clazz.indexColumnFamily
 		def persistence = clazz.cassandra.persistence
 		def cluster = opts.cluster ?: clazz.cassandraCluster
@@ -508,7 +512,7 @@ class MappingUtils extends CounterUtils
 						indexCf,
 						rowKey,
 						start,
-						KeyHelper.nullablePrimaryRowKey(options.finish),
+						KeyHelper.startFinishKey(options.finish, comparatorReversed ? 0 : 999, timeUuidIndex),
 						opts.consistencyLevel)
 
 				total += count
