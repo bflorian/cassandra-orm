@@ -357,7 +357,7 @@ public class KeyHelper
 
 	public static Object nullablePrimaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
 	{
-		return obj == null ? null : primaryRowKey(obj, (long)rand.nextInt(1000));
+		return obj == null ? null : primaryRowKey(obj);
 	}
 
 	public static Object startFinishKey(Object obj, Long microseconds, Boolean timeUuidIndex) throws CassandraMappingNullIndexException, IOException
@@ -371,16 +371,11 @@ public class KeyHelper
 			return new UUID(t, UUIDGen.getClockSeqAndNode());
 		}
 		else {
-			return primaryRowKey(obj, microseconds);
+			return primaryRowKey(obj);
 		}
 	}
 
 	public static Object primaryRowKey(Object obj) throws CassandraMappingNullIndexException, IOException
-	{
-		 return primaryRowKey(obj, (long)rand.nextInt(1000));
-	}
-
-	public static Object primaryRowKey(Object obj, Long microseconds) throws CassandraMappingNullIndexException, IOException
 	{
 		if (obj instanceof String) {
 			String str = (String)obj;
