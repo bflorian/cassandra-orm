@@ -38,6 +38,7 @@ public class CounterHelper
 	public static final SimpleDateFormat UTC_HOUR_ONLY_FORMAT = new SimpleDateFormat("HH");
 	public static final TimeZone UTC = TimeZone.getTimeZone("GMT"); //.getDefault() //getTimeZone("GMT")
 	static final boolean WRITE_ALTERNATES = false;
+	static final boolean ROLL_UP_COUNTS = false;
 
 	static {
 		UTC_YEAR_FORMAT.setTimeZone(UTC);
@@ -74,19 +75,21 @@ public class CounterHelper
 					// all hours row
 					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
-					// all days row
-					oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT);
-					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
-					ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
+					if (ROLL_UP_COUNTS) {
+						// all days row
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 
-					/** COMMON TO ALL**/
-					// all months row
-					oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_MONTH_FORMAT);
-					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
-					ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
-					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
+						/** COMMON TO ALL**/
+						// all months row
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_MONTH_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
+						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
+					}
 
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
@@ -121,21 +124,23 @@ public class CounterHelper
 
 
 					/** ALTERNATE ONE **/
-					// all hours row (currently not used)
+					// all hours row
 					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
-					// all days row
-					colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT);
-					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
-					crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
+					if (ROLL_UP_COUNTS) {
+						// all days row
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
-					/** COMMON TO ALL**/
-					// all month row
-					colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT);
-					gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
-					crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
-					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
+						/** COMMON TO ALL**/
+						// all month row
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT);
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
+						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
+						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
+					}
 
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/

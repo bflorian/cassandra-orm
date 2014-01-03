@@ -24,6 +24,7 @@ class CounterUtils
 	static protected final UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
 	static protected final UTC_HOUR_ONLY_FORMAT = new SimpleDateFormat("HH")
 	static protected final UTC = TimeZone.getTimeZone("GMT")
+	static protected final ROLL_UP_COUNTS = CounterHelper.ROLL_UP_COUNTS
 
 	static {
 		UTC_YEAR_FORMAT.setTimeZone(UTC)
@@ -216,11 +217,16 @@ class CounterUtils
 	static doGetDateCounterColumns(persistence, ks, cf, findBy, groupBy, filter, start, finish, grain, consistencyLevel)
 	{
 		def cols
-		if (grain == Calendar.MONTH) {
-			cols = getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
-		}
-		else if (grain == Calendar.DAY_OF_MONTH) {
-			cols = getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
+		if (ROLL_UP_COUNTS) {
+			if (grain == Calendar.MONTH) {
+				cols = getMonthRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
+			}
+			else if (grain == Calendar.DAY_OF_MONTH) {
+				cols = getDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
+			}
+			else {
+				cols = getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
+			}
 		}
 		else {
 			cols = getHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
