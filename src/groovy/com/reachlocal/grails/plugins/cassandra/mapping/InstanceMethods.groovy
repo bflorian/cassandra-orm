@@ -74,11 +74,14 @@ class InstanceMethods extends MappingUtils
 		// columnFamily()
 		clazz.metaClass.getColumnFamily = { clazz.columnFamily }
 
-		// indexColumnFamily()
+		// indexColumnFamily
 		clazz.metaClass.getIndexColumnFamily = { clazz.indexColumnFamily }
 
-		// counterColumnFamily()
+		// counterColumnFamily
 		clazz.metaClass.getCounterColumnFamily = { clazz.counterColumnFamily }
+
+		// backLinkColumnFamily
+		clazz.metaClass.getBackLinkColumnFamily = { clazz.backLinkColumnFamily }
 
 		// cluster property
 		clazz.metaClass."${CLUSTER_PROP}" = null
@@ -157,19 +160,19 @@ class InstanceMethods extends MappingUtils
 
 							// back links
 							// TODO - UUID - move to separate column family
-							//if (!(dValue instanceof Boolean)) {
-							//	def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
-							//	def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-							//	persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
-							//}
+							if (!(dValue instanceof Boolean)) {
+								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
+								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+								persistence.deleteColumn(m, pValue.backLinkColumnFamily, backLinkRowKey, backLinkColName, '')
+							}
 						}
 					}
 					else {
 						// back links
 						// TODO - UUID -
-						//def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
-						//def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-						//persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
+						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						persistence.putColumn(m, pValue.backLinkColumnFamily, backLinkRowKey, backLinkColName, '')
 
 						// cascade?
 						if (args?.cascade) {
@@ -342,19 +345,19 @@ class InstanceMethods extends MappingUtils
 
 							// back links
 							// TODO - UUID - move to separate column family
-							//if (!(dValue instanceof Boolean)) {
-							//	def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
-							//	def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-							//	persistence.deleteColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
-							//}
+							if (!(dValue instanceof Boolean)) {
+								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
+								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+								persistence.deleteColumn(m, pValue.backLinkColumnFamily, backLinkRowKey, backLinkColName, '')
+							}
 						}
 					}
 					else {
 						// back links
 						// TODO - UUID - move to separate column family
-						//def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
-						//def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
-						//persistence.putColumn(m, pValue.indexColumnFamily, backLinkRowKey, backLinkColName, '')
+						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
+						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
+						persistence.putColumn(m, pValue.backLinkColumnFamily, backLinkRowKey, backLinkColName, '')
 
 						// cascade?
 						if (args?.cascade) {

@@ -38,6 +38,7 @@ class ClassMethods extends MappingUtils
 		clazz.cassandraMapping.columnFamily_columnTypes = null
 		clazz.cassandraMapping.columnFamily_object = null
 		clazz.cassandraMapping.indexColumnFamily_object = null
+		clazz.cassandraMapping.backLinkColumnFamily_object = null
 		clazz.cassandraMapping.indexColumnFamily_reversed = null
 		clazz.cassandraMapping.counterColumnFamily_object = null
 		clazz.cassandraMapping.cassandraOrmService = null
@@ -133,6 +134,17 @@ class ClassMethods extends MappingUtils
 			}
 			return cassandraMapping.counterColumnFamily_object
 		}
+
+		// backLinkColumnFamily
+		clazz.metaClass.'static'.getBackLinkColumnFamily = {
+			if (cassandraMapping.backLinkColumnFamily_object == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.backLinkColumnFamily_object = cassandra.persistence.columnFamily(ks, "${cassandraMapping.columnFamily}_LNK".toString())
+				}
+			}
+			return cassandraMapping.backLinkColumnFamily_object
+		}
+
 
 		// Index type
 		clazz.metaClass.'static'.getColumnFamilyHasTimeUuidIndex = {
