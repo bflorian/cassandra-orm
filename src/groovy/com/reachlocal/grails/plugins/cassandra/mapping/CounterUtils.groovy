@@ -344,7 +344,7 @@ class CounterUtils
 
 	static private getEarliestDay(persistence, ks, cf, findBy, groupBy, filter, consistencyLevel)
 	{
-		def groupKeys = KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM')
+		def groupKeys = ROLL_UP_COUNTS ? KeyHelper.makeGroupKeyList(groupBy, 'yyyy-MM') : groupBy
 		def rowKey = KeyHelper.counterRowKey(findBy, groupKeys, filter)
 		def cols = persistence.getColumnRange(ks, cf, rowKey, null, null, false, 1, consistencyLevel)
 		cols?.size() ? persistence.name(persistence.getColumnByIndex(cols, 0)) : null
