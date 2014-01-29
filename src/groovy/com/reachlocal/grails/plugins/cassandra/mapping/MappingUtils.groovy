@@ -171,7 +171,6 @@ class MappingUtils extends CounterUtils
 		persistence.putColumn(m, columnFamily, rowKey, item.id, '')
 
 		// the back pointer
-		// TODO - UUID - move to a separate column family
 		def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
 		persistence.putColumn(m, itemClass.backLinkColumnFamily, backIndexRowKey, rowKey, '')
 	}
@@ -184,7 +183,6 @@ class MappingUtils extends CounterUtils
 		persistence.deleteColumn(m, columnFamily, rowKey, item.id)
 
 		// the back pointer
-		// TODO - UUID - move to a separate column family
 		def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
 		persistence.deleteColumn(m, itemClass.backLinkColumnFamily, backIndexRowKey, rowKey)
 	}
@@ -197,18 +195,10 @@ class MappingUtils extends CounterUtils
 		persistence.deleteRow(m, columnFamily, rowKey)
 
 		// the back pointer
-		// TODO - UUID -
 		def backIndexColumnFamily = itemClass.backLinkColumnFamily
 		items.each{item ->
-			try {
-				def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
-				persistence.deleteColumn(m, backIndexColumnFamily, backIndexRowKey, rowKey)
-			}
-			catch (CassandraMappingNullIndexException ex) {
-				// TODO - UUID - theory is that this happens in cascaded deletes where the children being deleted
-				// contain multiple references to the same third-level object
-				//throw ex
-			}
+			def backIndexRowKey = KeyHelper.manyBackIndexRowKey(item.id)
+			persistence.deleteColumn(m, backIndexColumnFamily, backIndexRowKey, rowKey)
 		}
 	}
 

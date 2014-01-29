@@ -127,6 +127,7 @@ class InstanceMethods extends MappingUtils
 					def keyNames = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 					def keyClass = keyNames.size() == 1 ? clazz.getDeclaredField(keyNames[0]).type : null
 
+					// TODO - UUID - Check schema for random versus time UUID
 					if (keyClass == UUID) {
 						def uuid = UUID.timeUUID()
 						thisObj.setProperty(keyNames[0], uuid)
@@ -159,7 +160,6 @@ class InstanceMethods extends MappingUtils
 							keyDeleted = true
 
 							// back links
-							// TODO - UUID - move to separate column family
 							if (!(dValue instanceof Boolean)) {
 								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
 								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
@@ -169,7 +169,6 @@ class InstanceMethods extends MappingUtils
 					}
 					else {
 						// back links
-						// TODO - UUID -
 						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
 						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
 						persistence.putColumn(m, pValue.backLinkColumnFamily, backLinkRowKey, backLinkColName, '')
@@ -344,7 +343,6 @@ class InstanceMethods extends MappingUtils
 							keyDeleted = true
 
 							// back links
-							// TODO - UUID - move to separate column family
 							if (!(dValue instanceof Boolean)) {
 								def backLinkRowKey = KeyHelper.oneBackIndexRowKey(dValue.id)
 								def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
@@ -354,7 +352,6 @@ class InstanceMethods extends MappingUtils
 					}
 					else {
 						// back links
-						// TODO - UUID - move to separate column family
 						def backLinkRowKey = KeyHelper.oneBackIndexRowKey(pValue.id)
 						def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(thisObj.columnFamily), pName, id)
 						persistence.putColumn(m, pValue.backLinkColumnFamily, backLinkRowKey, backLinkColName, '')
@@ -697,9 +694,10 @@ class InstanceMethods extends MappingUtils
 				def oneBackLinkRow = persistence.getRow(ks, backLinkColumnFamily, oneBackLinkKey, args?.consistencyLevel)
 				oneBackLinkRow?.each {col ->
 					def oneIndexArgs = KeyHelper.oneBackIndexColumnValues(persistence.name(col))
-					def objectRowKey = oneIndexArgs[2]
-					def objectColumnFamily = oneIndexArgs[0]
+					def objectColumnFamily = persistence.columnFamily(ks, oneIndexArgs[0])
 					def objectPropName = "${oneIndexArgs[1]}Id".toString()
+					def objectRowKey = persistence.keyIsTimeUuid(objectColumnFamily) ? oneIndexArgs[2].toUUID() : oneIndexArgs[2]
+
 					persistence.deleteColumn(m, objectColumnFamily, objectRowKey, objectPropName)
 				}
 
@@ -877,7 +875,6 @@ class InstanceMethods extends MappingUtils
 							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName], consistencyLevel)
 							def col = persistence.getColumn(cols, colName)
 							if (col) {
-								// TODO - UUID - needs to accomodate UUID values
 								def pType = columnFamilyDataType(colName)
 								def pid = pType in ["UUID","TimeUUID"] ? persistence.uuidValue(col) : persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
