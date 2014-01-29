@@ -212,6 +212,14 @@ class MappingUtils extends CounterUtils
 		}
 	}
 
+	static void removeBackLink(persistence, m, objClass, object, propName, propValue)
+	{
+		def backIndexColumnFamily = propValue.backLinkColumnFamily
+		def backIndexRowKey = KeyHelper.oneBackIndexRowKey(propValue.id)
+		def backLinkColName = KeyHelper.oneBackIndexColumnName(persistence.columnFamilyName(objClass.columnFamily), propName, object.id)
+		persistence.deleteColumn(m, backIndexColumnFamily, backIndexRowKey, backLinkColName)
+	}
+
 	static getFromHasMany(thisObj, propName, options=[:], clazz=LinkedHashSet)
 	{
 		getByMappedObject(thisObj, propName, thisObj.hasMany[propName], options, clazz)

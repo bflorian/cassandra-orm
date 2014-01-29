@@ -584,6 +584,7 @@ class InstanceMethods extends MappingUtils
 			def thisObjId = thisObj.id
 			def persistence = cassandra.persistence
 			def indexColumnFamily = thisObj.indexColumnFamily
+			def backLinkColumnFamily = thisObj.backLinkColumnFamily
 			def maxCascade = args.max ?: MAX_ROWS
 			def cascadedDeletes = []
 
@@ -633,6 +634,21 @@ class InstanceMethods extends MappingUtils
 				}
 				else {
 					// not cascaded, but need to clean up indexes and back-pointers
+
+					// has one
+					clazz.metaClass.properties.each {property ->
+						def name = property.name
+						if (name.endsWith(DIRTY_SUFFIX)) {
+							def pName = name - DIRTY_SUFFIX
+							def pValue = PropertyUtils.getProperty(thisObj, pName)
+							// TODO - BACKLINK 1:1
+							if (pValue) {
+								removeBackLink(persistence, m, clazz, thisObj, pName, pValue)
+							}
+						}
+					}
+
+					// has many
 					if (clazz.metaClass.hasMetaProperty('hasMany')) {
 						clazz.hasMany.each {propName, propClass ->
 							def items = thisObj.invokeMethod(propName,[max: maxCascade])
@@ -667,19 +683,19 @@ class InstanceMethods extends MappingUtils
 
 				// hasMany indexes
 				def hasManyKey = KeyHelper.manyBackIndexRowKey(thisObjId)
-				def manyBackLinkRow = persistence.getRow(ks, indexColumnFamily, hasManyKey, args?.consistencyLevel)
+				def manyBackLinkRow = persistence.getRow(ks, backLinkColumnFamily, hasManyKey, args?.consistencyLevel)
 				manyBackLinkRow.each {col ->
 					def manyIndexRowKey = persistence.name(col)
 					persistence.deleteColumn(m, indexColumnFamily, manyIndexRowKey, thisObjId)
 				}
 
 				// hasMany back pointers
-				persistence.deleteRow(m, indexColumnFamily, hasManyKey)
+				persistence.deleteRow(m, backLinkColumnFamily, hasManyKey)
 
 				// hasOne properties
 				def oneBackLinkKey = KeyHelper.oneBackIndexRowKey(thisObjId)
-				def oneBackLinkRow = persistence.getRow(ks, indexColumnFamily, oneBackLinkKey, args?.consistencyLevel)
-				oneBackLinkRow.each {col ->
+				def oneBackLinkRow = persistence.getRow(ks, backLinkColumnFamily, oneBackLinkKey, args?.consistencyLevel)
+				oneBackLinkRow?.each {col ->
 					def oneIndexArgs = KeyHelper.oneBackIndexColumnValues(persistence.name(col))
 					def objectRowKey = oneIndexArgs[2]
 					def objectColumnFamily = oneIndexArgs[0]
@@ -688,7 +704,9 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// hasOne back pointers
-				persistence.deleteRow(m, indexColumnFamily, oneBackLinkKey)
+				if (oneBackLinkRow?.size()) {
+					persistence.deleteRow(m, backLinkColumnFamily, oneBackLinkKey)
+				}
 
 				// decrement counters
 				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, thisObj, null)
