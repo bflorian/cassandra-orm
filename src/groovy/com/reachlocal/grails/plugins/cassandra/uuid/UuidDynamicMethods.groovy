@@ -51,6 +51,10 @@ class UuidDynamicMethods
 			timeUUID(msec)
 		}
 
+		UUID.metaClass.'static'.timeUUID = {msec, microsec ->
+			timeUUID(msec, microsec)
+		}
+
 		UUID.metaClass.'static'.fromBytes = {uuid ->
 			return UuidHelper.fromBytes(uuid as byte[])
 		}
