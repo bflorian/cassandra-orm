@@ -188,6 +188,17 @@ class ClassMethods extends MappingUtils
 			return null
 		}
 
+		// withMutationBatch
+		clazz.metaClass.'static'.withMutationBatch = {opts=[:], closure ->
+			def cluster = opts.cluster ?: cassandraCluster
+			def persistence = cassandra.persistence
+			cassandra.withKeyspace(keySpace, cluster) { ks ->
+				def m = persistence.prepareMutationBatch(ks, opts?.consistencyLevel)
+				closure(m)
+				persistence.execute(m)
+			}
+		}
+
 		// get(id, options?)
 		clazz.metaClass.'static'.get = {id, opts=[:] ->
 			def result = null

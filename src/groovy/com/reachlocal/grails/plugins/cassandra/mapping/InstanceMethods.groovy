@@ -115,7 +115,11 @@ class InstanceMethods extends MappingUtils
 			def persistence = cassandra.persistence
 
 			cassandra.withKeyspace(thisObj.keySpace, cluster) {ks ->
-				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				def batchMode = args?.mutationBatch != null
+				def m = batchMode ? args.mutationBatch : persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				if (batchMode && !args?.nocheck) {
+					throw new IllegalArgumentException("Batch saves are only supported with nocheck:true")
+				}
 
 				// get the primary row key
 				def id
@@ -227,7 +231,9 @@ class InstanceMethods extends MappingUtils
 				// counters
 				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, oldObj, thisObj)
 
-				persistence.execute(m)
+				if (!batchMode) {
+					persistence.execute(m)
+				}
 			}
 			thisObj
 		}
