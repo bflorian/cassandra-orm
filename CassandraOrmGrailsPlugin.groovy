@@ -19,7 +19,7 @@ import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods
 
 class CassandraOrmGrailsPlugin
 {
-	def version = "1.0.8-SNAPSHOT"
+	def version = "1.0.8"
 	def grailsVersion = "2.0.0 > *"
 	def author = "Bob Florian"
 	def authorEmail = "bob.florian@reachlocal.com"

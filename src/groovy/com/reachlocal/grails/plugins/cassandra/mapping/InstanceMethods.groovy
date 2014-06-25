@@ -594,7 +594,8 @@ class InstanceMethods extends MappingUtils
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
 
 				// delete the object
-				def m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
+				def batchMode = args?.mutationBatch != null
+				def m = batchMode ? args.mutationBatch : persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				if (args.cascade) {
 
 					// has one
