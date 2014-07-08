@@ -36,6 +36,7 @@ class ClassMethods extends MappingUtils
 
 		// cache these values in the static map
 		clazz.cassandraMapping.columnFamily_columnTypes = null
+		clazz.cassandraMapping.columnFamily_keyType = null
 		clazz.cassandraMapping.columnFamily_object = null
 		clazz.cassandraMapping.indexColumnFamily_object = null
 		clazz.cassandraMapping.backLinkColumnFamily_object = null
@@ -162,6 +163,16 @@ class ClassMethods extends MappingUtils
 		}
 
 		// column data type
+		clazz.metaClass.'static'.getColumnFamilyKeyType = {
+			if (cassandraMapping.columnFamily_keyType == null) {
+				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
+					cassandraMapping.columnFamily_keyType = cassandra.persistence.keyType(ks, cassandraMapping.columnFamily)
+				}
+			}
+			return cassandraMapping.columnFamily_keyType
+		}
+
+		// column data type
 		clazz.metaClass.'static'.columnFamilyDataType = { name ->
 			if (cassandraMapping.columnFamily_columnTypes == null) {
 				cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
@@ -206,7 +217,7 @@ class ClassMethods extends MappingUtils
 			def cluster = opts.cluster ?: cassandraCluster
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
-				result = cassandra.mapping.newObject(data, clazz, opts.cluster)
+				result = cassandra.mapping.newObject(rowKey, data, clazz, opts.cluster)
 			}
 			return result
 		}

@@ -17,6 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
 import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
+import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 
 /**
@@ -51,7 +52,7 @@ class DataMapping extends MappingUtils
 			rows.each{result << it.columns.getColumnByName(options.column)}
 		}
 		else {
-			rows.each{result << newObject(it.columns, clazz, options.cluster)}
+			rows.each{result << newObject(it.key, it.columns, clazz, options.cluster)}
 		}
 		return result
 	}
@@ -72,7 +73,7 @@ class DataMapping extends MappingUtils
 			keys.each{result << persistence.byteArrayValue(persistence.getColumn(persistence.getRow(rows, it), options.rawColumn))}
 		}
 		else {
-			keys.each{result << newObject(persistence.getRow(rows, it), clazz, options.cluster)}
+			keys.each{result << newObject(it, persistence.getRow(rows, it), clazz, options.cluster)}
 		}
 		return result
 	}
@@ -95,16 +96,24 @@ class DataMapping extends MappingUtils
 		return map
 	}
 
-	def newObject(cols, asClass, cluster=null)
+	def newObject(key, cols, asClass, cluster=null)
 	{
 		def obj = null
-		if (cols) {
 
+		if (cols) {
 			// Unneeded since we now get the class from the method signatures
 			// Might be needed again if we ever support subclasses
 			//def className = persistence.stringValue(persistence.getColumn(cols, CLASS_NAME_KEY))
 			//def asClass = Class.forName(className, false, DataMapping.class.classLoader)
 			obj = asClass.newInstance()
+
+			def keyPropertyName = KeyHelper.identKeyProperty(asClass.cassandraMapping) // null for composite keys
+			if (keyPropertyName) {
+				def metaProperty = obj.metaClass.getMetaProperty(keyPropertyName)
+				if (metaProperty) {
+					metaProperty.setProperty(obj, key)
+				}
+			}
 
 			def expandoMapName = asClass.cassandraMapping.expandoMap
 			def expandoMap = null

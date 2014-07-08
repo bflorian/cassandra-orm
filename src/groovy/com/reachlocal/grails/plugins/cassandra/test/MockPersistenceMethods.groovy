@@ -32,6 +32,11 @@ class MockPersistenceMethods implements PersistenceProvider
 		data.currentCluster = cluster
 	}
 
+	def keyType(Object client, String name)
+	{
+		"UTF8"
+	}
+
 	def columnTypes(Object client, String name)
 	{
 		[:]

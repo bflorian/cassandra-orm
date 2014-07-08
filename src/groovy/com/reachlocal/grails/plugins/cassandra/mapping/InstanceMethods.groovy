@@ -87,8 +87,10 @@ class InstanceMethods extends MappingUtils
 		clazz.metaClass."${CLUSTER_PROP}" = null
 
 		// cassandra row key (alternative)
-		clazz.metaClass.getId = {
-			return KeyHelper.identKey(delegate, cassandraMapping)
+		if (!KeyHelper.identKeyIsId(clazz.cassandraMapping)) {
+			clazz.metaClass.getId = {
+				return KeyHelper.identKey(delegate, cassandraMapping)
+			}
 		}
 
 		// mapped property name cache
@@ -125,15 +127,18 @@ class InstanceMethods extends MappingUtils
 				def id
 				try {
 					id = thisObj.id
+					if (id == null && KeyHelper.identKeyIsId(clazz.cassandraMapping) && clazz.getDeclaredField("id").type == UUID) {
+						id = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
+						thisObj.id = id
+					}
 				}
 				catch (CassandraMappingNullIndexException e) {
 					// if primary key is a UUID and its null, set it
 					def keyNames = OrmHelper.collection(cassandraMapping.primaryKey ?: cassandraMapping.unindexedPrimaryKey)
 					def keyClass = keyNames.size() == 1 ? clazz.getDeclaredField(keyNames[0]).type : null
 
-					// TODO - UUID - Check schema for random versus time UUID
 					if (keyClass == UUID) {
-						def uuid = UUID.timeUUID()
+						def uuid = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
 						thisObj.setProperty(keyNames[0], uuid)
 						id = thisObj.id
 					}
@@ -284,8 +289,11 @@ class InstanceMethods extends MappingUtils
 				// get the primary row key
 				def id
 				try {
-					id = thisObj.ident()
-
+					id = thisObj.id
+					if (id == null && KeyHelper.identKeyIsId(clazz.cassandraMapping) && clazz.getDeclaredField("id").type == UUID) {
+						id = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
+						thisObj.id = id
+					}
 					t1 = System.nanoTime()
 					profiler.increment("Save - Primary Key 1", t1-t0)
 					t0 = t1
@@ -305,7 +313,7 @@ class InstanceMethods extends MappingUtils
 					t0 = t1
 
 					if (keyClass == UUID) {
-						def uuid = UUID.timeUUID()
+						def uuid = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
 
 						t1 = System.nanoTime()
 						profiler.increment("Save - Primary Key 2/UUID", t1-t0)
@@ -885,7 +893,7 @@ class InstanceMethods extends MappingUtils
 								def pType = columnFamilyDataType(colName)
 								def pid = pType in ["UUID","TimeUUID"] ? persistence.uuidValue(col) : persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
-							    value = cassandra.mapping.newObject(data, itemClass, delegate.getProperty(CLUSTER_PROP))
+							    value = cassandra.mapping.newObject(pid, data, itemClass, delegate.getProperty(CLUSTER_PROP))
 							}
 						}
 					}

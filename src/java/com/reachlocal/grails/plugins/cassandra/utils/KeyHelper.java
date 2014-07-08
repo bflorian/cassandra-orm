@@ -53,6 +53,23 @@ public class KeyHelper
 		return KeyHelper.makeComposite(values);
 	}
 
+	public static Boolean identKeyIsId(Map<String, Object>cassandraMapping) {
+		return cassandraMapping.get("primaryKey") == "id" ||  cassandraMapping.get("unindexedPrimaryKey") == "id";
+	}
+
+	public static Object identKeyProperty(Map<String, Object>cassandraMapping) {
+		Object primaryKey = cassandraMapping.get("primaryKey");
+		if (primaryKey == null) {
+			primaryKey = cassandraMapping.get("unindexedPrimaryKey");
+		}
+		if (primaryKey instanceof Collection) {
+			return null;
+		}
+		else {
+			return primaryKey;
+		}
+	}
+
 	public static Object makeComposite(List list)
 	{
 		int len = list.size();
