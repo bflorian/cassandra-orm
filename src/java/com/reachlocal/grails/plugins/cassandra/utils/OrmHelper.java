@@ -248,6 +248,7 @@ public class OrmHelper
 				for (List<String> item: result) {
 					int i = (index * lengths.get(pindex) / len) % valueList.size();
 					item.add(String.valueOf(valueList.get(i)));
+					index++;
 				}
 			}
 			else if (value != null && value.getClass().isArray()) {
@@ -256,6 +257,7 @@ public class OrmHelper
 				for (List<String> item: result) {
 					int i = (index * lengths.get(pindex) / len) % valueList.length;
 					item.add(valueList[i]);
+					index++;
 				}
 			}
 			else {

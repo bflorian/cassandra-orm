@@ -209,6 +209,7 @@ public class KeyHelper
 		}
 	}
 
+	// single Index
 	public static List<String> objectIndexRowKeys(String propName, GroovyObject bean) throws IOException
 	{
 		try {
@@ -235,6 +236,7 @@ public class KeyHelper
 		}
 	}
 
+	// Compound index?
 	public static List<String> objectIndexRowKeys(List<String> propNames, GroovyObject bean) throws IOException
 	{
 		try {

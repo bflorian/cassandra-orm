@@ -95,13 +95,40 @@ class OrmHelperTests
 		def key1 = OrmHelper.expandNestedArray(["one","two","three"])
 		println key1
 		assertEquals 1, key1.size()
+		assertEquals key1[0][0], "one"
+		assertEquals key1[0][1], "two"
+		assertEquals key1[0][2], "three"
+
+		def key1a = OrmHelper.expandNestedArray([["one","oneA"]])
+		println key1a
+		assertEquals 1, key1.size()
+		assertEquals key1a[0][0], "one"
+		assertEquals key1a[1][0], "oneA"
 
 		def key2 = OrmHelper.expandNestedArray(["one",["twoA","twoB"],"three"])
 		println key2
 		assertEquals 2, key2.size()
+		assertEquals key2[0][0], "one"
+		assertEquals key2[0][1], "twoA"
+		assertEquals key2[0][2], "three"
+		assertEquals key2[1][0], "one"
+		assertEquals key2[1][1], "twoB"
+		assertEquals key2[1][2], "three"
 
 		def key3 = OrmHelper.expandNestedArray(["one",["twoA","twoB"],["threeX","threeY"]])
 		println key3
 		assertEquals 4, key3.size()
+		assertEquals key3[0][0], "one"
+		assertEquals key3[0][1], "twoA"
+		assertEquals key3[0][2], "threeX"
+		assertEquals key3[1][0], "one"
+		assertEquals key3[1][1], "twoA"
+		assertEquals key3[1][2], "threeY"
+		assertEquals key3[2][0], "one"
+		assertEquals key3[2][1], "twoB"
+		assertEquals key3[2][2], "threeX"
+		assertEquals key3[3][0], "one"
+		assertEquals key3[3][1], "twoB"
+		assertEquals key3[3][2], "threeY"
 	}
 }
