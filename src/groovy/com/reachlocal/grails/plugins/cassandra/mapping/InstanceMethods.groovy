@@ -128,7 +128,7 @@ class InstanceMethods extends MappingUtils
 				try {
 					id = thisObj.id
 					if (id == null && KeyHelper.identKeyIsId(clazz.cassandraMapping) && clazz.getDeclaredField("id").type == UUID) {
-						id = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
+						id = persistence.isUuidType(clazz.columnFamilyKeyType) ? UUID.randomUUID() : UUID.timeUUID()
 						thisObj.id = id
 					}
 				}
@@ -138,7 +138,7 @@ class InstanceMethods extends MappingUtils
 					def keyClass = keyNames.size() == 1 ? clazz.getDeclaredField(keyNames[0]).type : null
 
 					if (keyClass == UUID) {
-						def uuid = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
+						def uuid = persistence.isUuidType(clazz.columnFamilyKeyType) ? UUID.randomUUID() : UUID.timeUUID()
 						thisObj.setProperty(keyNames[0], uuid)
 						id = thisObj.id
 					}
@@ -291,7 +291,7 @@ class InstanceMethods extends MappingUtils
 				try {
 					id = thisObj.id
 					if (id == null && KeyHelper.identKeyIsId(clazz.cassandraMapping) && clazz.getDeclaredField("id").type == UUID) {
-						id = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
+						id = persistence.isUuidType(clazz.columnFamilyKeyType) ? UUID.randomUUID() : UUID.timeUUID()
 						thisObj.id = id
 					}
 					t1 = System.nanoTime()
@@ -313,7 +313,7 @@ class InstanceMethods extends MappingUtils
 					t0 = t1
 
 					if (keyClass == UUID) {
-						def uuid = clazz.columnFamilyKeyType == "UUID" ? UUID.randomUUID() : UUID.timeUUID()
+						def uuid = persistence.isUuidType(clazz.columnFamilyKeyType) ? UUID.randomUUID() : UUID.timeUUID()
 
 						t1 = System.nanoTime()
 						profiler.increment("Save - Primary Key 2/UUID", t1-t0)
@@ -891,7 +891,7 @@ class InstanceMethods extends MappingUtils
 							def col = persistence.getColumn(cols, colName)
 							if (col) {
 								def pType = columnFamilyDataType(colName)
-								def pid = pType in ["UUID","TimeUUID"] ? persistence.uuidValue(col) : persistence.stringValue(col)
+								def pid = persistence.isAnyUuidType(pType) ? persistence.uuidValue(col) : persistence.stringValue(col)
 								def data = persistence.getRow(ks, cf, pid, consistencyLevel)
 							    value = cassandra.mapping.newObject(pid, data, itemClass, delegate.getProperty(CLUSTER_PROP))
 							}

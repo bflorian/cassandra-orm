@@ -42,6 +42,18 @@ class MockPersistenceMethods implements PersistenceProvider
 		[:]
 	}
 
+	static Boolean isUuidType(type) {
+		type == "UUID"
+	}
+
+	static Boolean isTimeUuidType(type) {
+		type == "TimeUUID"
+	}
+
+	static Boolean isAnyUuidType(type) {
+		["UUID","TimeUUID"].contains(type)
+	}
+
 	def indexIsTimeUuid(indexColumnFamily) {
 		false
 	}
