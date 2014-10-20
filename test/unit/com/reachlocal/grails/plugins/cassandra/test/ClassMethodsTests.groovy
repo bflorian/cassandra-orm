@@ -172,6 +172,18 @@ public class ClassMethodsTests extends OrmTestCase
 		assertEquals Color.BLUE, r.favoriteColor
 		assertEquals "mockCluster", r.cassandraCluster
 
+		println "\n--- get(null) ---"
+		r = User.get(null)
+		persistence.printClear()
+		println r
+		assertNull r
+
+		println "\n--- get('') ---"
+		r = User.get('')
+		persistence.printClear()
+		println r
+		assertNull r
+
 		// TODO - cluster parameter support temporarily removed
 		/*
 		println "\n--- get('x2xx-xxxx-xxxx-xxxx', [cluster: 'mockCluster2']) ---"
@@ -203,6 +215,13 @@ public class ClassMethodsTests extends OrmTestCase
 		r.each {
 			assertFalse it instanceof User
 		}
+
+		println "\n--- getAll(['x1xx-xxxx-xxxx-xxxx',null,'']) ---"
+		r = User.getAll(['x1xx-xxxx-xxxx-xxxx',null,''])
+		persistence.printClear()
+		println r
+		assertEquals 1, r.size()
+
 
 		println "\n -- findOrCreate(), existing ---"
 		r = User.findOrCreate("x5xx-xxxx-xxxx-xxxx")

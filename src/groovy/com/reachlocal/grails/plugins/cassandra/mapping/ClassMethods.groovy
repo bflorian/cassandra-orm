@@ -213,11 +213,13 @@ class ClassMethods extends MappingUtils
 		// get(id, options?)
 		clazz.metaClass.'static'.get = {id, opts=[:] ->
 			def result = null
-			def rowKey = KeyHelper.primaryRowKey(id)
-			def cluster = opts.cluster ?: cassandraCluster
-			cassandra.withKeyspace(keySpace, cluster) {ks ->
-				def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
-				result = cassandra.mapping.newObject(rowKey, data, clazz, opts.cluster)
+			if (id) {
+				def rowKey = KeyHelper.primaryRowKey(id)
+				def cluster = opts.cluster ?: cassandraCluster
+				cassandra.withKeyspace(keySpace, cluster) { ks ->
+					def data = cassandra.persistence.getRow(ks, columnFamily, rowKey, opts.consistencyLevel)
+					result = cassandra.mapping.newObject(rowKey, data, clazz, opts.cluster)
+				}
 			}
 			return result
 		}
@@ -225,7 +227,7 @@ class ClassMethods extends MappingUtils
 		// get(id, options?)
 		clazz.metaClass.'static'.getAll = {ids, opts=[:] ->
 			def result = null
-			def rowKeys = ids.collect{KeyHelper.primaryRowKey(it)}
+			def rowKeys = ids.findAll{it}.collect{KeyHelper.primaryRowKey(it)}
 			def cluster = opts.cluster ?: cassandraCluster
 			cassandra.withKeyspace(keySpace, cluster) {ks ->
 				def options = OrmHelper.addOptionDefaults(opts, MAX_ROWS)
