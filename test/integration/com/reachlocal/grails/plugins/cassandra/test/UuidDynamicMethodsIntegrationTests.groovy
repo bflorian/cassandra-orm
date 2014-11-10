@@ -127,5 +127,66 @@ class UuidDynamicMethodsIntegrationTests
 	}
 	*/
 
+	@Test
+	void testMaxTimeUUID()
+	{
+		def ts = System.currentTimeMillis()
+		def u = UUID.timeUUID(ts)
+		def uMax = UUID.maxTimeUUID(ts)
+
+		assertEquals 1, uMax.compareTo(u)
+	}
+
+	@Test
+	void testMinTimeUUID()
+	{
+		def ts = System.currentTimeMillis()
+		def u = UUID.timeUUID(ts)
+		def uMin = UUID.minTimeUUID(ts)
+
+		assertEquals(-1, uMin.compareTo(u))
+	}
+
+	@Test
+	void testMaxTimeUUIDDate()
+	{
+		def ts = new Date()
+		def u = UUID.timeUUID(ts)
+		def uMax = UUID.maxTimeUUID(ts)
+
+		assertEquals 1, uMax.compareTo(u)
+	}
+
+	@Test
+	void testMinTimeUUIDDate()
+	{
+		def ts = new Date()
+		def u = UUID.timeUUID(ts)
+		def uMin = UUID.minTimeUUID(ts)
+
+		assertEquals(-1, uMin.compareTo(u))
+	}
+
+	@Test
+	void testMaxTimeUUIDMsec()
+	{
+		def ts = System.currentTimeMillis()
+		def u = UUID.timeUUID(ts, 500)
+		def uMax = UUID.maxTimeUUID(ts)
+
+		assertEquals 1, uMax.compareTo(u)
+	}
+
+	@Test
+	void testMinTimeUUIDMsec()
+	{
+		def ts = System.currentTimeMillis()
+		def u = UUID.timeUUID(ts, 500)
+		def uMin = UUID.minTimeUUID(ts)
+
+		assertEquals(-1, uMin.compareTo(u))
+	}
+
+
 	static TF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 }

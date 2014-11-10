@@ -71,11 +71,45 @@ public class UuidHelper
 		return buffer;
 	}
 
+	public static long createTime(long currentTime) {
+		long time;
+
+		// UTC time
+		long timeToUse = (currentTime * 10000) + NUM_100NS_INTERVALS_SINCE_UUID_EPOCH;
+
+		// time low
+		time = timeToUse << 32;
+
+		// time mid
+		time |= (timeToUse & 0xFFFF00000000L) >> 16;
+
+		// time hi and version
+		time |= 0x1000 | ((timeToUse >> 48) & 0x0FFF); // version 1
+		return time;
+	}
+
 	public static long createTimeFromMicros(long currentTime) {
 		long time;
 
 		// UTC time
 		long timeToUse = (currentTime * 10) + NUM_100NS_INTERVALS_SINCE_UUID_EPOCH;
+
+		// time low
+		time = timeToUse << 32;
+
+		// time mid
+		time |= (timeToUse & 0xFFFF00000000L) >> 16;
+
+		// time hi and version
+		time |= 0x1000 | ((timeToUse >> 48) & 0x0FFF); // version 1
+		return time;
+	}
+
+	public static long createTimeFromNanos(long currentTime) {
+		long time;
+
+		// UTC time
+		long timeToUse = currentTime + NUM_100NS_INTERVALS_SINCE_UUID_EPOCH;
 
 		// time low
 		time = timeToUse << 32;

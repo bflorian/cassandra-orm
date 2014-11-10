@@ -17,7 +17,7 @@
 package com.reachlocal.grails.plugins.cassandra.uuid
 
 import org.apache.commons.codec.binary.Base64
-import com.eaio.uuid.UUIDGen
+import com.eaio.uuid.UUIDGen // TODO -- replace with apache cassandra time UUID generator?
 import com.reachlocal.grails.plugins.cassandra.utils.UuidHelper
 
 /**
@@ -55,6 +55,22 @@ class UuidDynamicMethods
 			timeUUID(msec, microsec)
 		}
 
+		UUID.metaClass.'static'.maxTimeUUID = {msec ->
+			maxTimeUUID(msec)
+		}
+
+		UUID.metaClass.'static'.maxTimeUUID = {msec, microsec ->
+			maxTimeUUID(msec, microsec)
+		}
+
+		UUID.metaClass.'static'.minTimeUUID = {msec ->
+			minTimeUUID(msec)
+		}
+
+		UUID.metaClass.'static'.minTimeUUID = {msec, microsec ->
+			minTimeUUID(msec, microsec)
+		}
+
 		UUID.metaClass.'static'.fromBytes = {uuid ->
 			return UuidHelper.fromBytes(uuid as byte[])
 		}
@@ -84,20 +100,56 @@ class UuidDynamicMethods
 
 	static UUID timeUUID(long msec)
 	{
-		long t = UuidHelper.createTimeFromMicros((msec * 1000L) + rand.nextInt(1000) as long)
+		long t = UuidHelper.createTime(msec as long)
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID timeUUID(long msec, long microsec)
 	{
-		long t = UuidHelper.createTimeFromMicros((msec * 1000L) + microsec)
+		long t = UuidHelper.createTimeFromMicros(((msec * 1000L) + microsec) as long)
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID timeUUID(Date date)
 	{
-		long t = UuidHelper.createTimeFromMicros((date.time * 1000L) + rand.nextInt(1000) as long)
+		long t = UuidHelper.createTime(date.time as long)
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
+	}
+
+	static UUID maxTimeUUID(long msec)
+	{
+		long t = UuidHelper.createTimeFromNanos(((msec + 1) * 10000L) - 1 as long)
+		return new UUID(t, MAX_CLOCK_SEQ_AND_NODE)
+	}
+
+	static UUID maxTimeUUID(long msec, long microsec)
+	{
+		long t = UuidHelper.createTimeFromNanos((((msec * 1000L) + (microsec + 1)) * 10) - 1 as long)
+		return new UUID(t, MAX_CLOCK_SEQ_AND_NODE)
+	}
+
+	static UUID maxTimeUUID(Date date)
+	{
+		long t = UuidHelper.createTimeFromNanos(((date.time + 1) * 10000L) - 1 as long)
+		return new UUID(t, MAX_CLOCK_SEQ_AND_NODE)
+	}
+
+	static UUID minTimeUUID(long msec)
+	{
+		long t = UuidHelper.createTime(msec as long)
+		return new UUID(t, MIN_CLOCK_SEQ_AND_NODE)
+	}
+
+	static UUID minTimeUUID(long msec, long microsec)
+	{
+		long t = UuidHelper.createTimeFromMicros((msec * 1000L) + microsec)
+		return new UUID(t, MIN_CLOCK_SEQ_AND_NODE)
+	}
+
+	static UUID minTimeUUID(Date date)
+	{
+		long t = UuidHelper.createTime(date.time as long)
+		return new UUID(t, MIN_CLOCK_SEQ_AND_NODE)
 	}
 
 	static UUID reverseTimeUUID()
@@ -106,5 +158,7 @@ class UuidDynamicMethods
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
-	static rand = new Random()
+	private static final long MIN_CLOCK_SEQ_AND_NODE = 0x8080808080808080L;
+	private static final long MAX_CLOCK_SEQ_AND_NODE = 0x7f7f7f7f7f7f7f7fL;
+
 }
