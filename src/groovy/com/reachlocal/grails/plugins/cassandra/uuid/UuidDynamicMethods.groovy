@@ -100,20 +100,21 @@ class UuidDynamicMethods
 
 	static UUID timeUUID(long msec)
 	{
-		long t = UuidHelper.createTime(msec as long)
+		long t = UuidHelper.createTimeFromNanos((msec * 10000L) + rand.nextInt(10000) as long)
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID timeUUID(long msec, long microsec)
 	{
-		long t = UuidHelper.createTimeFromMicros(((msec * 1000L) + microsec) as long)
+		long t = UuidHelper.createTimeFromNanos(((msec * 10000L) + (microsec * 10) + rand.nextInt(10)) as long)
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
 	}
 
 	static UUID timeUUID(Date date)
 	{
-		long t = UuidHelper.createTime(date.time as long)
+		long t = UuidHelper.createTimeFromNanos((date.time * 10000L) + rand.nextInt(10000) as long)
 		return new UUID(t, UUIDGen.getClockSeqAndNode())
+
 	}
 
 	static UUID maxTimeUUID(long msec)
@@ -160,5 +161,7 @@ class UuidDynamicMethods
 
 	private static final long MIN_CLOCK_SEQ_AND_NODE = 0x8080808080808080L;
 	private static final long MAX_CLOCK_SEQ_AND_NODE = 0x7f7f7f7f7f7f7f7fL;
+
+	static rand = new Random()
 
 }
