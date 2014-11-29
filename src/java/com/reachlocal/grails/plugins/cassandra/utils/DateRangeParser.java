@@ -234,6 +234,7 @@ public class DateRangeParser
 	public String toString()
 	{
 		try {
+			DateFormat TF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 			return
 					"DateRangeParser(start: " + TF.format(start.getTime()) +
 					", finish: " + TF.format(finish.getTime()) +
@@ -246,6 +247,4 @@ public class DateRangeParser
 			return super.toString();
 		}
 	}
-
-	static private DateFormat TF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 }

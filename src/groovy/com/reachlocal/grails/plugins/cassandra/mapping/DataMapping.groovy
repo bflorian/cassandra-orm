@@ -19,6 +19,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
+import com.reachlocal.grails.plugins.cassandra.utils.UtcDate
 
 /**
  * @author: Bob Florian
@@ -164,7 +165,7 @@ class DataMapping extends MappingUtils
 			case Boolean:
 				return column.booleanValue
 			case Date:
-				return isoFormatter().parse(persistence.stringValue(column))
+				return UtcDate.isoFormatter().parse(persistence.stringValue(column))
 			case String:
 				return persistence.stringValue(column)
 			case UUID:

@@ -1,5 +1,7 @@
 package com.reachlocal.grails.plugins.cassandra.mapping
 
+import com.reachlocal.grails.plugins.cassandra.utils.UtcDate
+
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 
@@ -18,21 +20,8 @@ import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 class CounterUtils
 {
 	static protected final int MAX_COUNTER_COLUMNS = Integer.MAX_VALUE
-	static protected final UTC_YEAR_FORMAT = new SimpleDateFormat("yyyy")
-	static protected final UTC_MONTH_FORMAT = new SimpleDateFormat("yyyy-MM")
-	static protected final UTC_DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd")
-	static protected final UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH")
-	static protected final UTC_HOUR_ONLY_FORMAT = new SimpleDateFormat("HH")
 	static protected final UTC = TimeZone.getTimeZone("GMT")
 	static protected final ROLL_UP_COUNTS = CounterHelper.ROLL_UP_COUNTS
-
-	static {
-		UTC_YEAR_FORMAT.setTimeZone(UTC)
-		UTC_MONTH_FORMAT.setTimeZone(UTC)
-		UTC_DAY_FORMAT.setTimeZone(UTC)
-		UTC_HOUR_FORMAT.setTimeZone(UTC)
-		UTC_HOUR_ONLY_FORMAT.setTimeZone(UTC)
-	}
 
 
 	static getCounterColumns(clazz, filterList, multiWhereKeys, columnFilter, counterDef, start, finish, reversed, consistencyLevel, clusterName)
@@ -55,8 +44,8 @@ class CounterUtils
 						ks,
 						cf,
 						rowKey,
-						start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : '',
-						finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT) : '',
+						start ? KeyHelper.counterColumnKey(start, UtcDate.hourFormatter()) : '',
+						finish ? KeyHelper.counterColumnKey(finish, UtcDate.hourFormatter()) : '',
 						reversed ?: false,
 						MAX_COUNTER_COLUMNS,
 						consistencyLevel)
@@ -108,7 +97,7 @@ class CounterUtils
 				if (!start) {
 					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter, consistencyLevel)
 					if (day) {
-						start = UTC_MONTH_FORMAT.parse(day)
+						start = UtcDate.monthFormatter().parse(day)
 					}
 				}
 
@@ -165,7 +154,7 @@ class CounterUtils
 				rowFilterList.each {filter ->
 					def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter, consistencyLevel)
 					if (day) {
-						def date = UTC_MONTH_FORMAT.parse(day)
+						def date = UtcDate.monthFormatter().parse(day)
 						if (firstStart == null || date.before(firstStart)) {
 							firstStart = date
 						}
@@ -243,8 +232,8 @@ class CounterUtils
 				ks,
 				cf,
 				rowKey,
-				start ? KeyHelper.counterColumnKey(start, UTC_MONTH_FORMAT) : null,
-				finish ? KeyHelper.counterColumnKey(finish, UTC_MONTH_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UtcDate.monthFormatter()) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UtcDate.monthFormatter())+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel))
@@ -259,8 +248,8 @@ class CounterUtils
 				ks,
 				cf,
 				rowKey,
-				start ? KeyHelper.counterColumnKey(start, UTC_DAY_FORMAT) : null,
-				finish ? KeyHelper.counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UtcDate.dayFormatter()) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UtcDate.dayFormatter())+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel))
@@ -275,8 +264,8 @@ class CounterUtils
 				ks,
 				cf,
 				rowKey,
-				start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-				finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UtcDate.hourFormatter()) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UtcDate.hourFormatter())+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel))
@@ -296,7 +285,7 @@ class CounterUtils
 
 		def rowKeys = []
 		while (cal.time.before(finish)) {
-			def groupKeys = KeyHelper.makeGroupKeyList(groupBy, UTC_YEAR_FORMAT.format(cal.time))
+			def groupKeys = KeyHelper.makeGroupKeyList(groupBy, UtcDate.yearFormatter().format(cal.time))
 			rowKeys << KeyHelper.counterRowKey(findBy, groupKeys, filter)
 			cal.add(Calendar.YEAR, 1)
 		}
@@ -305,8 +294,8 @@ class CounterUtils
 				ks,
 				cf,
 				rowKeys,
-				start ? KeyHelper.counterColumnKey(start, UTC_DAY_FORMAT) : null,
-				finish ? KeyHelper.counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UtcDate.dayFormatter()) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UtcDate.dayFormatter())+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel), persistence)
@@ -324,7 +313,7 @@ class CounterUtils
 
 		def rowKeys = []
 		while (cal.time.before(finish)) {
-			def format = UTC_MONTH_FORMAT.format(cal.time)
+			def format = UtcDate.monthFormatter().format(cal.time)
 			def groupKeys = KeyHelper.makeGroupKeyList(groupBy, format)
 			rowKeys << KeyHelper.counterRowKey(findBy, groupKeys, filter)
 			cal.add(Calendar.MONTH, 1)
@@ -334,8 +323,8 @@ class CounterUtils
 				ks,
 				cf,
 				rowKeys,
-				start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-				finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				start ? KeyHelper.counterColumnKey(start, UtcDate.hourFormatter()) : null,
+				finish ? KeyHelper.counterColumnKey(finish, UtcDate.hourFormatter())+END_CHAR : null,
 				false,
 				MAX_COUNTER_COLUMNS,
 				consistencyLevel), persistence)
@@ -364,10 +353,4 @@ class CounterUtils
     static protected final CLUSTER_PROP = "_cassandra_cluster_"
 
     static mapper = new ObjectMapper()
-
-	static isoFormatter() {
-		def f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-		f.setTimeZone(TimeZone.getTimeZone("GMT"))
-		f
-	}
 }

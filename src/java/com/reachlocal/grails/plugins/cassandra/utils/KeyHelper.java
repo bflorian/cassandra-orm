@@ -18,19 +18,13 @@ package com.reachlocal.grails.plugins.cassandra.utils;
 
 import com.eaio.uuid.UUIDGen;
 import com.reachlocal.grails.plugins.cassandra.mapping.CassandraMappingNullIndexException;
-import com.reachlocal.grails.plugins.cassandra.uuid.UuidDynamicMethods;
 import groovy.lang.GroovyObject;
-import org.codehaus.jackson.JsonGenerationException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.net.URLEncoder;
-import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -450,11 +444,4 @@ public class KeyHelper
 
 	public static final DecimalFormat INT_KEY_FMT1 = new DecimalFormat("000000000000000");
 	public static final DecimalFormat INT_KEY_FMT2 = new DecimalFormat("00000000000000");
-
-	static Random rand = new Random();
-
-	public static DateFormat ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	static {
-		ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"));
-	}
 }

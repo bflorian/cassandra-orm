@@ -19,6 +19,7 @@ package com.reachlocal.grails.plugins.cassandra.mapping
 import com.reachlocal.grails.plugins.cassandra.utils.DateHelper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
+import com.reachlocal.grails.plugins.cassandra.utils.UtcDate
 
 /**
  * @author: Bob Florian
@@ -134,7 +135,7 @@ class MappingUtils extends CounterUtils
 			}
 		}
 		if (grain || timeZone || toFormatArg) {
-			value = rollUpCounterDates(value, UTC_HOUR_FORMAT, grain ?: Calendar.HOUR_OF_DAY , timeZone, toFormatArg)
+			value = rollUpCounterDates(value, UtcDate.hourFormatter(), grain ?: Calendar.HOUR_OF_DAY , timeZone, toFormatArg)
 		}
 		if (fill) {
 			value = DateHelper.fillDates(value, grain ?: Calendar.HOUR_OF_DAY)

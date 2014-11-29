@@ -31,22 +31,8 @@ import java.util.*;
 public class CounterHelper
 {
 	public static final int MAX_COUNTER_COLUMNS = Integer.MAX_VALUE ;
-	public static final SimpleDateFormat UTC_YEAR_FORMAT = new SimpleDateFormat("yyyy");
-	public static final SimpleDateFormat UTC_MONTH_FORMAT = new SimpleDateFormat("yyyy-MM");
-	public static final SimpleDateFormat UTC_DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-	public static final SimpleDateFormat UTC_HOUR_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH");
-	public static final SimpleDateFormat UTC_HOUR_ONLY_FORMAT = new SimpleDateFormat("HH");
-	public static final TimeZone UTC = TimeZone.getTimeZone("GMT"); //.getDefault() //getTimeZone("GMT")
 	static final boolean WRITE_ALTERNATES = false;
 	static final boolean ROLL_UP_COUNTS = false;
-
-	static {
-		UTC_YEAR_FORMAT.setTimeZone(UTC);
-		UTC_MONTH_FORMAT.setTimeZone(UTC);
-		UTC_DAY_FORMAT.setTimeZone(UTC);
-		UTC_HOUR_FORMAT.setTimeZone(UTC);
-		UTC_HOUR_ONLY_FORMAT.setTimeZone(UTC);
-	}
 
 	public static void updateAllCounterColumns(PersistenceProvider persistence, Object counterColumnFamily, List<Map> counterDefs, Object m, GroovyObject oldObj, GroovyObject thisObj) throws IOException
 	{
@@ -66,7 +52,7 @@ public class CounterHelper
 
 		if ((Boolean)counterDef.get("isDateIndex")) {
 			if (oldObj != null) {
-				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
+				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.hourFormatter());
 				List gKeys = groupKeys;
 				String ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 				if (oldColName != null && ocrk != null) {
@@ -77,7 +63,7 @@ public class CounterHelper
 
 					if (ROLL_UP_COUNTS) {
 						// all days row
-						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT);
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.dayFormatter());
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
@@ -85,7 +71,7 @@ public class CounterHelper
 
 						/** COMMON TO ALL**/
 						// all months row
-						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_MONTH_FORMAT);
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.monthFormatter());
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
@@ -94,22 +80,22 @@ public class CounterHelper
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys.get(0)))+"THH");
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.hourFormatter());
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UtcDate.yearFormatter().format(oldObj.getProperty(groupKeys.get(0)))+"THH");
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 						/** ALTERNATE THREE (current) **/
 						// specific month/hour row
-						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(oldObj.getProperty(groupKeys.get(0))));
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.hourFormatter());
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UtcDate.monthFormatter().format(oldObj.getProperty(groupKeys.get(0))));
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 
 						/** COMMON TO TWO AND THREE **/
 						// specific year/day row
-						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_DAY_FORMAT);
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(oldObj.getProperty(groupKeys.get(0))));
+						oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.dayFormatter());
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UtcDate.yearFormatter().format(oldObj.getProperty(groupKeys.get(0))));
 						ocrk = KeyHelper.counterRowKey(whereKeys, gKeys, oldObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 					}
@@ -117,7 +103,7 @@ public class CounterHelper
 			}
 
 			if (thisObj != null) {
-				String colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
+				String colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.hourFormatter());
 				List<String> gKeys = groupKeys;
 				String crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
 				if (colName != null && crk != null) {
@@ -129,14 +115,14 @@ public class CounterHelper
 
 					if (ROLL_UP_COUNTS) {
 						// all days row
-						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT);
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.dayFormatter());
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM-dd");
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 						/** COMMON TO ALL**/
 						// all month row
-						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_MONTH_FORMAT);
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.monthFormatter());
 						gKeys = KeyHelper.makeGroupKeyList(groupKeys, "yyyy-MM");
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
@@ -145,22 +131,22 @@ public class CounterHelper
 					if (WRITE_ALTERNATES) {
 						/** ALTERNATE TWO **/
 						// specific year/hour row (currently not used)
-						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys.get(0)))+"THH");
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.hourFormatter());
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UtcDate.yearFormatter().format(thisObj.getProperty(groupKeys.get(0)))+"THH");
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 						/** ALTERNATE THREE (current) **/
 						// specific month/hour row
-						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_MONTH_FORMAT.format(thisObj.getProperty(groupKeys.get(0))));
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.hourFormatter());
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UtcDate.monthFormatter().format(thisObj.getProperty(groupKeys.get(0))));
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 
 						/** COMMON TO TWO AND THREE **/
 						// specific year/day row
-						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_DAY_FORMAT);
-						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UTC_YEAR_FORMAT.format(thisObj.getProperty(groupKeys.get(0))));
+						colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.dayFormatter());
+						gKeys = KeyHelper.makeGroupKeyList(groupKeys, UtcDate.yearFormatter().format(thisObj.getProperty(groupKeys.get(0))));
 						crk = KeyHelper.counterRowKey(whereKeys, gKeys, thisObj);
 						persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
 					}
@@ -169,14 +155,14 @@ public class CounterHelper
 		}
 		else {
 			if (oldObj != null) {
-				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UTC_HOUR_FORMAT);
+				String oldColName = CounterHelper.counterColumnName(groupKeys, oldObj, UtcDate.hourFormatter());
 				String ocrk = KeyHelper.counterRowKey(whereKeys, groupKeys, oldObj);
 				if (oldColName != null && ocrk != null) {
 					persistence.incrementCounterColumn(m, counterColumnFamily, ocrk, oldColName, -1L);
 				}
 			}
 			if (thisObj != null) {
-				String colName = CounterHelper.counterColumnName(groupKeys, thisObj, UTC_HOUR_FORMAT);
+				String colName = CounterHelper.counterColumnName(groupKeys, thisObj, UtcDate.hourFormatter());
 				String crk = KeyHelper.counterRowKey(whereKeys, groupKeys, thisObj);
 				if (colName != null && crk != null) {
 					persistence.incrementCounterColumn(m, counterColumnFamily, crk, colName, 1L);
@@ -226,13 +212,13 @@ public class CounterHelper
 	{
 		switch(grain) {
 			case Calendar.YEAR:
-				return UTC_YEAR_FORMAT;
+				return UtcDate.yearFormatter();
 			case Calendar.MONTH:
-				return UTC_MONTH_FORMAT;
+				return UtcDate.monthFormatter();
 			case Calendar.DAY_OF_MONTH:
-				return UTC_DAY_FORMAT;
+				return UtcDate.dayFormatter();
 			default:
-				return UTC_HOUR_FORMAT;
+				return UtcDate.hourFormatter();
 		}
 	}
 
@@ -287,8 +273,8 @@ public class CounterHelper
 					 ks,
 					 cf,
 					 rowKey,
-					 start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : '',
-					 finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT) : '',
+					 start ? KeyHelper.counterColumnKey(start, UtcDate.hourFormatter()) : '',
+					 finish ? KeyHelper.counterColumnKey(finish, UtcDate.hourFormatter()) : '',
 					 reversed ?: false,
 					 MAX_COUNTER_COLUMNS,
 					 consistencyLevel)
@@ -340,7 +326,7 @@ public class CounterHelper
 			 if (!start) {
 				 def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter, consistencyLevel)
 				 if (day) {
-					 start = UTC_MONTH_FORMAT.parse(day)
+					 start = UtcDate.monthFormatter().parse(day)
 				 }
 			 }
 
@@ -397,7 +383,7 @@ public class CounterHelper
 			 rowFilterList.each {filter ->
 					 def day = getEarliestDay(persistence, ks, cf, counterDef.findBy, groupBy, filter, consistencyLevel)
 				 if (day) {
-					 def date = UTC_MONTH_FORMAT.parse(day)
+					 def date = UtcDate.monthFormatter().parse(day)
 					 if (firstStart == null || date.before(firstStart)) {
 						 firstStart = date
 					 }
@@ -405,7 +391,7 @@ public class CounterHelper
 			 }
 		 }
 
-		 def dateRangeParser = new DateRangeParser(firstStart, finish, UTC)
+		 def dateRangeParser = new DateRangeParser(firstStart, finish, TimeZone.getTimeZone("GMT"))
 		 def dateRanges = dateRangeParser.dateRanges
 
 		 def result = new NestedHashMap()
@@ -470,8 +456,8 @@ public class CounterHelper
 				 ks,
 				 cf,
 				 rowKey,
-				 start ? KeyHelper.counterColumnKey(start, UTC_MONTH_FORMAT) : null,
-				 finish ? KeyHelper.counterColumnKey(finish, UTC_MONTH_FORMAT)+END_CHAR : null,
+				 start ? KeyHelper.counterColumnKey(start, UtcDate.monthFormatter()) : null,
+				 finish ? KeyHelper.counterColumnKey(finish, UtcDate.monthFormatter())+END_CHAR : null,
 				 false,
 				 MAX_COUNTER_COLUMNS,
 				 consistencyLevel))
@@ -486,8 +472,8 @@ public class CounterHelper
 				 ks,
 				 cf,
 				 rowKey,
-				 start ? KeyHelper.counterColumnKey(start, UTC_DAY_FORMAT) : null,
-				 finish ? KeyHelper.counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				 start ? KeyHelper.counterColumnKey(start, UtcDate.dayFormatter()) : null,
+				 finish ? KeyHelper.counterColumnKey(finish, UtcDate.dayFormatter())+END_CHAR : null,
 				 false,
 				 MAX_COUNTER_COLUMNS,
 				 consistencyLevel))
@@ -502,8 +488,8 @@ public class CounterHelper
 				 ks,
 				 cf,
 				 rowKey,
-				 start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-				 finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				 start ? KeyHelper.counterColumnKey(start, UtcDate.hourFormatter()) : null,
+				 finish ? KeyHelper.counterColumnKey(finish, UtcDate.hourFormatter())+END_CHAR : null,
 				 false,
 				 MAX_COUNTER_COLUMNS,
 				 consistencyLevel))
@@ -512,7 +498,7 @@ public class CounterHelper
 
 	 public static private getShardedDayRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	 {
-		 def cal = Calendar.getInstance(UTC)
+		 def cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
 		 cal.setTime(start)
 		 cal.set(Calendar.MONTH, 0)
 		 cal.set(Calendar.DAY_OF_MONTH, 1)
@@ -523,7 +509,7 @@ public class CounterHelper
 
 		 def rowKeys = []
 		 while (cal.time.before(finish)) {
-			 def groupKeys = KeyHelper.makeGroupKeyList(groupBy, UTC_YEAR_FORMAT.format(cal.time))
+			 def groupKeys = KeyHelper.makeGroupKeyList(groupBy, UtcDate.yearFormatter().format(cal.time))
 			 rowKeys << KeyHelper.counterRowKey(findBy, groupKeys, filter)
 			 cal.add(Calendar.YEAR, 1)
 		 }
@@ -532,8 +518,8 @@ public class CounterHelper
 				 ks,
 				 cf,
 				 rowKeys,
-				 start ? KeyHelper.counterColumnKey(start, UTC_DAY_FORMAT) : null,
-				 finish ? KeyHelper.counterColumnKey(finish, UTC_DAY_FORMAT)+END_CHAR : null,
+				 start ? KeyHelper.counterColumnKey(start, UtcDate.dayFormatter()) : null,
+				 finish ? KeyHelper.counterColumnKey(finish, UtcDate.dayFormatter())+END_CHAR : null,
 				 false,
 				 MAX_COUNTER_COLUMNS,
 				 consistencyLevel), persistence)
@@ -541,7 +527,7 @@ public class CounterHelper
 
 	 public static private getShardedHourRange(persistence, ks, cf, findBy, groupBy, filter, start, finish, consistencyLevel)
 	 {
-		 def cal = Calendar.getInstance(UTC)
+		 def cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"))
 		 cal.setTime(start)
 		 cal.set(Calendar.DAY_OF_MONTH, 1)
 		 cal.set(Calendar.HOUR_OF_DAY, 0)
@@ -551,7 +537,7 @@ public class CounterHelper
 
 		 def rowKeys = []
 		 while (cal.time.before(finish)) {
-			 def format = UTC_MONTH_FORMAT.format(cal.time)
+			 def format = UtcDate.monthFormatter().format(cal.time)
 			 def groupKeys = KeyHelper.makeGroupKeyList(groupBy, format)
 			 rowKeys << KeyHelper.counterRowKey(findBy, groupKeys, filter)
 			 cal.add(Calendar.MONTH, 1)
@@ -561,8 +547,8 @@ public class CounterHelper
 				 ks,
 				 cf,
 				 rowKeys,
-				 start ? KeyHelper.counterColumnKey(start, UTC_HOUR_FORMAT) : null,
-				 finish ? KeyHelper.counterColumnKey(finish, UTC_HOUR_FORMAT)+END_CHAR : null,
+				 start ? KeyHelper.counterColumnKey(start, UtcDate.hourFormatter()) : null,
+				 finish ? KeyHelper.counterColumnKey(finish, UtcDate.hourFormatter())+END_CHAR : null,
 				 false,
 				 MAX_COUNTER_COLUMNS,
 				 consistencyLevel), persistence)

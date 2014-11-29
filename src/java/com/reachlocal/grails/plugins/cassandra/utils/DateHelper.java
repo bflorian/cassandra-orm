@@ -38,16 +38,20 @@ public class DateHelper
 		DateFormat format;
 		switch (grain) {
 			case Calendar.DAY_OF_MONTH:
-				format = new SimpleDateFormat("yyyy-MM-dd");
+				//format = new SimpleDateFormat("yyyy-MM-dd");
+				format = UtcDate.formatter("yyyy-MM-dd");
 				break;
 			case Calendar.MONTH:
-				format = new SimpleDateFormat("yyyy-MM");
+				//format = new SimpleDateFormat("yyyy-MM");
+				format = UtcDate.formatter("yyyy-MM");
 				break;
 			case Calendar.YEAR:
-				format = new SimpleDateFormat("yyyy");
+				//format = new SimpleDateFormat("yyyy");
+				format = UtcDate.formatter("yyyy");
 				break;
 			case Calendar.HOUR_OF_DAY:
-				format = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+				//format = new SimpleDateFormat("yyyy-MM-dd'T'HH");
+				format = UtcDate.formatter("yyyy-MM-dd'T'HH");
 				break;
 			default:
 				throw new InvalidParameterException("Specified time grain is not supported.  Must be HOUR_OF_DAY, DAY_OF_MONTH, MONTH, or YEAR");

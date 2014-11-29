@@ -40,10 +40,9 @@ public class DateRange
 
 	public String toString()
 	{
-		return "[start: " + TF.format(this.start) + ", finish: " + TF.format(this.finish) + ", grain: " + label(this.grain) + "]";
+		DateFormat tf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+		return "[start: " + tf.format(this.start) + ", finish: " + tf.format(this.finish) + ", grain: " + label(this.grain) + "]";
 	}
-
-	static private DateFormat TF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
 	static private String label(int grain)
 	{

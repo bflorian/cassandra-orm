@@ -19,8 +19,6 @@ package com.reachlocal.grails.plugins.cassandra.utils;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import groovy.lang.GroovyObject;
 import groovy.lang.MetaProperty;
@@ -134,7 +132,7 @@ public class DataMapper
 			return new ObjectMapper().writeValueAsString(value);
 		}
 		else if (value instanceof Date) {
-			return ISO_TS.format(value);
+			return UtcDate.isoFormatter().format(value);
 		}
 		else if (value instanceof Boolean || value instanceof byte[] || value instanceof ByteBuffer) {
 			return value;
@@ -151,10 +149,8 @@ public class DataMapper
 	public static final String DIRTY_SUFFIX = "_dirty";
 	public static final String CLUSTER_PROP = "_cassandra_cluster_";
 	static HashSet<String> GLOBAL_TRANSIENTS = new LinkedHashSet<String>();
-	static DateFormat ISO_TS = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	static {
-		ISO_TS.setTimeZone(TimeZone.getTimeZone("GMT"));
 
+	static {
 		GLOBAL_TRANSIENTS.add("class");
 		GLOBAL_TRANSIENTS.add("id");
 		GLOBAL_TRANSIENTS.add("cassandra");
