@@ -105,6 +105,14 @@ class OrmHelperTests
 		assertEquals key1a[0][0], "one"
 		assertEquals key1a[1][0], "oneA"
 
+		def key1b = OrmHelper.expandNestedArray([new Expando(id: "id-one", value: "one"),["twoA","twoB"]])
+		println key1b
+		assertEquals 1, key1.size()
+		assertEquals "id-one", key1b[0][0].id
+		assertEquals "twoA", key1b[0][1]
+		assertEquals "id-one", key1b[1][0].id
+		assertEquals "twoB", key1b[1][1]
+
 		def key2 = OrmHelper.expandNestedArray(["one",["twoA","twoB"],"three"])
 		println key2
 		assertEquals 2, key2.size()

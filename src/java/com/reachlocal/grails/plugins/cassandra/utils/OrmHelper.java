@@ -219,9 +219,9 @@ public class OrmHelper
 		return sorted;
 	}
 
-	public static List<List<String>> expandNestedArray(List params)
+	public static List<List<Object>> expandNestedArray(List params)
 	{
-		List<List<String>> result = new ArrayList<List<String>>(params.size());
+		List<List<Object>> result = new ArrayList<List<Object>>(params.size());
 
 		Integer len = 1;
 		List<Integer> lengths = new ArrayList<Integer>(params.size());
@@ -237,7 +237,7 @@ public class OrmHelper
 		}
 
 		for (int i=0; i < len; i++) {
-			result.add(new ArrayList<String>());
+			result.add(new ArrayList<Object>());
 		}
 
 		int pindex = 0;
@@ -245,24 +245,24 @@ public class OrmHelper
 			if (value instanceof List) {
 				List valueList = (List)value;
 				int index = 0;
-				for (List<String> item: result) {
+				for (List<Object> item: result) {
 					int i = (index * lengths.get(pindex) / len) % valueList.size();
-					item.add(String.valueOf(valueList.get(i)));
+					item.add(valueList.get(i));
 					index++;
 				}
 			}
 			else if (value != null && value.getClass().isArray()) {
-				String[] valueList = (String[])value;
+				Object[] valueList = (Object[])value;
 				int index = 0;
-				for (List<String> item: result) {
+				for (List<Object> item: result) {
 					int i = (index * lengths.get(pindex) / len) % valueList.length;
 					item.add(valueList[i]);
 					index++;
 				}
 			}
 			else {
-				for (List<String> item: result) {
-					item.add(String.valueOf(value));
+				for (List<Object> item: result) {
+					item.add(value);
 				}
 			}
 			pindex++;
