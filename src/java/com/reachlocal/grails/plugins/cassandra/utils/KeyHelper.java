@@ -252,7 +252,7 @@ public class KeyHelper
 			}
 			else {
 				result = new ArrayList<String>(valueList.size());
-				List<List<String>> v2 = OrmHelper.expandNestedArray(valueList);
+				List<List<Object>> v2 = OrmHelper.expandNestedArray(valueList);
 				for (List values: v2) {
 					List<List> pairs = new ArrayList<List>();
 					int index = 0;
