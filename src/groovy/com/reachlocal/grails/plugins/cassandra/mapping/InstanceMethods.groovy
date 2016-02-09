@@ -484,12 +484,12 @@ class InstanceMethods extends MappingUtils
 		}
 
 		// insert(properties)
-		clazz.metaClass.insert = {properties, timeToLive=null, consistencyLevel=null ->
+		clazz.metaClass.insert = {properties, options=[:] ->
 			def thisObj = delegate
-			def ttl = timeToLive ?: cassandraMapping.timeToLive
+			def ttl = options.ttl ?: cassandraMapping.timeToLive
 			def persistence = cassandra.persistence
 			cassandra.withKeyspace(thisObj.keySpace, thisObj.cassandraCluster) {ks ->
-				def m = persistence.prepareMutationBatch(ks, consistencyLevel)
+				def m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 
 				// check one-to-one relationship properties
 				def keyDeleted = false
@@ -515,7 +515,7 @@ class InstanceMethods extends MappingUtils
 				// commit deletion of relationship keys
 				if (keyDeleted) {
 					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, consistencyLevel)
+					m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 				}
 
 				// manage index rows
@@ -565,7 +565,7 @@ class InstanceMethods extends MappingUtils
 				// delete old index row keys
 				if (oldIndexRows) {
 					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, consistencyLevel)
+					m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 				}
 
 				// insert this object
@@ -780,7 +780,7 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// addTo...
-				clazz.metaClass."${addToName}" = { item, consistencyLevel=null ->
+				clazz.metaClass."${addToName}" = { item, options=[:] ->
 					def thisObj = delegate
 					def persistence = cassandra.persistence
 					if (thisObj.getProperty(CLUSTER_PROP)) {
@@ -802,7 +802,7 @@ class InstanceMethods extends MappingUtils
 
 					// add the indexes
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
-						def m = persistence.prepareMutationBatch(ks, consistencyLevel)
+						def m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 
 						// save join row from this object to the item
 						saveJoinRow(cassandra.persistence, m, clazz, thisObj, item.class, item, propName)
@@ -813,13 +813,13 @@ class InstanceMethods extends MappingUtils
 				}
 
 				// removeFrom...
-				clazz.metaClass."${removeFromName}" = { item, consistencyLevel=null ->
+				clazz.metaClass."${removeFromName}" = { item, options=[:] ->
 					def thisObj = delegate
 					def persistence = cassandra.persistence
 					OrmHelper.safeSetProperty(thisObj, propName, null)
 
 					cassandra.withKeyspace(delegate.keySpace, delegate.cassandraCluster) {ks ->
-						def m = persistence.prepareMutationBatch(ks, consistencyLevel)
+						def m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 
 						// remove join row from this object to the item
 						removeJoinRow(persistence, m, clazz, thisObj, item.class, item, propName)
@@ -874,6 +874,11 @@ class InstanceMethods extends MappingUtils
 
 				// getter
 				clazz.metaClass."${getterName}" = {
+					delegate."${propName}"()
+				}
+
+				// getter function
+				clazz.metaClass."${propName}" = {args=[:] ->
 					def value = PropertyUtils.getProperty(delegate, propName)
 					if (value == null) {
 						def persistence = cassandra.persistence
@@ -885,7 +890,7 @@ class InstanceMethods extends MappingUtils
 						//def id = PropertyUtils.getProperty(delegate, "${propName}${KEY_SUFFIX}")
 
 						cassandra.withKeyspace(keySpace, cassandraCluster) {ks ->
-							def consistencyLevel = null //TODO - this OK?
+							def consistencyLevel = args.consistencyLevel
 							def colName = "${propName}${KEY_SUFFIX}".toString()
 							def cols = persistence.getColumnSlice(ks, columnFamily, thisObj.id, [colName], consistencyLevel)
 							def col = persistence.getColumn(cols, colName)
@@ -903,6 +908,11 @@ class InstanceMethods extends MappingUtils
 
 				// id getter
 				clazz.metaClass."${getterName}Id" = {
+					delegate."${propName}Id"()
+				}
+
+				// id getter function
+				clazz.metaClass."${propName}Id" = {
 					def result = null
 					def value = PropertyUtils.getProperty(delegate, propName)
 					if (value?.id) {
