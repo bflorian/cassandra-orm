@@ -150,7 +150,7 @@ class InstanceMethodTests extends OrmTestCase
 		persistence.printClear()
 
 		println "\n--- userGroup.insert(name: JUG2) ---"
-		userGroup3.insert([name: 'GUG2'], 75)
+		userGroup3.insert([name: 'GUG2'], [ttl: 75, consistencyLevel: "CL_QUORUM"])
 		persistence.printClear()
 
 		println "\n--- userGroup.color [EXPANDO] ---"
@@ -310,8 +310,20 @@ class InstanceMethodTests extends OrmTestCase
 		println "${r} (${r?.uuid})"
 		assertNotNull r
 
+		println "\n--- user4.userGroup() ---"
+		r = user4.userGroup(consistencyLevel: "CL_QUORUM")
+		persistence.printClear()
+		println "${r} (${r?.uuid})"
+		assertNotNull r
+
 		println "\n--- user4.userGroupId ---"
 		r = user4.userGroupId
+		persistence.printClear()
+		println r
+		assertEquals "group2-zzzz-zzzz", r
+
+		println "\n--- user4.userGroupId() ---"
+		r = user4.userGroupId(consistencyLevel: "CL_QUORUM")
 		persistence.printClear()
 		println r
 		assertEquals "group2-zzzz-zzzz", r
