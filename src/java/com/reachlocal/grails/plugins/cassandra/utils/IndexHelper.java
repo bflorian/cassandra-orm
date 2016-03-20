@@ -44,5 +44,12 @@ public class IndexHelper
 				}
 			}
 		}
+
+		for (Object key: oldIndexRows.keySet().toArray()) {
+			if (indexRows.containsKey(key)) {
+				oldIndexRows.remove(key);
+				indexRows.remove(key);
+			}
+		}
 	}
 }

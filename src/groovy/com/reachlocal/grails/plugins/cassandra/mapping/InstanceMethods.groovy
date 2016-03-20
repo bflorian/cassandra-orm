@@ -151,7 +151,6 @@ class InstanceMethods extends MappingUtils
 				def oldObj = args?.nocheck ? null : clazz.get(id, [cluster:cluster])
 
 				// one-to-one relationships
-				def keyDeleted = false
 				DataMapper.dirtyPropertyNames(thisObj).each {name ->
 
 					// need to save object (if cascading) and remove the key column from cassandra if its
@@ -166,7 +165,6 @@ class InstanceMethods extends MappingUtils
 							thisObj.setProperty(name, null)
 							def cName = "${pName}${KEY_SUFFIX}".toString()
 							persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
-							keyDeleted = true
 
 							// back links
 							if (!(dValue instanceof Boolean)) {
@@ -189,12 +187,6 @@ class InstanceMethods extends MappingUtils
 					}
 				}
 
-				// commit deletion of relationship keys
-				if (keyDeleted) {
-					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
-				}
-
 				// manage index rows
 				def indexRows = [:]
 				def oldIndexRows = [:]
@@ -214,12 +206,6 @@ class InstanceMethods extends MappingUtils
 					col.each {colKey, v ->
 						persistence.deleteColumn(m, indexColumnFamily, rowKey, colKey)
 					}
-				}
-
-				// delete old index row keys
-				if (oldIndexRows) {
-					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
 				}
 
 				// insert this object
@@ -339,7 +325,6 @@ class InstanceMethods extends MappingUtils
 				t0 = t1
 
 				// one-to-one relationships
-				def keyDeleted = false
 				DataMapper.dirtyPropertyNames(thisObj).each {name ->
 
 					// need to save object (if cascading) and remove the key column from cassandra if its
@@ -354,7 +339,6 @@ class InstanceMethods extends MappingUtils
 							thisObj.setProperty(name, null)
 							def cName = "${pName}${KEY_SUFFIX}".toString()
 							persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
-							keyDeleted = true
 
 							// back links
 							if (!(dValue instanceof Boolean)) {
@@ -381,12 +365,6 @@ class InstanceMethods extends MappingUtils
 				t1 = System.nanoTime()
 				profiler.increment("Save - 1:1 Relationships", t1-t0)
 				t0 = t1
-
-				// commit deletion of relationship keys
-				if (keyDeleted) {
-					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
-				}
 
 				// TIMER
 				t1 = System.nanoTime()
@@ -424,13 +402,6 @@ class InstanceMethods extends MappingUtils
 				t1 = System.nanoTime()
 				profiler.increment("Save - Explicit Index Generation", t1-t0)
 				t0 = t1
-
-
-				// delete old index row keys
-				if (oldIndexRows) {
-					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, args?.consistencyLevel)
-				}
 
 				// TIMER
 				t1 = System.nanoTime()
@@ -492,7 +463,6 @@ class InstanceMethods extends MappingUtils
 				def m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 
 				// check one-to-one relationship properties
-				def keyDeleted = false
 				properties.each {name, value ->
 					if (value == null) {
 						try {
@@ -500,7 +470,6 @@ class InstanceMethods extends MappingUtils
 							if (prop != null && OrmHelper.isMappedObject(prop)) {
 								def cName = "${pName}${KEY_SUFFIX}".toString()
 								persistence.deleteColumn(m, thisObj.columnFamily, thisObj.id, cName)
-								keyDeleted = true
 							}
 						}
 						catch (NoSuchMethodException e) {
@@ -510,12 +479,6 @@ class InstanceMethods extends MappingUtils
 							}
 						}
 					}
-				}
-
-				// commit deletion of relationship keys
-				if (keyDeleted) {
-					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
 				}
 
 				// manage index rows
@@ -562,12 +525,6 @@ class InstanceMethods extends MappingUtils
 					}
 				}
 
-				// delete old index row keys
-				if (oldIndexRows) {
-					persistence.execute(m)
-					m = persistence.prepareMutationBatch(ks, options.consistencyLevel)
-				}
-
 				// insert this object
 				def dataProperties = cassandra.mapping.dataProperties(properties)
 				persistence.putColumns(m, thisObj.columnFamily, id, dataProperties, ttl)
@@ -582,7 +539,6 @@ class InstanceMethods extends MappingUtils
 				// increment new counters
 				// TODO - filter out those not in properties?
 				CounterHelper.updateAllCounterColumns(persistence, counterColumnFamily, cassandraMapping.counters, m, null, thisObj)
-
 
 				persistence.execute(m)
 			}
