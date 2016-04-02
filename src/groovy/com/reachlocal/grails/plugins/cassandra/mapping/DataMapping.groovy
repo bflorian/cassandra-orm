@@ -20,10 +20,13 @@ import com.reachlocal.grails.plugins.cassandra.utils.DataMapper
 import com.reachlocal.grails.plugins.cassandra.utils.KeyHelper
 import com.reachlocal.grails.plugins.cassandra.utils.OrmHelper
 import com.reachlocal.grails.plugins.cassandra.utils.UtcDate
+import groovy.util.logging.Commons
 
 /**
  * @author: Bob Florian
  */
+
+@Commons
 class DataMapping extends MappingUtils
 {
 	def persistence
@@ -47,13 +50,19 @@ class DataMapping extends MappingUtils
 	{
 		def result = collectionClass.newInstance()
 		if (options.columns) {
-			rows.each{result << newColumnMap(it.columns, options.columns)}
+			rows.each{
+				result << newColumnMap(it.columns, options.columns)
+			}
 		}
 		else if (options.column) {
-			rows.each{result << it.columns.getColumnByName(options.column)}
+			rows.each {
+				result << it.columns.getColumnByName(options.column)
+			}
 		}
 		else {
-			rows.each{result << newObject(it.key, it.columns, clazz, options.cluster)}
+			rows.each {
+				result << newObject(it.key, it.columns, clazz, options.cluster)
+			}
 		}
 		return result
 	}
@@ -62,19 +71,59 @@ class DataMapping extends MappingUtils
 	{
 		def result = collectionClass.newInstance()
 		if (options.columns) {
-			keys.each{result << newColumnMap(persistence.getRow(rows, it), options.columns)}
+			keys.each {
+				def row = persistence.getRow(rows, it)
+				if (row.columns) {
+					result << newColumnMap(row, options.columns)
+				}
+				else {
+					log.error("Row not found for key '$it' of class $clazz")
+				}
+			}
 		}
 		else if (options.rawColumns) {
-			keys.each{result << newRawColumnMap(persistence.getRow(rows, it), options.rawColumns)}
+			keys.each {
+				def row = persistence.getRow(rows, it)
+				if (row.columns) {
+					result << newRawColumnMap(row, options.rawColumns)
+				}
+				else {
+					log.error("Row not found for key '$it' of class $clazz")
+				}
+			}
 		}
 		else if (options.column) {
-			keys.each{result << persistence.stringValue(persistence.getColumn(persistence.getRow(rows, it), options.column))}
+			keys.each {
+				def row = persistence.getRow(rows, it)
+				if (row.columns) {
+					result << persistence.stringValue(persistence.getColumn(row, options.column))
+				}
+				else {
+					log.error("Row not found for key '$it' of class $clazz")
+				}
+			}
 		}
 		else if (options.rawColumn) {
-			keys.each{result << persistence.byteArrayValue(persistence.getColumn(persistence.getRow(rows, it), options.rawColumn))}
+			keys.each {
+				def row = persistence.getRow(rows, it)
+				if (row.columns) {
+					result << persistence.byteArrayValue(persistence.getColumn(row, options.rawColumn))
+				}
+				else {
+					log.error("Row not found for key '$it' of class $clazz")
+				}
+			}
 		}
 		else {
-			keys.each{result << newObject(it, persistence.getRow(rows, it), clazz, options.cluster)}
+			keys.each {
+				def row = persistence.getRow(rows, it)
+				if (row?.columns) {
+					result << newObject(it, row, clazz, options.cluster)
+				}
+				else {
+					log.error("Row not found for key '$it' of class $clazz")
+				}
+			}
 		}
 		return result
 	}
